@@ -105,6 +105,12 @@ namespace HelpTeacher.Classes
             return false;
         }
 
+        public static void arquivoAberto()
+        {
+            MessageBox.Show("O arquivo esta aberto. Feche o arquivo primeiro e tente novamente!", "Arquivo aberto",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         // PESQUISA PESQUISA  PESQUISA PESQUISA PESQUISA PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  //
         // PESQUISA PESQUISA  PESQUISA PESQUISA PESQUISA PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  //
         public static void erroInesperado()
@@ -112,6 +118,25 @@ namespace HelpTeacher.Classes
             MessageBox.Show("Um erro inesperado ocorreu. \nContate o administrador do sistema.", 
                     "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+
+        public static void arquivoAtualizado()
+        {
+            MessageBox.Show("Arquivo atualizado com sucesso!",
+                    "Arquivo", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        }
+
+        public static void arquivoInserido()
+        {
+            MessageBox.Show("Arquivo inserido com sucesso!",
+                    "Arquivo", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        }
+
+        public static void arquivoExcluido()
+        {
+            MessageBox.Show("Arquivo excluido com sucesso!",
+                    "Arquivo", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        }
+
 
         // CONFIGURAÇÕES CONFIGURAÇÕES  CONFIGURAÇÕES CONFIGURAÇÕES CONFIGURAÇÕES CONFIGURAÇÕES  CONFIGURAÇÕES  //
         // CONFIGURAÇÕES CONFIGURAÇÕES  CONFIGURAÇÕES CONFIGURAÇÕES CONFIGURAÇÕES CONFIGURAÇÕES  CONFIGURAÇÕES  //
@@ -133,6 +158,7 @@ namespace HelpTeacher.Classes
             MessageBox.Show("Inicie a aplicação para tentar novamente", "Procedimento Finalizado",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
 
         public static void senhasDiferentes()
         {

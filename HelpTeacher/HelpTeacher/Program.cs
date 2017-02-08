@@ -18,19 +18,10 @@ namespace HelpTeacher
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Login loga = new Login();
+            Principal loga = new Principal();
             if (loga.ShowDialog() == DialogResult.OK)
             {
-                Application.Run(new Principal());
-
-                /* Depois que a aplicação for encerrada, verifica se
-                 * o usuário deseja para o banco de dados
-                 */
-                if (Usuario.StopBD.Equals("*"))
-                {
-                    ConexaoBanco banco = new ConexaoBanco();
-                    banco.stopBanco();
-                }
+                Application.Run(new Principal());                
             }
             else
             {

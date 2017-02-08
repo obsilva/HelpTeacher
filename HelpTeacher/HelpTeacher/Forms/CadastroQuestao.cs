@@ -101,8 +101,10 @@ namespace HelpTeacher.Forms
         {
             if (cadastrarQuestao())
             {
+                salvaMaterias();                
                 limpaForm();
                 Mensagem.cadastradoEfetuado();
+                atualizaCodigoQuestao();
             }
             else
             {
@@ -141,8 +143,7 @@ namespace HelpTeacher.Forms
         private Boolean atualizaCMB()
         {
             if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-                        "FROM htc1 " +
-                        "WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+                        "FROM htc1 ", ref respostaBanco))
             {
                 if (respostaBanco.HasRows)
                 {
@@ -177,8 +178,7 @@ namespace HelpTeacher.Forms
                             StringSplitOptions.RemoveEmptyEntries);
                 if (banco.executeComando("SELECT C2_COD, C2_NOME " +
                             "FROM htc2 " +
-                            "WHERE C2_CURSO = " + codigo[0] +
-                                " AND D_E_L_E_T IS NULL", ref respostaBanco))
+                            "WHERE C2_CURSO = " + codigo[0] , ref respostaBanco))
                 {
                     chkDisciplinas.Items.Clear();
                     chkMaterias.Items.Clear();
@@ -208,8 +208,7 @@ namespace HelpTeacher.Forms
                             StringSplitOptions.RemoveEmptyEntries);
                 if (banco.executeComando("SELECT C3_COD, C3_NOME " +
                             "FROM htc3 " +
-                            "WHERE C3_DISCIPL = " + codigo[0] +
-                                " AND D_E_L_E_T IS NULL", ref respostaBanco))
+                            "WHERE C3_DISCIP = " + codigo[0], ref respostaBanco))
                 {
                     if (respostaBanco.HasRows)
                     {
@@ -222,6 +221,19 @@ namespace HelpTeacher.Forms
                     banco.fechaConexao();
                 }
             }
+        }
+
+        /* cadastra as materias relacionadas a questão */
+        private void salvaMaterias()
+        {
+            foreach (String materia in chkMaterias.CheckedItems)
+             {
+                 String[] codigo = materia.Split(new char[] { '(', ')', ' ' },
+                          StringSplitOptions.RemoveEmptyEntries);
+
+                 if (banco.executeComando("INSERT INTO htb3 VALUES (NULL, " +
+                          txtCodQuestao.Text + "," + codigo[0] + ",'" + 0 + "','" + 0 + "','" + 0 + "')")) ;                    
+             }
         }
 
         /* cadastrarQuestao
@@ -242,9 +254,9 @@ namespace HelpTeacher.Forms
                     //Dissertativa
                     if (radDissertativa.Checked == true)
                     {
-                        if (!banco.executeComando("INSERT INTO htb1 (B1_QUEST, B1_MATERIA) " +
-                                    "VALUES ('" + txtQuestao.Text + "', '" +
-                                    codigo[0] + "')"))
+                        if (!banco.executeComando("INSERT INTO htb1 " +
+                                    "VALUES (NULL, '" + txtQuestao.Text + "', '" +
+                                    0 + "')"))
                         {
                             return false;
                         }
@@ -266,7 +278,7 @@ namespace HelpTeacher.Forms
                                         "c) " + txtAlternativaC.Text +
                                         Environment.NewLine +
                                         "d) " + txtAlternativaD.Text +
-                                        "', '*', NULL, NULL, " + codigo[0] + ", NULL, NULL)"))
+                                        "','" + 1 + "')"))
                             {
                                 return false;
                             }
@@ -289,7 +301,7 @@ namespace HelpTeacher.Forms
 
                     if (!txtAlternativaE.Text.Equals(""))
                     {
-                        if (!banco.executeComando("UPDATE htb1 SET B1_QUEST = CONCAT(B1_QUEST, '" +
+                        if (!banco.executeComando("UPDATE htb1 SET B1_QUESTAO = CONCAT(B1_QUESTAO, '" +
                                         Environment.NewLine + "e) " + txtAlternativaE.Text +
                                     "') WHERE B1_COD = " + txtCodQuestao.Text))
                         {
@@ -300,28 +312,27 @@ namespace HelpTeacher.Forms
                     //Arquivos
                     if (!(txtArquivo1.Text.Equals("")) || !(txtArquivo2.Text.Equals("")))
                     {
-                        //Apenas 1 arquivo
-                        if ((txtArquivo1.Text.Equals("")) || (txtArquivo2.Text.Equals("")))
+                        if (banco.executeComando("INSERT INTO htb2 VALUES ('" +
+                                        Convert.ToInt32(txtCodQuestao.Text) + "', '" +
+                                        txtCodQuestao.Text + "_1'" + ",'" +
+                                        0 + "')"))
                         {
-                            if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-                                        txtCodQuestao.Text + "_1' WHERE B1_COD = " +
-                                        txtCodQuestao.Text))
-                            {
-                                copiaArquivo();
-                            }
+                            copiaArquivo();
                         }
+                       
                         //Dois arquivos
-                        else
+                        if (!(txtArquivo1.Text.Equals("")) && !(txtArquivo2.Text.Equals("")))
                         {
-                            if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-                                        txtCodQuestao.Text + "_1, " + txtCodQuestao.Text +
-                                        "_2' WHERE B1_COD = " + txtCodQuestao.Text))
+
+                            if (banco.executeComando("INSERT INTO htb2 VALUES (" +
+                                     Convert.ToInt32(txtCodQuestao.Text) + ", '" +
+                                     txtCodQuestao.Text + "_2'" + ",'" +
+                                     0 + "')"))
                             {
                                 copiaArquivo();
                             }
                         }
-                    }
-                    atualizaCodigoQuestao();
+                    }                    
                 }
                 return true;
             }

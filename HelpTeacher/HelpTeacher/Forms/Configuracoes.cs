@@ -24,15 +24,6 @@ namespace HelpTeacher.Forms
         private void Configuracoes_Load(object sender, EventArgs e)
         {
             txtLogin.Text = Usuario.Login;
-
-            if (Usuario.StopBD.Equals("*"))
-            {
-                chkStopBD.Checked = true;
-            }
-            else
-            {
-                chkStopBD.Checked = false;
-            }
         }
 
         private void txtLogin_Click(object sender, EventArgs e)
@@ -69,14 +60,14 @@ namespace HelpTeacher.Forms
         private Boolean alteraDados()
         {
 
-            if (banco.executeComando("UPDATE hta1 SET A1_LOGIN = '" + txtLogin.Text +
+            if (banco.executeComando("UPDATE hta1 SET A1_USUARIO = '" + txtLogin.Text +
                         "' WHERE A1_COD = " + Usuario.ID.ToString()))
             {
                 if (!(txtNovaSenha.Text.Equals("") && txtConfirmacao.Text.Equals("")))
                 {
                     if (txtNovaSenha.Text == txtConfirmacao.Text)
                     {
-                        if (!banco.executeComando("UPDATE hta1 SET A1_PWD = '" +
+                        if (!banco.executeComando("UPDATE hta1 SET A1_SENHA = '" +
                                     MD5.gerarHash(txtNovaSenha.Text) + "' " +
                                     "WHERE A1_COD = " + Usuario.ID.ToString()))
                         {
@@ -89,22 +80,7 @@ namespace HelpTeacher.Forms
                         return false;
                     }
                 }
-                if (chkStopBD.Checked)
-                {
-                    if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = '*'" +
-                                "WHERE A1_COD = " + Usuario.ID.ToString()))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = NULL " +
-                                "WHERE A1_COD = " + Usuario.ID.ToString()))
-                    {
-                        return false;
-                    }
-                }
+               
                 return true;
             }
             return false;
@@ -117,9 +93,8 @@ namespace HelpTeacher.Forms
                         "WHERE A1_COD = " + Usuario.ID.ToString(), ref respostaBanco))
             {
                 respostaBanco.Read();
-                Usuario.Login = respostaBanco["A1_LOGIN"].ToString();
-                Usuario.Password = respostaBanco["A1_PWD"].ToString();
-                Usuario.StopBD = respostaBanco["A1_STOPBD"].ToString();
+                Usuario.Login = respostaBanco["A1_USUARIO"].ToString();
+                Usuario.Password = respostaBanco["A1_SENHA"].ToString();
 
                 banco.fechaConexao();
                 respostaBanco.Close();

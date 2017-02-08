@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using HelpTeacher.Classes;
 using System.IO;
+using Word = Microsoft.Office.Interop.Word;
 
 namespace HelpTeacher.Forms
 {
@@ -25,8 +26,9 @@ namespace HelpTeacher.Forms
         public Principal()
         {
             InitializeComponent();
-
             verificaPasta();
+            verificaPastaHelp();
+            verificaPastaHistorico();
         }
         // FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  //
         // FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  //
@@ -36,6 +38,26 @@ namespace HelpTeacher.Forms
             if (!Directory.Exists(pastaArquivos))
             {
                 Directory.CreateDirectory(pastaArquivos);
+            }
+        }
+
+        private void verificaPastaHelp()
+        {
+            String documentos = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            String pastaHelp = documentos + "\\HelpTeacher";
+            if (!Directory.Exists(pastaHelp))
+            {
+                Directory.CreateDirectory(pastaHelp);
+            }
+        }
+
+        private void verificaPastaHistorico()
+        {
+            String documentos = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            String pastaHistorico = documentos + "\\HelpTeacher\\Historico";
+            if (!Directory.Exists(pastaHistorico))
+            {
+                Directory.CreateDirectory(pastaHistorico);
             }
         }
 
@@ -249,12 +271,10 @@ namespace HelpTeacher.Forms
         {
             menuAjuda.Enabled = true;
         }
-
-
-
-
+        
         // PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  //
         // PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  PESQUISA  //
+       
         private void busca(int origem)
         {
             telaPesquisa(origem);
@@ -277,5 +297,5 @@ namespace HelpTeacher.Forms
             pesquisarMenuConteudo.Enabled = true;
             historicoMenuAvaliacoes.Enabled = true;
         }
-    }
+   }
 }

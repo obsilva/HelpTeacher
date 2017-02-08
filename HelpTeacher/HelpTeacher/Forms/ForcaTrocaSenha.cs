@@ -44,9 +44,8 @@ namespace HelpTeacher.Forms
             if (txtNovaSenha.Text == txtConfirmacao.Text)
             {
                 banco.executeComando("UPDATE hta1 " +
-                        "SET A1_PWD = '" + MD5.gerarHash(txtNovaSenha.Text) +
-                            "', A1_ALTPWD = NULL " +
-                        "WHERE A1_COD = " + Usuario.ID.ToString());
+                        "SET A1_SENHA = '" + MD5.gerarHash(txtNovaSenha.Text) +                            
+                        " WHERE A1_COD = " + Usuario.ID.ToString());
                 this.DialogResult = DialogResult.OK;
             }
             else

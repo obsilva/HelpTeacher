@@ -63,12 +63,14 @@
             this.txtCodQuestao = new System.Windows.Forms.TextBox();
             this.btnBackspace1 = new System.Windows.Forms.Button();
             this.btnBackspace2 = new System.Windows.Forms.Button();
+            this.radVF = new System.Windows.Forms.RadioButton();
             this.grpTipoQuestao.SuspendLayout();
             this.pnlAlternativas.SuspendLayout();
             this.SuspendLayout();
             // 
             // grpTipoQuestao
             // 
+            this.grpTipoQuestao.Controls.Add(this.radVF);
             this.grpTipoQuestao.Controls.Add(this.radObjetiva);
             this.grpTipoQuestao.Controls.Add(this.radDissertativa);
             this.grpTipoQuestao.Location = new System.Drawing.Point(14, 52);
@@ -81,7 +83,7 @@
             // radObjetiva
             // 
             this.radObjetiva.AutoSize = true;
-            this.radObjetiva.Location = new System.Drawing.Point(25, 67);
+            this.radObjetiva.Location = new System.Drawing.Point(6, 54);
             this.radObjetiva.Name = "radObjetiva";
             this.radObjetiva.Size = new System.Drawing.Size(78, 18);
             this.radObjetiva.TabIndex = 1;
@@ -93,7 +95,7 @@
             // 
             this.radDissertativa.AutoSize = true;
             this.radDissertativa.Checked = true;
-            this.radDissertativa.Location = new System.Drawing.Point(25, 31);
+            this.radDissertativa.Location = new System.Drawing.Point(6, 30);
             this.radDissertativa.Name = "radDissertativa";
             this.radDissertativa.Size = new System.Drawing.Size(100, 18);
             this.radDissertativa.TabIndex = 0;
@@ -416,6 +418,17 @@
             this.btnBackspace2.UseVisualStyleBackColor = true;
             this.btnBackspace2.Click += new System.EventHandler(this.btnBackspace2_Click);
             // 
+            // radVF
+            // 
+            this.radVF.AutoSize = true;
+            this.radVF.Location = new System.Drawing.Point(6, 78);
+            this.radVF.Name = "radVF";
+            this.radVF.Size = new System.Drawing.Size(147, 18);
+            this.radVF.TabIndex = 2;
+            this.radVF.TabStop = true;
+            this.radVF.Text = "Verdadeiro ou falso";
+            this.radVF.UseVisualStyleBackColor = true;
+            // 
             // CadastroQuestao
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 14F);
@@ -493,5 +506,6 @@
         private System.Windows.Forms.TextBox txtCodQuestao;
         private System.Windows.Forms.Button btnBackspace1;
         private System.Windows.Forms.Button btnBackspace2;
+        private System.Windows.Forms.RadioButton radVF;
     }
 }

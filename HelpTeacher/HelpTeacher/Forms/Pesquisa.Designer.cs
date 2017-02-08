@@ -232,6 +232,7 @@
             this.radioButton1.TabStop = true;
             this.radioButton1.Text = "Não";
             this.radioButton1.UseVisualStyleBackColor = true;
+            this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
             // radQuestoesDeletadas
             // 
@@ -570,8 +571,8 @@
             this.txtPesquisaQuestoes.Name = "txtPesquisaQuestoes";
             this.txtPesquisaQuestoes.Size = new System.Drawing.Size(633, 22);
             this.txtPesquisaQuestoes.TabIndex = 37;
-            this.txtPesquisaQuestoes.TextChanged += new System.EventHandler(this.txtPesquisaQuestoes_TextChanged);
             this.txtPesquisaQuestoes.Click += new System.EventHandler(this.setaCursorClick);
+            this.txtPesquisaQuestoes.TextChanged += new System.EventHandler(this.txtPesquisaQuestoes_TextChanged);
             // 
             // cmbCampoQuestoes
             // 
@@ -749,8 +750,8 @@
             this.txtPesquisaCursos.Name = "txtPesquisaCursos";
             this.txtPesquisaCursos.Size = new System.Drawing.Size(270, 22);
             this.txtPesquisaCursos.TabIndex = 40;
-            this.txtPesquisaCursos.TextChanged += new System.EventHandler(this.txtPesquisaCursos_TextChanged);
             this.txtPesquisaCursos.Click += new System.EventHandler(this.setaCursorClick);
+            this.txtPesquisaCursos.TextChanged += new System.EventHandler(this.txtPesquisaCursos_TextChanged);
             // 
             // cmbCampoCursos
             // 
@@ -939,8 +940,8 @@
             this.txtPesquisaDisciplina.Name = "txtPesquisaDisciplina";
             this.txtPesquisaDisciplina.Size = new System.Drawing.Size(270, 22);
             this.txtPesquisaDisciplina.TabIndex = 43;
-            this.txtPesquisaDisciplina.TextChanged += new System.EventHandler(this.txtPesquisaDisciplina_TextChanged);
             this.txtPesquisaDisciplina.Click += new System.EventHandler(this.setaCursorClick);
+            this.txtPesquisaDisciplina.TextChanged += new System.EventHandler(this.txtPesquisaDisciplina_TextChanged);
             // 
             // cmbCampoDisciplinas
             // 
@@ -1150,8 +1151,8 @@
             this.txtPesquisaMateria.Name = "txtPesquisaMateria";
             this.txtPesquisaMateria.Size = new System.Drawing.Size(270, 22);
             this.txtPesquisaMateria.TabIndex = 43;
-            this.txtPesquisaMateria.TextChanged += new System.EventHandler(this.txtPesquisaMateria_TextChanged);
             this.txtPesquisaMateria.Click += new System.EventHandler(this.setaCursorClick);
+            this.txtPesquisaMateria.TextChanged += new System.EventHandler(this.txtPesquisaMateria_TextChanged);
             // 
             // cmbCampoMateria
             // 
@@ -1458,8 +1459,8 @@
             this.txtPesquisaGeral.Name = "txtPesquisaGeral";
             this.txtPesquisaGeral.Size = new System.Drawing.Size(625, 22);
             this.txtPesquisaGeral.TabIndex = 2;
-            this.txtPesquisaGeral.TextChanged += new System.EventHandler(this.txtPesquisaGeral_TextChanged);
             this.txtPesquisaGeral.Click += new System.EventHandler(this.setaCursorClick);
+            this.txtPesquisaGeral.TextChanged += new System.EventHandler(this.txtPesquisaGeral_TextChanged);
             // 
             // cmbCampo
             // 

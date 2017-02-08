@@ -60,7 +60,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+    <Reference Include="iTextSharp">
+      <HintPath>..\packages\iTextSharp-LGPL.4.1.6\lib\iTextSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="MySql.Data, Version=6.9.7.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
@@ -85,6 +88,12 @@
     </Compile>
     <Compile Include="Forms\Ajuda.Designer.cs">
       <DependentUpon>Ajuda.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Avaliacao.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Avaliacao.Designer.cs">
+      <DependentUpon>Avaliacao.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\CadastroConteudo.cs">
       <SubType>Form</SubType>
@@ -122,6 +131,12 @@
     <Compile Include="Forms\Login.Designer.cs">
       <DependentUpon>Login.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Modelos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Modelos.Designer.cs">
+      <DependentUpon>Modelos.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Pesquisa.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -138,6 +153,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\Ajuda.resx">
       <DependentUpon>Ajuda.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Avaliacao.resx">
+      <DependentUpon>Avaliacao.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\CadastroConteudo.resx">
       <DependentUpon>CadastroConteudo.cs</DependentUpon>
@@ -157,6 +175,9 @@
     <EmbeddedResource Include="Forms\Login.resx">
       <DependentUpon>Login.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Modelos.resx">
+      <DependentUpon>Modelos.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\Pesquisa.resx">
       <DependentUpon>Pesquisa.cs</DependentUpon>
     </EmbeddedResource>
@@ -169,6 +190,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="HelpTeacher_TemporaryKey.pfx" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

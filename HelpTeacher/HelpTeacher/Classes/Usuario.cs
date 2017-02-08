@@ -11,8 +11,6 @@ namespace HelpTeacher.Classes
         private static int identificador;
         private static String nome;
         private static String senha;
-        private static String alterarSenha;
-        private static String paraBanco;
 
         public static int ID
         {
@@ -30,18 +28,6 @@ namespace HelpTeacher.Classes
         {
             get { return senha; }
             set { senha = value; }
-        }
-
-        public static String ChancePassword
-        {
-            get { return alterarSenha; }
-            set { alterarSenha = value; }
-        }
-
-        public static String StopBD
-        {
-            get { return paraBanco; }
-            set { paraBanco = value; }
-        }
+        }        
     }
 }

@@ -57,7 +57,7 @@ namespace HelpTeacher.Forms
             if (podeCadastrar())
             {
                 if (banco.executeComando("INSERT INTO htc1 VALUES (NULL,'" +
-                            txtNomeCurso.Text + "',NULL)"))
+                            txtNomeCurso.Text + "')"))
                 {
                     return true;
                 }
@@ -127,8 +127,7 @@ namespace HelpTeacher.Forms
         private Boolean carregaCursos()
         {
             if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-                        "FROM htc1 " +
-                        "WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+                        "FROM htc1", ref respostaBanco))
             {
 
                 if (respostaBanco.HasRows)
@@ -156,9 +155,9 @@ namespace HelpTeacher.Forms
                 String[] codigoCurso = cmbCurso.Text.Split(new char[] { '(', ')' },
                             StringSplitOptions.RemoveEmptyEntries);
 
-                if (banco.executeComando("INSERT INTO htc2 VALUES (NULL,'" +
+                if (banco.executeComando("INSERT INTO htc2 VALUES (NULL, '" +
                             txtNomeDisciplina.Text + "', " +
-                            codigoCurso[0] + ", NULL)"))
+                            codigoCurso[0] + ")"))
                 {
                     return true;
                 }
@@ -237,8 +236,7 @@ namespace HelpTeacher.Forms
         private Boolean carregaDisciplinas()
         {
             if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-                        "FROM htc2 " +
-                        "WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+                        "FROM htc2", ref respostaBanco))
             {
 
                 if (respostaBanco.HasRows)
@@ -288,7 +286,7 @@ namespace HelpTeacher.Forms
                             StringSplitOptions.RemoveEmptyEntries);
 
                 if (banco.executeComando("INSERT INTO htc3 VALUES (NULL, '" +
-                            txtNomeMateria.Text + "', " + codigoDisciplina[0] + ", NULL)"))
+                            txtNomeMateria.Text + "'," + codigoDisciplina[0] + ",'" + 0 + "')"))
                 {
                     return true;
                 }
@@ -317,7 +315,7 @@ namespace HelpTeacher.Forms
 
                 if (banco.executeComando("SELECT C3_NOME " +
                                 "FROM htc3 " +
-                                "WHERE C3_DISCIPL = " + codigoDisciplina[0], ref respostaBanco))
+                                "WHERE C3_DISCIP = " + codigoDisciplina[0], ref respostaBanco))
                 {
                     if (respostaBanco.HasRows)
                     {

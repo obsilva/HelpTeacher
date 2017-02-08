@@ -16,6 +16,7 @@ namespace HelpTeacher.Forms
     {
         private ConexaoBanco banco = new ConexaoBanco();
         private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
+        private MySql.Data.MySqlClient.MySqlDataReader respostaBanco2;
         private MySql.Data.MySqlClient.MySqlDataAdapter adaptador;
         private DataSet ds;
         private String deletados;
@@ -99,9 +100,8 @@ namespace HelpTeacher.Forms
 
             if (banco.executeComando("SELECT C1_COD, C1_NOME " +
                         "FROM htc1 " +
-                        "WHERE C1_COD <> " + codigo[0] + " AND " +
-                            "D_E_L_E_T IS NULL " +
-                        "ORDER BY C1_COD", ref respostaBanco))
+                        "WHERE C1_COD <> " + codigo[0] +                       
+                        " ORDER BY C1_COD", ref respostaBanco))
             {
                 if (respostaBanco.HasRows)
                 {
@@ -123,9 +123,8 @@ namespace HelpTeacher.Forms
 
             if (banco.executeComando("SELECT C2_COD, C2_NOME " +
                         "FROM htc2 " +
-                        "WHERE C2_COD <> " + codigo[0] + " AND " +
-                            "D_E_L_E_T IS NULL " +
-                        "ORDER BY C2_COD", ref respostaBanco))
+                        "WHERE C2_COD <> " + codigo[0] +                           
+                        " ORDER BY C2_COD", ref respostaBanco))
             {
                 if (respostaBanco.HasRows)
                 {
@@ -150,8 +149,6 @@ namespace HelpTeacher.Forms
             MouseEventArgs evento = e as MouseEventArgs;
             txt.Select(txt.GetCharIndexFromPosition(evento.Location), 0);
         }
-
-
 
 
 
@@ -190,6 +187,7 @@ namespace HelpTeacher.Forms
 
         private void radQuestoesDeletadas_CheckedChanged(object sender, EventArgs e)
         {
+            ativaDesativaEdicaoQuestao(false);
             chamaPesquisaQuestoes();
         }
 
@@ -254,13 +252,13 @@ namespace HelpTeacher.Forms
                 chkMateriasQuestoes.Items.Clear();
 
                 txtCodigoQuestao.Text = respostaBanco["B1_COD"].ToString();
-                txtQuestao.Text = respostaBanco["B1_QUEST"].ToString();
+                txtQuestao.Text = respostaBanco["B1_QUESTAO"].ToString();
                 cmbCursosQuestoes.Items.Add("(" + respostaBanco["C1_COD"].ToString() +
                     ") " + respostaBanco["C1_NOME"].ToString());
                 chkDisciplinasQuestoes.Items.Add("(" + respostaBanco["C2_COD"].ToString() +
                     ") " + respostaBanco["C2_NOME"].ToString());
                 chkDisciplinasQuestoes.SetItemChecked(0, true);
-                chkMateriasQuestoes.Items.Add("(" + respostaBanco["B1_MATERIA"].ToString() +
+                chkMateriasQuestoes.Items.Add("(" + respostaBanco["B3_MATERIA"].ToString() +
                     ") " + respostaBanco["C3_NOME"].ToString());
                 chkMateriasQuestoes.SetItemChecked(0, true);
 
@@ -269,26 +267,51 @@ namespace HelpTeacher.Forms
                 else
                     radDissertativa.Checked = true;
 
-                if (respostaBanco["B1_USADA"].ToString().Equals("*"))
+                if (respostaBanco["B3_USADA"].ToString().Equals("*"))
                     chkQuestaoUsada.Checked = true;
                 else
                     chkQuestaoUsada.Checked = false;
 
-                if (respostaBanco["B1_PADRAO"].ToString().Equals("*"))
+                if (respostaBanco["B3_PADRAO"].ToString().Equals("*"))
                     chkQuestaoPadrao.Checked = true;
                 else
                     chkQuestaoPadrao.Checked = false;
 
-                if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+                if (respostaBanco["B3_DELETED"].ToString().Equals("*"))
                     chkQuestaoDeletada.Checked = true;
                 else
                     chkQuestaoDeletada.Checked = false;
-
-                if (!respostaBanco["B1_ARQUIVO"].ToString().Equals(""))
+                
+                /* Arquivos */
+                if(banco.executeComando("SELECT B2_ARQUIVO FROM htb2 " +
+                        "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text, ref respostaBanco2))
                 {
-                    if (respostaBanco["B1_ARQUIVO"].ToString().Contains(','))
+                    if(respostaBanco2.HasRows)
                     {
-                        String[] nomes = respostaBanco["B1_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
+                        int cont = 0;
+                        while(respostaBanco2.Read())
+                        {
+                            String nome = respostaBanco2["B2_ARQUIVO"].ToString();
+                            String caminho = Path.GetFullPath(@"..\_files\" + nome);
+                            String[] arquivo = respostaBanco2["B2_ARQUIVO"].ToString().Split(new char[] { '_'},
+                                    StringSplitOptions.RemoveEmptyEntries);
+
+                            if (arquivo[1] == "1")
+                                txtArquivo1.Text = caminho;
+                            else
+                                txtArquivo2.Text = caminho;
+                            cont++;
+                        }
+                    }
+                    else
+                    {
+                        txtArquivo1.Clear();
+                        txtArquivo2.Clear();
+                    }
+                    respostaBanco2.Close();
+                    /*if (respostaBanco2["B2_ARQUIVO"].ToString().Contains(','))
+                    {
+                        String[] nomes = respostaBanco2["B2_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
                                     StringSplitOptions.RemoveEmptyEntries);
 
                         String[] arquivos = Directory.GetFiles(@"..\_files", nomes[0] + ".*");
@@ -302,18 +325,13 @@ namespace HelpTeacher.Forms
                     else
                     {
                         String[] arquivo = Directory.GetFiles(@"..\_files",
-                            respostaBanco["B1_ARQUIVO"].ToString() + ".*");
+                            respostaBanco["B2_ARQUIVO"].ToString() + ".*");
                         String caminho = Path.GetFullPath(arquivo[0]);
                         txtArquivo1.Text = caminho;
                         txtArquivo2.Clear();
-                    }
+                    }*/
                 }
-                else
-                {
-                    txtArquivo1.Clear();
-                    txtArquivo2.Clear();
-                }
-
+                
                 respostaBanco.Close();
                 banco.fechaConexao();
                 cmbCursosQuestoes.SelectedIndex = 0;
@@ -339,9 +357,15 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaQuestoes()
         {
             if (radQuestoesDeletadas.Checked)
-                deletados = "IS NOT NULL";
+            {
+                deletados = "1";
+                chkQuestaoDeletada.Checked = true;
+            }                
             else
-                deletados = "IS NULL";
+            {
+                deletados = "0";
+                chkQuestaoDeletada.Checked = false;
+            }                
 
             switch (cmbCampoQuestoes.Text)
             {
@@ -350,47 +374,28 @@ namespace HelpTeacher.Forms
                                 deletados);
                     break;
                 case "Pergunta":
-                    pesquisaQuestoesEdit("B1_QUEST", txtPesquisaQuestoes.Text,
+                    pesquisaQuestoesEdit("B1_QUESTAO", txtPesquisaQuestoes.Text,
                                 deletados);
                     break;
                 case "Objetivas?":
                     pesquisaQuestoesEdit("B1_OBJETIV", radFalseQuestoes.Checked,
                                 deletados);
-                    break;
-                case "Alternativa A":
-                    pesquisaQuestoesEdit("B1_QUEST", "a) " +
-                                txtPesquisaQuestoes.Text, deletados);
-                    break;
-                case "Alternativa B":
-                    pesquisaQuestoesEdit("B1_QUEST", "b): " +
-                                txtPesquisaQuestoes.Text, deletados);
-                    break;
-                case "Alternativa C":
-                    pesquisaQuestoesEdit("B1_QUEST", "c): " +
-                                txtPesquisaQuestoes.Text, deletados);
-                    break;
-                case "Alternativa D":
-                    pesquisaQuestoesEdit("B1_QUEST", "d): " +
-                                txtPesquisaQuestoes.Text, deletados);
-                    break;
-                case "Alternativa E":
-                    pesquisaQuestoesEdit("B1_QUEST", "e): " +
-                                txtPesquisaQuestoes.Text, deletados);
-                    break;
+                    break;                
+                    
                 case "Arquivo?":
-                    pesquisaQuestoesEdit("B1_ARQUIVO", radFalseQuestoes.Checked,
+                    pesquisaQuestoesEdit("B2_ARQUIVO", radFalseQuestoes.Checked,
                                 deletados);
                     break;
                 case "Usada?":
-                    pesquisaQuestoesEdit("B1_USADA", radFalseQuestoes.Checked,
+                    pesquisaQuestoesEdit("B3_USADA", radFalseQuestoes.Checked,
                                 deletados);
                     break;
                 case "Matéria":
-                    pesquisaQuestoesEdit("B1_MATERIA", txtPesquisaQuestoes.Text,
+                    pesquisaQuestoesEdit("B3_MATERIA", txtPesquisaQuestoes.Text,
                                 deletados);
                     break;
                 case "Padrão?":
-                    pesquisaQuestoesEdit("B1_PADRAO", radFalseQuestoes.Checked,
+                    pesquisaQuestoesEdit("B3_PADRAO", radFalseQuestoes.Checked,
                                 deletados);
                     break;
                 case "Deletadas?":
@@ -424,14 +429,58 @@ namespace HelpTeacher.Forms
             pnlBooleanQuestoes.Enabled = !ativa;
             btnEditarQuestao.Enabled = !ativa;
             pnlQuestao.Enabled = ativa;
+
+            if (radQuestoesDeletadas.Checked)
+                chkQuestaoDeletada.Checked = true;
+            else
+                chkQuestaoDeletada.Checked = false;
+        }
+
+        private Boolean insereArquivo(String arquivo)
+        {
+            if (banco.executeComando("INSERT INTO htb2 VALUES (" +
+                                 txtCodigoQuestao.Text + ",'" +
+                                 arquivo + "','" + 0 + "')"))                                
+             {                  
+                  copiaArquivo(arquivo);
+                  return true;
+             }
+            return false;
+        }
+
+        private Boolean atualizaArquivo(String arquivo)
+        {
+                if (banco.executeComando("UPDATE htb2 SET B2_ARQUIVO = '" +
+                                    arquivo + "'" +
+                                " WHERE B2_QUESTAO = " + txtCodigoQuestao.Text))
+                 {
+                       apagaArquivos(arquivo);
+                       copiaArquivo(arquivo);
+                       return true;
+                 }
+            return false;
+        }
+
+        private Boolean apagaArquivoBanco(String codigo, String arquivo)
+        {           
+            if (banco.executeComando("DELETE FROM htb2 " +
+                                 "WHERE B2_QUESTAO = " + codigo +
+                                 " AND B2_ARQUIVO = '" + codigo + arquivo + "'"))
+            {
+                apagaArquivos(arquivo);               
+                return true;
+            }
+            return false;
         }
 
         private Boolean salvaQuestaoModificada()
         {
+            String arquivo = "";
+
             /* Dissertativa ou Objetiva */
             if (radDissertativa.Checked)
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = NULL " +
+                if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = '0' " +
                             "WHERE B1_COD = " + txtCodigoQuestao.Text))
                 {
                     return false;
@@ -439,7 +488,7 @@ namespace HelpTeacher.Forms
             }
             else
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = '*' " +
+                if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = '1' " +
                             "WHERE B1_COD = " + txtCodigoQuestao.Text))
                 {
                     return false;
@@ -447,61 +496,137 @@ namespace HelpTeacher.Forms
             }
 
             /* Questão */
-            if (!banco.executeComando("UPDATE htb1 SET B1_QUEST = '" +
+            if (!banco.executeComando("UPDATE htb1 SET B1_QUESTAO = '" +
                         txtQuestao.Text + "' WHERE B1_COD = " +
                         txtCodigoQuestao.Text))
             {
                 return false;
             }
+            
+            /* ARQUIVOS */
+            if(!txtArquivo1.Text.Equals(""))
+            {
+                /* VERIFICA SE A QUESTAO JA TEM ALGUM ARQUIVO */
+                arquivo = txtCodigoQuestao.Text + "_1";
+                if(banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text, ref respostaBanco))                             
+                {
+                    if(respostaBanco.HasRows)
+                    {
+                        /* SE A QUESTAO JA TEM ARQUIVOS, VERIFICA SE É O MESMO ARQUIVO */
+                        if(banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                " AND B2_ARQUIVO = '" + arquivo + "'", ref respostaBanco2))
+                         {
+                             if (!respostaBanco2.HasRows)
+                             {
+                                 respostaBanco2.Close();
+                                 /* SE É O MESMO ARQUIVO, ATUALIZA O ARQUIVO 
+                                        SE NAO FOR O MESMO ARQUIVO, INSERE */
+                                 if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                     "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                     " AND B2_ARQUIVO  LIKE '%" + "_1" + "'", ref respostaBanco2))
+                                 {
+                                     if (respostaBanco2.HasRows)
+                                         atualizaArquivo(arquivo);                                
+                                     else
+                                         insereArquivo(arquivo);                                     
+                                 }
+                             }
+                         }
+                    }
+                    else
+                    {
+                        insereArquivo(arquivo);
+                    }                  
+                }                
+           }
 
-            /* Arquivos */
-            if (!(txtArquivo1.Text.Equals("")) || !(txtArquivo2.Text.Equals("")))
+            else if (txtArquivo1.Text.Equals(""))
             {
-                /* Apenas 1 arquivo */
-                if ((txtArquivo1.Text.Equals("")) || (txtArquivo2.Text.Equals("")))
+                /* VERIFICA SE A QUESTAO POSSUI ARQUIVO */ 
+                if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                " AND B2_ARQUIVO LIKE '%" + "_1'", ref respostaBanco))
                 {
-                    if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-                                    txtCodigoQuestao.Text + "_1' " +
-                                "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                    if (respostaBanco.HasRows)
                     {
-                        apagaArquivos();
-                        copiaArquivo();
-                    }
+                        apagaArquivoBanco(txtCodigoQuestao.Text, "_1");
+                    }                   
                 }
-                /* Dois arquivos */
-                else
+            }
+
+            respostaBanco.Close();
+            respostaBanco2.Close();
+
+            arquivo = txtCodigoQuestao.Text + "_2";
+            if (!txtArquivo2.Text.Equals(""))
+            {                
+                /* VERIFICA SE A QUESTAO JA TEM ALGUM ARQUIVO */
+                if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text, ref respostaBanco))
                 {
-                    if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-                                    txtCodigoQuestao.Text + "_1, " +
-                                    txtCodigoQuestao.Text + "_2' " +
-                                "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                    if (respostaBanco.HasRows)
                     {
-                        copiaArquivo();
+                        /* SE A QUESTAO JA TEM ARQUIVOS, VERIFICA SE É O MESMO ARQUIVO */
+                        if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                " AND B2_ARQUIVO = '" + arquivo + "'", ref respostaBanco2))
+                        {
+                            if (!respostaBanco2.HasRows)
+                            {
+                                respostaBanco2.Close();
+                                /* SE É O MESMO ARQUIVO, ATUALIZA O ARQUIVO 
+                                    SE NAO FOR O MESMO ARQUIVO, INSERE */
+                                if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                    "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                    " AND B2_ARQUIVO LIKE '%" + "_2" + "'", ref respostaBanco2))
+                                {
+                                    if(respostaBanco2.HasRows)                                    
+                                        atualizaArquivo(arquivo);                                       
+                                    else
+                                        insereArquivo(arquivo);
+                                }                                
+                            }
+                        }
+                    }
+                    else
+                    {
+                        insereArquivo(arquivo);
                     }
                 }
             }
-            else
+
+            else if (txtArquivo2.Text.Equals(""))
             {
-                if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = NULL " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                /* VERIFICA SE TEM ALGUM ARQUIVO _2 PARA SER DELETADO */
+                if (banco.executeComando("SELECT B2_QUESTAO FROM htb2 " +
+                                "WHERE B2_QUESTAO = " + txtCodigoQuestao.Text +
+                                " AND B2_ARQUIVO LIKE '%" + "_2'", ref respostaBanco))
                 {
-                    apagaArquivos();
+                    if (respostaBanco.HasRows)
+                    {
+                        apagaArquivoBanco(txtCodigoQuestao.Text, "_2");
+                    }
                 }
             }
+
+            respostaBanco.Close();
+            respostaBanco2.Close();
 
             /* Usada */
             if (chkQuestaoUsada.Checked)
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_USADA = '*' " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (!banco.executeComando("UPDATE htb3 SET B3_USADA = '1' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
                     return false;
                 }
             }
             else
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_USADA = NULL " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (!banco.executeComando("UPDATE htb3 SET B3_USADA = '0' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
                     return false;
                 }
@@ -510,16 +635,16 @@ namespace HelpTeacher.Forms
             /* Padrão */
             if (chkQuestaoPadrao.Checked)
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_PADRAO = '*' " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (!banco.executeComando("UPDATE htb3 SET B3_PADRAO = '1' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
                     return false;
                 }
             }
             else
             {
-                if (!banco.executeComando("UPDATE htb1 SET B1_PADRAO = NULL " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (!banco.executeComando("UPDATE htb3 SET B3_PADRAO = '0' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
                     return false;
                 }
@@ -528,26 +653,25 @@ namespace HelpTeacher.Forms
             /* Deletada */
             if (chkQuestaoDeletada.Checked)
             {
-                if (!banco.executeComando("UPDATE htb1 SET D_E_L_E_T = '*' " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (banco.executeComando("UPDATE htb3 SET B3_DELETED = '1' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
-                    return false;
+                    return true;                 
                 }
+                return false;
             }
             else
             {
-                if (!banco.executeComando("UPDATE htb1 SET D_E_L_E_T = NULL " +
-                            "WHERE B1_COD = " + txtCodigoQuestao.Text))
+                if (banco.executeComando("UPDATE htb3 SET B3_DELETED = '0' " +
+                            "WHERE B3_QUESTAO = " + txtCodigoQuestao.Text))
                 {
-                    return false;
+                    return true;
                 }
+                return false;
             }
             return true;
         }
-
-        private void copiaArquivo()
-        {
-            String primeiroArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_1"));
+        /* String primeiroArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_1"));
 
             if (txtArquivo1.Text.Equals(""))
             {
@@ -580,6 +704,36 @@ namespace HelpTeacher.Forms
                         File.Move(txtArquivo2.Text, segundoArquivo);
                 }
             }
+         */
+
+        private void copiaArquivo(String arquivo)
+        {
+            String[] tipo = arquivo.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (tipo[1] == "1")
+            {
+                String extensao = Path.GetExtension(txtArquivo1.Text);
+                String nome = String.Concat(arquivo, extensao);
+                String caminho = Path.Combine(@"..\_files", nome);
+
+                if (!txtArquivo1.Text.Contains(@"_files\" + txtCodigoQuestao.Text))
+                    File.Copy(txtArquivo1.Text, caminho, true);
+                else
+                    File.Move(txtArquivo1.Text, caminho);
+            }
+
+            else if(tipo[1] == "2")
+            {
+                String extensao = Path.GetExtension(txtArquivo2.Text);
+                String nome = String.Concat(arquivo, extensao);
+                String caminho = Path.Combine(@"..\_files", nome);
+
+                if (!txtArquivo2.Text.Contains(@"_files\" + txtCodigoQuestao.Text))
+                    File.Copy(txtArquivo2.Text, caminho, true);
+                else
+                    File.Move(txtArquivo2.Text, caminho);
+            }               
+           
         }
 
         /* apagaArquivos
@@ -587,27 +741,27 @@ namespace HelpTeacher.Forms
          * Verifica se existe algum arquivo relacionada a
          * questão e se tiver, apaga o arquivo
          */
-        private void apagaArquivos()
+        private void apagaArquivos(String arq)
         {
-            String[] arquivos = Directory.GetFiles(@"..\_files",
-                        txtCodigoQuestao.Text + "_*");
-            foreach (String arquivo in arquivos)
-            {
-                String caminho = Path.GetFullPath(arquivo);
-
-                if (!txtArquivo1.Text.Contains(caminho) &&
-                            !txtArquivo2.Text.Contains(caminho))
+                String[] arquivos = Directory.GetFiles(@"..\_files",
+                            txtCodigoQuestao.Text + arq + "*");
+                foreach (String arquivo in arquivos)
                 {
-                    try
+                    String caminho = Path.GetFullPath(arquivo);
+
+                    if (!txtArquivo1.Text.Contains(caminho) &&
+                                !txtArquivo2.Text.Contains(caminho))
                     {
-                        File.Delete(arquivo);
-                    }
-                    catch
-                    {
-                        break;
+                        try
+                        {
+                            File.Delete(arquivo);
+                        }
+                        catch
+                        {
+                            break;
+                        }
                     }
                 }
-            }
         }
 
         // PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  //
@@ -671,12 +825,7 @@ namespace HelpTeacher.Forms
                 btnEditarCursos.Enabled = true;
 
                 txtCodigoCurso.Text = respostaBanco["C1_COD"].ToString();
-                txtNomeCurso.Text = respostaBanco["C1_NOME"].ToString();
-
-                if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
-                    chkCursoDeletado.Checked = true;
-                else
-                    chkCursoDeletado.Checked = false;
+                txtNomeCurso.Text = respostaBanco["C1_NOME"].ToString();                
             }
             else
             {
@@ -693,9 +842,9 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaCursos()
         {
             if (radCursosDeletados.Checked)
-                deletados = "IS NOT NULL";
+                deletados = "1";
             else
-                deletados = "IS NULL";
+                deletados = "0";
 
             switch (cmbCampoCursos.Text)
             {
@@ -735,6 +884,39 @@ namespace HelpTeacher.Forms
             pnlCursos.Enabled = ativa;
         }
 
+        private Boolean deletaCurso(int opcao)
+        {
+            //PEGA CODIGO DISCIPLINA
+            if (banco.executeComando("SELECT C2_COD FROM htc2 " +
+                        "WHERE C2_CURSO = " + txtCodigoCurso.Text, ref respostaBanco))
+            {
+                if (respostaBanco.HasRows)
+                {
+                    respostaBanco.Read();
+                    String codigoDisciplina = respostaBanco.GetString(0);
+                    respostaBanco.Close();
+
+                    //PEGA CODIGO MATERIA
+                    if (banco.executeComando("SELECT C3_COD FROM htc3 " +
+                           "WHERE C3_DISCIPL = '" + codigoDisciplina + "'", ref respostaBanco))
+                    {
+                        if (respostaBanco.HasRows)
+                        {
+                            respostaBanco.Read();
+                            String codigoMateria = respostaBanco.GetString(0);
+                            respostaBanco.Close();
+                            if (banco.executeComando("UPDATE htb3 SET B3_DELETED = '"  + opcao +
+                                "' WHERE B3_MATERIA = '" + codigoMateria + "'"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
         private Boolean salvaCursoModificado()
         {
             if (!banco.executeComando("UPDATE htc1 SET C1_NOME = '" + txtNomeCurso.Text +
@@ -746,19 +928,11 @@ namespace HelpTeacher.Forms
             //Deletada
             if (chkCursoDeletado.Checked)
             {
-                if (!banco.executeComando("UPDATE htc1 SET D_E_L_E_T = '*' " +
-                            "WHERE C1_COD = " + txtCodigoCurso.Text))
-                {
-                    return false;
-                }
+                deletaCurso(1);
             }
             else
             {
-                if (!banco.executeComando("UPDATE htc1 SET D_E_L_E_T = NULL " +
-                            "WHERE C1_COD = " + txtCodigoCurso.Text))
-                {
-                    return false;
-                }
+               deletaCurso(0);
             }
             return true;
         }
@@ -830,10 +1004,10 @@ namespace HelpTeacher.Forms
                 cmbCursosDisciplina.Items.Add("(" + respostaBanco["C2_CURSO"].ToString() +
                     ") " + respostaBanco["C1_NOME"].ToString());
 
-                if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+                /*if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
                     chkDisciplinaDeletada.Checked = true;
                 else
-                    chkDisciplinaDeletada.Checked = false;
+                    chkDisciplinaDeletada.Checked = false;*/
 
                 respostaBanco.Close();
                 banco.fechaConexao();
@@ -854,9 +1028,9 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaDisciplinas()
         {
             if (radDisciplinasDeletadas.Checked)
-                deletados = "IS NOT NULL";
+                deletados = "1";
             else
-                deletados = "IS NULL";
+                deletados = "0";
 
             switch (cmbCampoDisciplinas.Text)
             {
@@ -900,6 +1074,27 @@ namespace HelpTeacher.Forms
             pnlDisciplina.Enabled = ativa;
         }
 
+        private Boolean apagaDisciplina(int opcao)
+        {
+            //PEGA CODIGO MATERIA
+            if (banco.executeComando("SELECT C3_COD FROM htc3 " +
+                   "WHERE C3_DISCIPL = '" + txtCodigoDisciplina.Text + "'", ref respostaBanco))
+            {
+                if (respostaBanco.HasRows)
+                {
+                    respostaBanco.Read();
+                    String codigoMateria = respostaBanco.GetString(0);
+                    respostaBanco.Close();
+                    if (banco.executeComando("UPDATE htb3 SET B3_DELETED = '" + opcao +
+                        "' WHERE B3_MATERIA = '" + codigoMateria + "'"))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         private Boolean salvaDiscModificada()
         {
             String[] curso = cmbCursosDisciplina.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
@@ -915,19 +1110,11 @@ namespace HelpTeacher.Forms
             /* Deletado */
             if (chkDisciplinaDeletada.Checked)
             {
-                if (!banco.executeComando("UPDATE htc2 SET D_E_L_E_T = '*' " +
-                        "WHERE C2_COD = " + txtCodigoDisciplina.Text))
-                {
-                    return false;
-                }
+                apagaDisciplina(1);
             }
             else
             {
-                if (!banco.executeComando("UPDATE htc2 SET D_E_L_E_T = NULL " +
-                        "WHERE C2_COD = " + txtCodigoDisciplina.Text))
-                {
-                    return false;
-                }
+                apagaDisciplina(0);
             }
             return true;
         }
@@ -1001,13 +1188,13 @@ namespace HelpTeacher.Forms
 
                 txtCodigoMateria.Text = respostaBanco["C3_COD"].ToString();
                 txtNomeMateria.Text = respostaBanco["C3_NOME"].ToString();
-                cmbDisciplinaMateria.Items.Add("(" + respostaBanco["C3_DISCIPL"].ToString() +
+                cmbDisciplinaMateria.Items.Add("(" + respostaBanco["C3_DISCIP"].ToString() +
                     ") " + respostaBanco["C2_NOME"].ToString());  
 
-                if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+                /*if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
                     chkMateriaDeletada.Checked = true;
                 else
-                    chkMateriaDeletada.Checked = false;
+                    chkMateriaDeletada.Checked = false;*/
 
                 respostaBanco.Close();
                 banco.fechaConexao();
@@ -1029,9 +1216,9 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaMaterias()
         {
             if (radMateriasDeletadas.Checked)
-                deletados = "IS NOT NULL";
+                deletados = "1";
             else
-                deletados = "IS NULL";
+                deletados = "0";
 
             switch (cmbCampoMateria.Text)
             {
@@ -1044,7 +1231,7 @@ namespace HelpTeacher.Forms
                                 deletados);
                     break;
                 case "Disciplina":
-                    pesquisaMateriasEdit("C3_DISCIPL", txtPesquisaMateria.Text,
+                    pesquisaMateriasEdit("C3_DISCIP", txtPesquisaMateria.Text,
                                 deletados);
                     break;
                 case "Deletado?":
@@ -1080,7 +1267,7 @@ namespace HelpTeacher.Forms
             String[] disciplina = cmbDisciplinaMateria.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (!banco.executeComando("UPDATE htc3 SET C3_NOME = '" +
-                            txtNomeMateria.Text + "', C3_DISCIPL =  " +
+                            txtNomeMateria.Text + "', C3_DISCIP =  " +
                             disciplina[0] +
                         " WHERE C3_COD = " + txtCodigoMateria.Text))
             {
@@ -1090,7 +1277,7 @@ namespace HelpTeacher.Forms
             /* Deletada */
             if (chkMateriaDeletada.Checked)
             {
-                if (!banco.executeComando("UPDATE htc3 SET D_E_L_E_T = '*' " +
+                if (!banco.executeComando("UPDATE htc3 SET C3_DELETED = '1' " +
                         "WHERE C3_COD = " + txtCodigoMateria.Text))
                 {
                     return false;
@@ -1098,7 +1285,7 @@ namespace HelpTeacher.Forms
             }
             else
             {
-                if (!banco.executeComando("UPDATE htc3 SET D_E_L_E_T = NULL " +
+                if (!banco.executeComando("UPDATE htc3 SET C3_DELETED = '0' " +
                         "WHERE C3_COD = " + txtCodigoMateria.Text))
                 {
                     return false;
@@ -1113,7 +1300,7 @@ namespace HelpTeacher.Forms
             String[] codMateria = cmbDisciplinaMateria.Text.Split(new char[] 
                     { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (banco.executeComando("SELECT C1_NOME " +
+            if (banco.executeComando("SELECT C2_NOME " +
                         "FROM htc2 " +
                             "INNER JOIN htc1 " +
                                 "ON C2_CURSO = C1_COD " +
@@ -1236,9 +1423,9 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaAvaliacoes()
         {
             if (chkAvaliacoesDeletadas.Checked)
-                deletados = "IS NOT NULL";
+                deletados = "1";
             else
-                deletados = "IS NULL";
+                deletados = "0";
 
             if (radData.Checked)
             {
@@ -1251,7 +1438,7 @@ namespace HelpTeacher.Forms
                     String[] codigoMateria = cmbMateriasAvaliacoes.Text.Split
                     (new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    pesquisaHistoricoEdit("D1_MATERIA", codigoMateria[0], deletados);
+                    pesquisaHistoricoEdit("B3_MATERIA", codigoMateria[0], deletados);
                 }
                 else if (!cmbDisciplinasAvaliacoes.Text.Equals("Opcional"))
                 {
@@ -1324,7 +1511,7 @@ namespace HelpTeacher.Forms
             cmbMateriasAvaliacoes.Items.Clear();
             if (banco.executeComando("SELECT C3_COD, C3_NOME " + 
                     "FROM htc3 " + 
-                    "WHERE C3_DISCIPL = " + codigoDisciplina[0], ref respostaBanco))
+                    "WHERE C3_DISCIP = " + codigoDisciplina[0], ref respostaBanco))
             {
                 if (respostaBanco.HasRows)
                 {
@@ -1346,7 +1533,7 @@ namespace HelpTeacher.Forms
             if (respostaBanco.HasRows)
             {
                 while (respostaBanco.Read())
-                {
+                {                    
                     cmbAvaliacoes.Items.Add("(" + respostaBanco.GetString(0) + ") " + 
                             respostaBanco.GetString(1) + " - " + respostaBanco.GetString(3));
                 }
@@ -1369,31 +1556,34 @@ namespace HelpTeacher.Forms
         {
             String[] codigoAvaliacao = cmbAvaliacoes.Text.Split(new char[] 
                 { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-            String[] codigosQuestoes;
+            String[] codigosQuestoes = new String[100];
 
             /* Recupera os códigos das questões da avaliação */
-            if (banco.executeComando("SELECT D1_QUESTAO " + 
+            if (banco.executeComando("SELECT D2_QUESTAO " + 
                         "FROM htd1 " +
+                        "INNER JOIN htd2 ON D2_PROVA = D1_COD " +
                         "WHERE D1_COD = " + codigoAvaliacao[0], 
                         ref respostaBanco))
             {
                 if (respostaBanco.HasRows)
                 {
                     int count = 0;
+                    int contador = 0;
 
-                    respostaBanco.Read();
-                    codigosQuestoes = respostaBanco.GetString(0).Split(new char[] 
-                            { ',', ' ' }, StringSplitOptions.
-                            RemoveEmptyEntries);
-
+                    while (respostaBanco.Read())
+                    {
+                         codigosQuestoes[contador] = respostaBanco.GetString(0);
+                         contador++;
+                    }
+                    
                     respostaBanco.Close();
                     banco.fechaConexao();
                     /* Recupera as questões da avaliação */
-                    foreach (String questao in codigosQuestoes)
+                    while (contador > 0)
                     {
-                        if (banco.executeComando("SELECT B1_QUEST " +
+                        if (banco.executeComando("SELECT B1_QUESTAO " +
                             "FROM htb1 " +
-                            "WHERE B1_COD = " + questao, ref respostaBanco))
+                            "WHERE B1_COD = " + codigosQuestoes[count], ref respostaBanco))
                         {
                             if (respostaBanco.HasRows)
                             {
@@ -1402,11 +1592,13 @@ namespace HelpTeacher.Forms
                                         respostaBanco.GetString(0) +
                                         Environment.NewLine +
                                         Environment.NewLine;
+                                contador--;
                             }
-                            respostaBanco.Close();
-                            banco.fechaConexao();
+                           
                         }
                     }
+                    respostaBanco.Close();
+                    banco.fechaConexao();
                 }
                 else
                 {
@@ -1423,8 +1615,8 @@ namespace HelpTeacher.Forms
                     new char[] { '(', ')' }, StringSplitOptions.
                     RemoveEmptyEntries);
 
-            if (banco.executeComando("UPDATE htd1 SET D_E_L_E_T = '*' " +
-                        "WHERE D1_COD = " + codigoAvaliacao[0]))
+            if (banco.executeComando("UPDATE htd2 SET D2_DELETED = '1' " +
+                        "WHERE D2_PROVA = " + codigoAvaliacao[0]))
             {
                 return true;
             }
@@ -1433,7 +1625,7 @@ namespace HelpTeacher.Forms
 
         private Boolean apagaHistorico()
         {
-            if (banco.executeComando("UPDATE htd1 SET D_E_L_E_T = '*'"))
+            if (banco.executeComando("UPDATE htd2 SET D2_DELETED = '1'"))
             {
                 return true;
             }
@@ -1504,13 +1696,8 @@ namespace HelpTeacher.Forms
             {
                 case "Questões":
                     cmbCampo.Items.Add("Pergunta");
-                    cmbCampo.Items.Add("Objetivas?");  //2
-                    cmbCampo.Items.Add("Alternativa A");
-                    cmbCampo.Items.Add("Alternativa B");
-                    cmbCampo.Items.Add("Alternativa C");
-                    cmbCampo.Items.Add("Alternativa D");
-                    cmbCampo.Items.Add("Alternativa E");
-                    cmbCampo.Items.Add("Arquivo?");  //8
+                    cmbCampo.Items.Add("Objetivas?");  //2                 
+                    
                     cmbCampo.Items.Add("Usada?");  //9
                     cmbCampo.Items.Add("Curso");
                     cmbCampo.Items.Add("Disciplina");
@@ -1588,9 +1775,9 @@ namespace HelpTeacher.Forms
         private void chamaPesquisaGeral()
         {
             if (radGeralDeletados.Checked)
-                deletados = "IS NOT NULL";
+                deletados = "1";
             else
-                deletados = "IS NULL";
+                deletados = "0";
 
             switch (cmbTabela.Text)
             {
@@ -1602,7 +1789,7 @@ namespace HelpTeacher.Forms
                                     deletados);
                             break;
                         case "Pergunta":
-                            pesquisaQuestoesGrid("B1_QUEST", txtPesquisaGeral.Text,
+                            pesquisaQuestoesGrid("B1_QUESTAO", txtPesquisaGeral.Text,
                                     deletados);
                             break;
                         case "Objetivas?":
@@ -1610,7 +1797,7 @@ namespace HelpTeacher.Forms
                                     deletados);
                             break;
                         case "Alternativa A":
-                            pesquisaQuestoesGrid("B1_QUEST", "a) " +
+                            pesquisaQuestoesGrid("B1_QUESTAO", "a) " +
                                     txtPesquisaGeral.Text, deletados);
                             break;
                         case "Alternativa B":
@@ -1622,19 +1809,19 @@ namespace HelpTeacher.Forms
                                     txtPesquisaGeral.Text, deletados);
                             break;
                         case "Alternativa D":
-                            pesquisaQuestoesGrid("B1_QUEST", "d) " +
+                            pesquisaQuestoesGrid("B1_QUESTAO", "d) " +
                                     txtPesquisaGeral.Text, deletados);
                             break;
                         case "Alternativa E":
-                            pesquisaQuestoesGrid("B1_QUEST", "e) " +
+                            pesquisaQuestoesGrid("B1_QUESTAO", "e) " +
                                     txtPesquisaGeral.Text, deletados);
                             break;
                         case "Arquivo?":
-                            pesquisaQuestoesGrid("B1_ARQUIVO", radFalseGeral.Checked,
+                            pesquisaQuestoesGrid("B2_ARQUIVO", radFalseGeral.Checked,
                                     deletados);
                             break;
                         case "Usada?":
-                            pesquisaQuestoesGrid("B1_USADA", radFalseGeral.Checked,
+                            pesquisaQuestoesGrid("B3_USADA", radFalseGeral.Checked,
                                     deletados);
                             break;
                         case "Curso":
@@ -1650,7 +1837,7 @@ namespace HelpTeacher.Forms
                                     deletados);
                             break;
                         case "Padrão?":
-                            pesquisaQuestoesGrid("B1_PADRAO", radFalseGeral.Checked,
+                            pesquisaQuestoesGrid("B3_PADRAO", radFalseGeral.Checked,
                                     deletados);
                             break;
                         case "Deletadas?":
@@ -1736,17 +1923,14 @@ namespace HelpTeacher.Forms
                         case "Data":
                             pesquisaHistoricoGrid("D1_DATA", txtPesquisaGeral.Text,
                                     deletados);
-                            break;
-                        case "Tipo":
-                            pesquisaHistoricoGrid("D1_TIPO", txtPesquisaGeral.Text,
-                                    deletados);
-                            break;
+                            break;               
+                            
                         case "Inédita?":
                             pesquisaHistoricoGrid("D1_INEDITA", radFalseGeral.Checked,
                                     deletados);
                             break;
                         case "Questão":
-                            pesquisaHistoricoGrid("D1_QUESTAO", txtPesquisaGeral.Text,
+                            pesquisaHistoricoGrid("D2_QUESTAO", txtPesquisaGeral.Text,
                                     deletados);
                             break;
                         case "Curso":
@@ -1775,24 +1959,23 @@ namespace HelpTeacher.Forms
         }
 
 
-
-
-
         // PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  //
         // PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  //
         private void pesquisaQuestoesEdit(String campo, String condicao, String deletados)
         {
-            if (banco.executeComando("SELECT htb1.*, C3_NOME, " +
+            if (banco.executeComando("SELECT htb1.*, htb3.*, C3_NOME, " +
                         "C2_COD, C2_NOME, C1_COD, C1_NOME " +
-                    "FROM htb1 " +
+                    "FROM htb1 " +                      
+                        "INNER JOIN htb3 " +
+                            "ON B3_QUESTAO = B1_COD " +
                         "INNER JOIN htc3 " +
-                            "ON B1_MATERIA = C3_COD " +
+                            "ON B3_MATERIA = C3_COD " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-                        "htb1.D_E_L_E_T " + deletados + " " +
+                        "B3_DELETED = '"  + deletados  + "' " +
                     "ORDER BY B1_COD", ref respostaBanco))
             {
                 atualizaCamposQuestoes();
@@ -1803,17 +1986,17 @@ namespace HelpTeacher.Forms
         {
             if (isNull)
             {
-                if (banco.executeComando("SELECT htb1.*, C3_COD, C3_NOME, " +
+                if (banco.executeComando("SELECT C3_COD, C3_NOME, " +
                             "C2_COD, C2_NOME, C1_COD, C1_NOME " +
-                        "FROM htb1 " +
+                        "FROM htb3 " +
                             "INNER JOIN htc3 " +
-                                "ON B1_MATERIA = C3_COD " +
+                                "ON B3_MATERIA = C3_COD " +
                             "INNER JOIN htc2 " +
-                                "ON C3_DISCIPL = C2_COD " +
+                                "ON C3_DISCIP = C2_COD " +
                             "INNER JOIN htc1 " +
                                 "ON C2_CURSO = C1_COD " +
                         "WHERE " + campo + " IS NULL AND " +
-                            "htb1.D_E_L_E_T " + deletados + " " +
+                            "B3_DELETED = '" + deletados + "'" +
                         "ORDER BY B1_COD", ref respostaBanco))
                 {
                     atualizaCamposQuestoes();
@@ -1821,17 +2004,17 @@ namespace HelpTeacher.Forms
             }
             else
             {
-                if (banco.executeComando("SELECT htb1.*, C3_COD, C3_NOME, " +
+                if (banco.executeComando("SELECT C3_COD, C3_NOME, " +
                             "C2_COD, C2_NOME, C1_COD, C1_NOME " +
-                        "FROM htb1 " +
+                        "FROM htb3 " +
                             "INNER JOIN htc3 " +
-                                "ON B1_MATERIA = C3_COD " +
+                                "ON B3_MATERIA = C3_COD " +
                             "INNER JOIN htc2 " +
-                                "ON C3_DISCIPL = C2_COD " +
+                                "ON C3_DISCIP = C2_COD " +
                             "INNER JOIN htc1 " +
                                 "ON C2_CURSO = C1_COD " +
                         "WHERE " + campo + " IS NOT NULL AND " +
-                            "htb1.D_E_L_E_T " + deletados + " " +
+                            "B3_DELETED = '" + deletados + "' " +
                         "ORDER BY B1_COD", ref respostaBanco))
                 {
                     atualizaCamposQuestoes();
@@ -1842,20 +2025,22 @@ namespace HelpTeacher.Forms
         private void pesquisaQuestoesGrid(String campo, String condicao, String deletados)
         {
             if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-                        "B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-                        "B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
+                        "B1_OBJETIV AS 'Objetiva?', " +
+                        "B3_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
                         "C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " + 
-                        "B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
+                        "B3_PADRAO AS 'Padrao?', B1_QUESTAO AS 'Questao'" +
                     "FROM htb1 " +
+                        "INNER JOIN htb3 " +
+                            "ON B1_COD = B3_QUESTAO " +                       
                         "INNER JOIN htc3 " +
-                            "ON B1_MATERIA = C3_COD " +
+                            "ON B3_MATERIA = C3_COD " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-                        "htb1.D_E_L_E_T " + deletados + " " +
-                    "ORDER BY B1_COD", ref adaptador))
+                        "B3_DELETED = '" + deletados +
+                    "' ORDER BY B1_COD", ref adaptador))
             {
                 atualizaGridGeral();
             }
@@ -1866,19 +2051,19 @@ namespace HelpTeacher.Forms
             if (isNull)
             {
                 if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-                        "B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-                        "B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
+                        "B1_OBJETIV AS 'Objetiva?', B2_ARQUIVO AS 'Arquivo?', " +
+                        "B3_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
                         "C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " +
-                        "B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
-                    "FROM htb1 " +
+                        "B3_PADRAO AS 'Padrao?', B1_QUESTAO AS 'Questao'" +
+                    "FROM htb3 " +
                         "INNER JOIN htc3 " +
-                            "ON B1_MATERIA = C3_COD " +
+                            "ON B3_MATERIA = C3_COD " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " IS NULL AND " +
-                        "htb1.D_E_L_E_T " + deletados + " " +
+                        "B3_DELETED = '" + deletados + "' " +
                     "ORDER BY B1_COD", ref adaptador))
                 {
                     atualizaGridGeral();
@@ -1887,19 +2072,19 @@ namespace HelpTeacher.Forms
             else
             {
                 if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-                        "B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-                        "B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
+                        "B1_OBJETIV AS 'Objetiva?', B2_ARQUIVO AS 'Arquivo?', " +
+                        "B3_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
                         "C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " +
-                        "B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
-                    "FROM htb1 " +
+                        "B3_PADRAO AS 'Padrao?', B1_QUESTAO AS 'Questao'" +
+                    "FROM htb3 " +
                         "INNER JOIN htc3 " +
-                            "ON B1_MATERIA = C3_COD " +
+                            "ON B3_MATERIA = C3_COD " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " IS NOT NULL AND " +
-                        "htb1.D_E_L_E_T " + deletados + " " +
+                        "B3_DELETED = '" + deletados + "' " +
                     "ORDER BY B1_COD", ref adaptador))
                 {
                     atualizaGridGeral();
@@ -1914,7 +2099,7 @@ namespace HelpTeacher.Forms
             if (banco.executeComando("SELECT * " +
                     "FROM htc1 " +
                     "WHERE " + campo + " LIKE '%" + condicao + 
-                        "%' AND D_E_L_E_T " + deletados + " " +
+                        "%' " +
                     "ORDER BY C1_COD", ref respostaBanco))
             {
                 atualizaCamposCursos();
@@ -1926,8 +2111,7 @@ namespace HelpTeacher.Forms
             if (banco.executeComando("SELECT C1_COD AS 'Codigo', " +
                         "C1_NOME AS 'Curso'" +
                     "FROM htc1 " +
-                    "WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-                        "D_E_L_E_T " + deletados + " " +
+                    "WHERE " + campo + " LIKE '%" + condicao + "%' " +                        
                     "ORDER BY C1_COD", ref adaptador))
             {
                 atualizaGridGeral();
@@ -1943,7 +2127,7 @@ namespace HelpTeacher.Forms
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " LIKE '%" + condicao + 
-                        "%' AND htc2.D_E_L_E_T " + deletados +
+                        "%' " +
                     " ORDER BY C2_COD", ref respostaBanco))
             {
                 atualizaCamposDisciplinas();
@@ -1957,8 +2141,7 @@ namespace HelpTeacher.Forms
                     "FROM htc2 " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
-                    "WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-                        "htc2.D_E_L_E_T " + deletados + " " +
+                    "WHERE " + campo + " LIKE '%" + condicao + "%' " +                      
                     "ORDER BY C2_COD", ref adaptador))
             {
                 atualizaGridGeral();
@@ -1972,10 +2155,10 @@ namespace HelpTeacher.Forms
             if (banco.executeComando("SELECT htc3.*, C2_NOME " +
                         "FROM htc3 " +
                             "INNER JOIN htc2 " +
-                                "ON C3_DISCIPL = C2_COD " +
+                                "ON C3_DISCIP = C2_COD " +
                         "WHERE " + campo + " LIKE '%" + condicao + 
-                            "%' AND htc3.D_E_L_E_T " + deletados + 
-                        " ORDER BY C3_COD", ref respostaBanco))
+                            "%' " +
+                        "ORDER BY C3_COD", ref respostaBanco))
             {
                 atualizaCamposMaterias();
             }
@@ -1988,11 +2171,11 @@ namespace HelpTeacher.Forms
                         "C1_NOME AS 'Curso'" + 
                     "FROM htc3 " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " LIKE '%" + condicao + 
-                        "%' AND htc3.D_E_L_E_T " + deletados +
+                        "%' " +
                     " ORDER BY C3_COD", ref adaptador))
             {
                 atualizaGridGeral();
@@ -2004,19 +2187,21 @@ namespace HelpTeacher.Forms
         private void pesquisaHistoricoEdit(String campo, String condicao, String deletados)
         {
             if (banco.executeComando("SELECT D1_COD, D1_DATA, " + 
-                        "D1_QUESTAO, C2_NOME " + 
+                        "D2_QUESTAO, C2_NOME " + 
                     "FROM htd1 " + 
+                        "INNER JOIN htd2 " +
+                            "ON D2_PROVA = D1_COD " +
+                        "INNER JOIN htb3 " +
+                            "ON B3_QUESTAO = D2_QUESTAO " +
                         "INNER JOIN htc3 " +
-                            "ON D1_MATERIA = C3_COD " + 
-                        //    "ON SUBSTRING(D1_MATERIA, 1, " + 
-                        //    "LOCATE(',', D1_MATERIA) - 1) = C3_COD " + 
+                            "ON B3_MATERIA = C3_COD " + 
                         "INNER JOIN htc2 " + 
-    	                    "ON C3_DISCIPL = C2_COD " + 
+    	                    "ON C3_DISCIP = C2_COD " + 
                         "INNER JOIN htc1 " +
     	                    "ON C2_CURSO = C1_COD " +
-                    "WHERE " + campo + " LIKE '%" + condicao + "%' " +
-                        "AND htd1.D_E_L_E_T " + deletados + " " + 
-                    "ORDER BY D1_COD", ref respostaBanco))
+                    "WHERE " + campo + " LIKE '%" + condicao + "%' " +  
+                    "AND D2_DELETED = '" + deletados +  
+                    "' GROUP BY D2_PROVA", ref respostaBanco))
             {
                 atualizaCamposAvaliacao();
             }
@@ -2025,19 +2210,25 @@ namespace HelpTeacher.Forms
         private void pesquisaHistoricoGrid(String campo, String condicao, String deletados)
         {
             if (banco.executeComando("SELECT D1_COD AS 'Codigo', D1_DATA " +
-                        "AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS 'Inedita?', " +
-                        "D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
-                        "C2_NOME AS 'Disciplina', D1_MATERIA AS 'Codigos Materias'" + 
-                    "FROM htd1 " +
+                        "AS 'Data', D1_INEDITA AS 'Inedita?', " +
+                        "D2_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
+                        "C2_NOME AS 'Disciplina', B3_MATERIA AS 'Codigos Materias'" + 
+                    "FROM htd2 " +
+                        "INNER JOIN htd1 " +
+                            "ON D2_PROVA = D1_COD " +
+                        "INNER JOIN htb1 " +
+                            "ON B1_COD = D2_QUESTAO " +
+                        "INNER JOIN htb3 " +
+                            "ON B3_QUESTAO = B1_COD " +
                         "INNER JOIN htc3 " +
-                            "ON D1_MATERIA = C3_COD " +
+                            "ON B3_MATERIA = C3_COD " +
                         "INNER JOIN htc2 " +
-                            "ON C3_DISCIPL = C2_COD " +
+                            "ON C3_DISCIP = C2_COD " +
                         "INNER JOIN htc1 " +
                             "ON C2_CURSO = C1_COD " +
                     "WHERE " + campo + " LIKE '%" + condicao + "%' " +
-                        "AND htd1.D_E_L_E_T " + deletados + " " +
-                    "ORDER BY D1_COD", ref adaptador))
+                        "AND D2_DELETED = '" + deletados + "' " +
+                    "GROUP BY D2_PROVA", ref adaptador))
             {
                 atualizaGridGeral();
             }
@@ -2055,7 +2246,7 @@ namespace HelpTeacher.Forms
                             "INNER JOIN htc3 " +
                                 "ON D1_MATERIA = C3_COD " +
                             "INNER JOIN htc2 " +
-                                "ON C3_DISCIPL = C2_COD " +
+                                "ON C3_DISCIP = C2_COD " +
                             "INNER JOIN htc1 " +
                                 "ON C2_CURSO = C1_COD " +
                         "WHERE " + campo + " IS NULL AND " +
@@ -2075,7 +2266,7 @@ namespace HelpTeacher.Forms
                             "INNER JOIN htc3 " +
                                 "ON D1_MATERIA = C3_COD " +
                             "INNER JOIN htc2 " +
-                                "ON C3_DISCIPL = C2_COD " +
+                                "ON C3_DISCIP = C2_COD " +
                             "INNER JOIN htc1 " +
                                 "ON C2_CURSO = C1_COD " +
                         "WHERE " + campo + " IS NOT NULL AND " +
@@ -2085,6 +2276,11 @@ namespace HelpTeacher.Forms
                     atualizaGridGeral();
                 }
             }
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            ativaDesativaEdicaoQuestao(false);
         }
     }
 }
