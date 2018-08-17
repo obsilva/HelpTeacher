@@ -17,7 +17,7 @@ namespace HelpTeacher.Classes
         {
             try
             {
-                conexao = new MySqlConnection("server = 127.0.0.1; database = helpteacher; uid = root");
+	            conexao = new MySqlConnection("server = 127.0.0.1; database = helpteacher; uid = root; pwd = 123456"); 
                 conexao.Open();
                 return true;
             }
@@ -26,7 +26,7 @@ namespace HelpTeacher.Classes
                 startBanco();
                 try
                 {
-                    conexao = new MySqlConnection("server = 127.0.0.1; database = helpteacher; uid = root");
+                    conexao = new MySqlConnection("server = 127.0.0.1; database = helpteacher; uid = root; pwd = 123456");
                     conexao.Open();
                     return true;
                 }
