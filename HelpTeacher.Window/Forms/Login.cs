@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Forms
 {
@@ -216,15 +217,14 @@ namespace HelpTeacher.Forms
                 if (respostaBanco.HasRows)
                 {
                     respostaBanco.Read();
-                    Usuario.ID = Convert.ToInt32(respostaBanco["A1_COD"].ToString());
-                    Usuario.Login = respostaBanco["A1_LOGIN"].ToString();
-                    Usuario.Password = respostaBanco["A1_PWD"].ToString();
-                    Usuario.ChancePassword = respostaBanco["A1_ALTPWD"].ToString();
-                    Usuario.StopBD = respostaBanco["A1_STOPBD"].ToString();
+                    User.Instance.ID = Convert.ToInt32(respostaBanco["A1_COD"].ToString());
+					User.Instance.Username = respostaBanco["A1_LOGIN"].ToString();
+					User.Instance.Password = respostaBanco["A1_PWD"].ToString();
+					User.Instance.MustChangePassword = respostaBanco["A1_ALTPWD"].ToString().Equals("*");
                     
                     banco.fechaConexao();
                     respostaBanco.Close();
-                    if (Usuario.ChancePassword.Equals("*"))
+                    if (User.Instance.MustChangePassword)
                     {
                         ForcaTrocaSenha changePassword = new ForcaTrocaSenha();
                         if (changePassword.ShowDialog() == DialogResult.OK)

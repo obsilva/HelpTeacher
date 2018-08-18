@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Forms
 {
@@ -45,8 +46,8 @@ namespace HelpTeacher.Forms
             {
                 banco.executeComando("UPDATE hta1 " +
                         "SET A1_PWD = '" + MD5.gerarHash(txtNovaSenha.Text) +
-                            "', A1_ALTPWD = NULL " +
-                        "WHERE A1_COD = " + Usuario.ID.ToString());
+                            "', A1_ALTPWD = 0 " +
+                        "WHERE A1_COD = " + User.Instance.ID.ToString());
                 this.DialogResult = DialogResult.OK;
             }
             else

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4771FA15-88E3-4C55-B4CC-0CA9B0002CF9}</ProjectGuid>
+    <ProjectGuid>{F9FA4FD4-22D4-4190-A1ED-1377761980B2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HelpTeacher.Domain</RootNamespace>
-    <AssemblyName>HelpTeacher.Domain</AssemblyName>
+    <RootNamespace>HelpTeacher.Domain.Test</RootNamespace>
+    <AssemblyName>HelpTeacher.Domain.Test</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -21,9 +21,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\HelpTeacher.Domain.Test.xml</DocumentationFile>
     <LangVersion>latest</LangVersion>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <DocumentationFile>bin\Debug\HelpTeacher.Domain.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,8 +37,13 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">
+      <Project>{4771fa15-88e3-4c55-b4cc-0ca9b0002cf9}</Project>
+      <Name>HelpTeacher.Domain</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
