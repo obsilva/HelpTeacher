@@ -217,7 +217,7 @@ namespace HelpTeacher.Forms
                 if (respostaBanco.HasRows)
                 {
                     respostaBanco.Read();
-                    User.Instance.ID = Convert.ToInt32(respostaBanco["A1_COD"].ToString());
+                    User.Instance.RecordID = Convert.ToInt32(respostaBanco["A1_COD"].ToString());
 					User.Instance.Username = respostaBanco["A1_LOGIN"].ToString();
 					User.Instance.Password = respostaBanco["A1_PWD"].ToString();
 					User.Instance.MustChangePassword = respostaBanco["A1_ALTPWD"].ToString().Equals("*");

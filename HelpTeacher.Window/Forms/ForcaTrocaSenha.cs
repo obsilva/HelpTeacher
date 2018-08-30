@@ -47,7 +47,7 @@ namespace HelpTeacher.Forms
                 banco.executeComando("UPDATE hta1 " +
                         "SET A1_PWD = '" + MD5.gerarHash(txtNovaSenha.Text) +
                             "', A1_ALTPWD = 0 " +
-                        "WHERE A1_COD = " + User.Instance.ID.ToString());
+                        "WHERE A1_COD = " + User.Instance.RecordID.ToString());
                 this.DialogResult = DialogResult.OK;
             }
             else

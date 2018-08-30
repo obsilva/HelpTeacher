@@ -5,22 +5,17 @@
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade usuário.</summary>
-	public sealed class User
+	public sealed class User : IEntityBase
 	{
-		#region Fields
-		private static readonly User instance = new User();
-		#endregion
-
-
 		#region Properties
-		/// <summary>Identificador único do registro.</summary>
-		public int ID { get; set; }
-
 		/// <summary>Primeiro nome do usuário.</summary>
 		public string FirstName { get; set; }
 
 		/// <summary>Recupera a instanância única de usuário.</summary>
-		public static User Instance => instance;
+		public static User Instance { get; } = new User();
+
+		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
+		public bool IsRecordActive { get; set; }
 
 		/// <summary>Sobrenome do usuário.</summary>
 		public string LastName { get; set; }
@@ -31,6 +26,9 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary>Senha utilizada para ter acesso ao sistema.</summary>
 		/// <remarks>A senha é armazenada criptografada.</remarks>
 		public string Password { get; set; }
+
+		/// <summary>Implementa <see cref="IEntityBase.RecordID"/>.</summary>
+		public int RecordID { get; set; }
 
 		/// <summary>Nome de usuário utilizado para ter acesso ao sistema.</summary>
 		public string Username { get; set; }
