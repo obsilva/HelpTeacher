@@ -14,7 +14,7 @@ namespace HelpTeacher.Forms
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private MySql.Data.MySqlClient.MySqlDataAdapter adaptador;
 		private DataSet ds;
-		private String deletados;
+		private string deletados;
 
 		public Pesquisa(int origem)
 		{
@@ -24,21 +24,18 @@ namespace HelpTeacher.Forms
 		}
 
 		/* tabControlPesquisa_SelectedIndexChanged
-         * 
-         * Chama a função para ajustar o tamanho da tela
-         * toda vez que uma page é selecionada
-         */
-		private void tabControlPesquisa_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			ajustaTamanho();
-		}
+		 * 
+		 * Chama a função para ajustar o tamanho da tela
+		 * toda vez que uma page é selecionada
+		 */
+		private void tabControlPesquisa_SelectedIndexChanged(object sender, EventArgs e) => ajustaTamanho();
 
 		// FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  //
 		// FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  FUNÇÕES GERAIS  //
 		/* inicializa
-         * 
-         * Seleciona em qual page irar abrir
-         */
+		 * 
+		 * Seleciona em qual page irar abrir
+		 */
 		private void inicializa(int origem)
 		{
 			if (origem == 1)
@@ -59,38 +56,38 @@ namespace HelpTeacher.Forms
 		}
 
 		/* ajustaTamanho
-         * 
-         * Ajusta o tamanho do form de acordo com o a page 
-         * selecionada. Evita sobra de espaço e fica visualmente
-         * mais agradável
-         */
+		 * 
+		 * Ajusta o tamanho do form de acordo com o a page 
+		 * selecionada. Evita sobra de espaço e fica visualmente
+		 * mais agradável
+		 */
 		private void ajustaTamanho()
 		{
-			this.Dock = DockStyle.None;
+			Dock = DockStyle.None;
 
 			if (tabControlPesquisa.SelectedTab == pageQuestoes ||
 					tabControlPesquisa.SelectedTab == pagePesquisaGeral)
 			{
-				this.Size = new Size(1090, 635);
+				Size = new Size(1090, 635);
 
 				if (tabControlPesquisa.SelectedTab == pagePesquisaGeral)
 				{
-					this.Dock = DockStyle.Fill;
+					Dock = DockStyle.Fill;
 				}
 			}
 			else if (tabControlPesquisa.SelectedTab == pageAvaliacoes)
 			{
-				this.Size = new Size(900, 635);
+				Size = new Size(900, 635);
 			}
 			else
 			{
-				this.Size = new Size(500, 355);
+				Size = new Size(500, 355);
 			}
 		}
 
 		private void atualizaCursos(ComboBox combo)
 		{
-			String[] codigo = combo.Text.Split(new char[] { '(', ')' },
+			string[] codigo = combo.Text.Split(new char[] { '(', ')' },
 						StringSplitOptions.RemoveEmptyEntries);
 
 			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
@@ -114,7 +111,7 @@ namespace HelpTeacher.Forms
 
 		private void atualizaDisciplinas(ComboBox combo)
 		{
-			String[] codigo = combo.Text.Split(new char[] { '(', ')' },
+			string[] codigo = combo.Text.Split(new char[] { '(', ')' },
 						StringSplitOptions.RemoveEmptyEntries);
 
 			if (banco.executeComando("SELECT C2_COD, C2_NOME " +
@@ -137,13 +134,13 @@ namespace HelpTeacher.Forms
 		}
 
 		/* setaCursorClick
-         * 
-         * Seta o cursor na posição clicada no textBox
-         */
+		 * 
+		 * Seta o cursor na posição clicada no textBox
+		 */
 		private void setaCursorClick(object sender, EventArgs e)
 		{
-			TextBox txt = sender as TextBox;
-			MouseEventArgs evento = e as MouseEventArgs;
+			var txt = sender as TextBox;
+			var evento = e as MouseEventArgs;
 			txt.Select(txt.GetCharIndexFromPosition(evento.Location), 0);
 		}
 
@@ -153,10 +150,7 @@ namespace HelpTeacher.Forms
 
 		// PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  //
 		// PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  PAGE QUESTÕES  //
-		private void pageQuestoes_Enter(object sender, EventArgs e)
-		{
-			cmbCampoQuestoes.SelectedIndex = 0;
-		}
+		private void pageQuestoes_Enter(object sender, EventArgs e) => cmbCampoQuestoes.SelectedIndex = 0;
 
 		private void pageQuestoes_Leave(object sender, EventArgs e)
 		{
@@ -174,25 +168,20 @@ namespace HelpTeacher.Forms
 		{
 			chamaPesquisaQuestoes();
 			if (txtCodigoQuestao.Text.Equals(""))
+			{
 				btnEditarQuestao.Enabled = false;
+			}
 			else
+			{
 				btnEditarQuestao.Enabled = true;
+			}
 		}
 
-		private void radTrueQuestoes_CheckedChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaQuestoes();
-		}
+		private void radTrueQuestoes_CheckedChanged(object sender, EventArgs e) => chamaPesquisaQuestoes();
 
-		private void radQuestoesDeletadas_CheckedChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaQuestoes();
-		}
+		private void radQuestoesDeletadas_CheckedChanged(object sender, EventArgs e) => chamaPesquisaQuestoes();
 
-		private void btnEditarQuestao_Click(object sender, EventArgs e)
-		{
-			ativaDesativaEdicaoQuestao(true);
-		}
+		private void btnEditarQuestao_Click(object sender, EventArgs e) => ativaDesativaEdicaoQuestao(true);
 
 		private void btnArquivo1_Click(object sender, EventArgs e)
 		{
@@ -210,15 +199,9 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void btnBackspace1_Click(object sender, EventArgs e)
-		{
-			txtArquivo1.Clear();
-		}
+		private void btnBackspace1_Click(object sender, EventArgs e) => txtArquivo1.Clear();
 
-		private void btnBackspace2_Click(object sender, EventArgs e)
-		{
-			txtArquivo2.Clear();
-		}
+		private void btnBackspace2_Click(object sender, EventArgs e) => txtArquivo2.Clear();
 
 		private void btnSalvarQuestoes_Click(object sender, EventArgs e)
 		{
@@ -229,7 +212,9 @@ namespace HelpTeacher.Forms
 				Mensagem.dadosAlterados();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void btnCancelarQuestoes_Click(object sender, EventArgs e)
@@ -261,34 +246,50 @@ namespace HelpTeacher.Forms
 				chkMateriasQuestoes.SetItemChecked(0, true);
 
 				if (respostaBanco["B1_OBJETIV"].ToString().Equals("*"))
+				{
 					radObjetiva.Checked = true;
+				}
 				else
+				{
 					radDissertativa.Checked = true;
+				}
 
 				if (respostaBanco["B1_USADA"].ToString().Equals("*"))
+				{
 					chkQuestaoUsada.Checked = true;
+				}
 				else
+				{
 					chkQuestaoUsada.Checked = false;
+				}
 
 				if (respostaBanco["B1_PADRAO"].ToString().Equals("*"))
+				{
 					chkQuestaoPadrao.Checked = true;
+				}
 				else
+				{
 					chkQuestaoPadrao.Checked = false;
+				}
 
 				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				{
 					chkQuestaoDeletada.Checked = true;
+				}
 				else
+				{
 					chkQuestaoDeletada.Checked = false;
+				}
 
 				if (!respostaBanco["B1_ARQUIVO"].ToString().Equals(""))
 				{
 					if (respostaBanco["B1_ARQUIVO"].ToString().Contains(','))
 					{
-						String[] nomes = respostaBanco["B1_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
+						string[] nomes = respostaBanco["B1_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
 									StringSplitOptions.RemoveEmptyEntries);
 
-						String[] arquivos = Directory.GetFiles(@"..\_files", nomes[0] + ".*");
-						String caminho = Path.GetFullPath(arquivos[0]);
+						string[] arquivos = Directory.GetFiles(@"..\_files", nomes[0] + ".*");
+						string caminho = Path.GetFullPath(arquivos[0]);
 						txtArquivo1.Text = caminho;
 
 						arquivos = Directory.GetFiles(@"..\_files", nomes[1] + ".*");
@@ -297,9 +298,9 @@ namespace HelpTeacher.Forms
 					}
 					else
 					{
-						String[] arquivo = Directory.GetFiles(@"..\_files",
+						string[] arquivo = Directory.GetFiles(@"..\_files",
 							respostaBanco["B1_ARQUIVO"].ToString() + ".*");
-						String caminho = Path.GetFullPath(arquivo[0]);
+						string caminho = Path.GetFullPath(arquivo[0]);
 						txtArquivo1.Text = caminho;
 						txtArquivo2.Clear();
 					}
@@ -335,9 +336,13 @@ namespace HelpTeacher.Forms
 		private void chamaPesquisaQuestoes()
 		{
 			if (radQuestoesDeletadas.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			switch (cmbCampoQuestoes.Text)
 			{
@@ -413,7 +418,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void ativaDesativaEdicaoQuestao(Boolean ativa)
+		private void ativaDesativaEdicaoQuestao(bool ativa)
 		{
 			cmbCampoQuestoes.Enabled = !ativa;
 			txtPesquisaQuestoes.Enabled = !ativa;
@@ -422,7 +427,7 @@ namespace HelpTeacher.Forms
 			pnlQuestao.Enabled = ativa;
 		}
 
-		private Boolean salvaQuestaoModificada()
+		private bool salvaQuestaoModificada()
 		{
 			/* Dissertativa ou Objetiva */
 			if (radDissertativa.Checked)
@@ -543,53 +548,66 @@ namespace HelpTeacher.Forms
 
 		private void copiaArquivo()
 		{
-			String primeiroArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_1"));
+			string primeiroArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_1"));
 
 			if (txtArquivo1.Text.Equals(""))
 			{
-				String extensao = Path.GetExtension(txtArquivo2.Text);
+				string extensao = Path.GetExtension(txtArquivo2.Text);
 				primeiroArquivo = String.Concat(primeiroArquivo, extensao);
 
 				if (!txtArquivo2.Text.Contains(@"_files\" + txtCodigoQuestao.Text))
+				{
 					File.Copy(txtArquivo2.Text, primeiroArquivo, true);
+				}
 				else
+				{
 					File.Move(txtArquivo2.Text, primeiroArquivo);
+				}
 			}
 			else
 			{
-				String extensao1 = Path.GetExtension(txtArquivo1.Text);
+				string extensao1 = Path.GetExtension(txtArquivo1.Text);
 				primeiroArquivo = String.Concat(primeiroArquivo, extensao1);
 
 				if (!txtArquivo1.Text.Contains(@"_files\" + txtCodigoQuestao.Text))
+				{
 					File.Copy(txtArquivo1.Text, primeiroArquivo, true);
+				}
 				else
+				{
 					File.Move(txtArquivo1.Text, primeiroArquivo);
+				}
+
 				if (!txtArquivo2.Text.Equals(""))
 				{
-					String segundoArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_2"));
-					String extensao2 = Path.GetExtension(txtArquivo2.Text);
+					string segundoArquivo = Path.Combine(@"..\_files", (txtCodigoQuestao.Text + "_2"));
+					string extensao2 = Path.GetExtension(txtArquivo2.Text);
 					segundoArquivo = String.Concat(segundoArquivo, extensao2);
 
 					if (!txtArquivo2.Text.Contains(@"_files\" + txtCodigoQuestao.Text))
+					{
 						File.Copy(txtArquivo2.Text, segundoArquivo, true);
+					}
 					else
+					{
 						File.Move(txtArquivo2.Text, segundoArquivo);
+					}
 				}
 			}
 		}
 
 		/* apagaArquivos
-         * 
-         * Verifica se existe algum arquivo relacionada a
-         * questão e se tiver, apaga o arquivo
-         */
+		 * 
+		 * Verifica se existe algum arquivo relacionada a
+		 * questão e se tiver, apaga o arquivo
+		 */
 		private void apagaArquivos()
 		{
-			String[] arquivos = Directory.GetFiles(@"..\_files",
+			string[] arquivos = Directory.GetFiles(@"..\_files",
 						txtCodigoQuestao.Text + "_*");
-			foreach (String arquivo in arquivos)
+			foreach (string arquivo in arquivos)
 			{
-				String caminho = Path.GetFullPath(arquivo);
+				string caminho = Path.GetFullPath(arquivo);
 
 				if (!txtArquivo1.Text.Contains(caminho) &&
 							!txtArquivo2.Text.Contains(caminho))
@@ -608,10 +626,7 @@ namespace HelpTeacher.Forms
 
 		// PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  //
 		// PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  PAGE CURSOS  //
-		private void pageCursos_Enter(object sender, EventArgs e)
-		{
-			cmbCampoCursos.SelectedIndex = 0;
-		}
+		private void pageCursos_Enter(object sender, EventArgs e) => cmbCampoCursos.SelectedIndex = 0;
 
 		private void pageCursos_Leave(object sender, EventArgs e)
 		{
@@ -625,20 +640,11 @@ namespace HelpTeacher.Forms
 			chamaPesquisaCursos();
 		}
 
-		private void radCursosDeletados_CheckedChanged(object sender, EventArgs e)
-		{
-			txtPesquisaCursos.Clear();
-		}
+		private void radCursosDeletados_CheckedChanged(object sender, EventArgs e) => txtPesquisaCursos.Clear();
 
-		private void txtPesquisaCursos_TextChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaCursos();
-		}
+		private void txtPesquisaCursos_TextChanged(object sender, EventArgs e) => chamaPesquisaCursos();
 
-		private void btnEditarCursos_Click(object sender, EventArgs e)
-		{
-			ativaDesativaEdicaoCurso(true);
-		}
+		private void btnEditarCursos_Click(object sender, EventArgs e) => ativaDesativaEdicaoCurso(true);
 
 		private void btnSalvarCurso_Click(object sender, EventArgs e)
 		{
@@ -649,7 +655,9 @@ namespace HelpTeacher.Forms
 				Mensagem.dadosAlterados();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void btnCancelarCurso_Click(object sender, EventArgs e)
@@ -670,9 +678,13 @@ namespace HelpTeacher.Forms
 				txtNomeCurso.Text = respostaBanco["C1_NOME"].ToString();
 
 				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				{
 					chkCursoDeletado.Checked = true;
+				}
 				else
+				{
 					chkCursoDeletado.Checked = false;
+				}
 			}
 			else
 			{
@@ -689,9 +701,13 @@ namespace HelpTeacher.Forms
 		private void chamaPesquisaCursos()
 		{
 			if (radCursosDeletados.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			switch (cmbCampoCursos.Text)
 			{
@@ -719,10 +735,12 @@ namespace HelpTeacher.Forms
 				pnlDeletadosCursos.Show();
 			}
 			else
+			{
 				pnlDeletadosCursos.Hide();
+			}
 		}
 
-		private void ativaDesativaEdicaoCurso(Boolean ativa)
+		private void ativaDesativaEdicaoCurso(bool ativa)
 		{
 			cmbCampoCursos.Enabled = !ativa;
 			txtPesquisaCursos.Enabled = !ativa;
@@ -731,7 +749,7 @@ namespace HelpTeacher.Forms
 			pnlCursos.Enabled = ativa;
 		}
 
-		private Boolean salvaCursoModificado()
+		private bool salvaCursoModificado()
 		{
 			if (!banco.executeComando("UPDATE htc1 SET C1_NOME = '" + txtNomeCurso.Text +
 						"' WHERE C1_COD = " + txtCodigoCurso.Text))
@@ -761,10 +779,7 @@ namespace HelpTeacher.Forms
 
 		// PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  //
 		// PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  //
-		private void pageDisciplina_Enter(object sender, EventArgs e)
-		{
-			cmbCampoDisciplinas.SelectedIndex = 0;
-		}
+		private void pageDisciplina_Enter(object sender, EventArgs e) => cmbCampoDisciplinas.SelectedIndex = 0;
 
 		private void pageDisciplina_Leave(object sender, EventArgs e)
 		{
@@ -778,15 +793,9 @@ namespace HelpTeacher.Forms
 			chamaPesquisaDisciplinas();
 		}
 
-		private void txtPesquisaDisciplina_TextChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaDisciplinas();
-		}
+		private void txtPesquisaDisciplina_TextChanged(object sender, EventArgs e) => chamaPesquisaDisciplinas();
 
-		private void radDisciplinasDeletadas_CheckedChanged(object sender, EventArgs e)
-		{
-			txtPesquisaDisciplina.Clear();
-		}
+		private void radDisciplinasDeletadas_CheckedChanged(object sender, EventArgs e) => txtPesquisaDisciplina.Clear();
 
 		private void btnEditarDisciplina_Click(object sender, EventArgs e)
 		{
@@ -803,7 +812,9 @@ namespace HelpTeacher.Forms
 				Mensagem.dadosAlterados();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void btnCancelarDisc_Click(object sender, EventArgs e)
@@ -827,9 +838,13 @@ namespace HelpTeacher.Forms
 					") " + respostaBanco["C1_NOME"].ToString());
 
 				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				{
 					chkDisciplinaDeletada.Checked = true;
+				}
 				else
+				{
 					chkDisciplinaDeletada.Checked = false;
+				}
 
 				respostaBanco.Close();
 				banco.fechaConexao();
@@ -850,9 +865,13 @@ namespace HelpTeacher.Forms
 		private void chamaPesquisaDisciplinas()
 		{
 			if (radDisciplinasDeletadas.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			switch (cmbCampoDisciplinas.Text)
 			{
@@ -884,10 +903,12 @@ namespace HelpTeacher.Forms
 				pnlDeletadosDisciplinas.Show();
 			}
 			else
+			{
 				pnlDeletadosDisciplinas.Hide();
+			}
 		}
 
-		private void ativaDesativaEdicaoDisc(Boolean ativa)
+		private void ativaDesativaEdicaoDisc(bool ativa)
 		{
 			cmbCampoDisciplinas.Enabled = !ativa;
 			txtPesquisaDisciplina.Enabled = !ativa;
@@ -896,9 +917,9 @@ namespace HelpTeacher.Forms
 			pnlDisciplina.Enabled = ativa;
 		}
 
-		private Boolean salvaDiscModificada()
+		private bool salvaDiscModificada()
 		{
-			String[] curso = cmbCursosDisciplina.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+			string[] curso = cmbCursosDisciplina.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 			if (!banco.executeComando("UPDATE htc2 SET C2_NOME = '" +
 							textNomeDisciplina.Text + "', C2_CURSO =  " +
@@ -930,10 +951,7 @@ namespace HelpTeacher.Forms
 
 		// PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  //
 		// PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  //
-		private void pageMateria_Enter(object sender, EventArgs e)
-		{
-			cmbCampoMateria.SelectedIndex = 0;
-		}
+		private void pageMateria_Enter(object sender, EventArgs e) => cmbCampoMateria.SelectedIndex = 0;
 
 		private void pageMateria_Leave(object sender, EventArgs e)
 		{
@@ -947,15 +965,9 @@ namespace HelpTeacher.Forms
 			chamaPesquisaMaterias();
 		}
 
-		private void txtPesquisaMateria_TextChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaMaterias();
-		}
+		private void txtPesquisaMateria_TextChanged(object sender, EventArgs e) => chamaPesquisaMaterias();
 
-		private void radMateriasDeletadas_CheckedChanged(object sender, EventArgs e)
-		{
-			txtPesquisaMateria.Clear();
-		}
+		private void radMateriasDeletadas_CheckedChanged(object sender, EventArgs e) => txtPesquisaMateria.Clear();
 
 		private void btnEditarMateria_Click(object sender, EventArgs e)
 		{
@@ -963,10 +975,7 @@ namespace HelpTeacher.Forms
 			atualizaDisciplinas(cmbDisciplinaMateria);
 		}
 
-		private void cmbDisciplinaMateria_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			recuperaNomeCurso();
-		}
+		private void cmbDisciplinaMateria_SelectedIndexChanged(object sender, EventArgs e) => recuperaNomeCurso();
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
@@ -977,7 +986,9 @@ namespace HelpTeacher.Forms
 				Mensagem.dadosAlterados();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void btnCancelarMateria_Click(object sender, EventArgs e)
@@ -1001,9 +1012,13 @@ namespace HelpTeacher.Forms
 					") " + respostaBanco["C2_NOME"].ToString());
 
 				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				{
 					chkMateriaDeletada.Checked = true;
+				}
 				else
+				{
 					chkMateriaDeletada.Checked = false;
+				}
 
 				respostaBanco.Close();
 				banco.fechaConexao();
@@ -1025,9 +1040,13 @@ namespace HelpTeacher.Forms
 		private void chamaPesquisaMaterias()
 		{
 			if (radMateriasDeletadas.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			switch (cmbCampoMateria.Text)
 			{
@@ -1059,10 +1078,12 @@ namespace HelpTeacher.Forms
 				pnlDeletadosMaterias.Show();
 			}
 			else
+			{
 				pnlDeletadosMaterias.Hide();
+			}
 		}
 
-		private void ativaDesativaEdicaoMateria(Boolean ativa)
+		private void ativaDesativaEdicaoMateria(bool ativa)
 		{
 			cmbCampoMateria.Enabled = !ativa;
 			txtPesquisaMateria.Enabled = !ativa;
@@ -1071,9 +1092,9 @@ namespace HelpTeacher.Forms
 			pnlMateria.Enabled = ativa;
 		}
 
-		private Boolean salvaMateriaModificada()
+		private bool salvaMateriaModificada()
 		{
-			String[] disciplina = cmbDisciplinaMateria.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+			string[] disciplina = cmbDisciplinaMateria.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 			if (!banco.executeComando("UPDATE htc3 SET C3_NOME = '" +
 							txtNomeMateria.Text + "', C3_DISCIPL =  " +
@@ -1106,7 +1127,7 @@ namespace HelpTeacher.Forms
 
 		private void recuperaNomeCurso()
 		{
-			String[] codMateria = cmbDisciplinaMateria.Text.Split(new char[]
+			string[] codMateria = cmbDisciplinaMateria.Text.Split(new char[]
 					{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 			if (banco.executeComando("SELECT C1_NOME " +
@@ -1186,15 +1207,9 @@ namespace HelpTeacher.Forms
 			chamaPesquisaAvaliacoes();
 		}
 
-		private void cmbMateriasAvaliacoes_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaAvaliacoes();
-		}
+		private void cmbMateriasAvaliacoes_SelectedIndexChanged(object sender, EventArgs e) => chamaPesquisaAvaliacoes();
 
-		private void dateAvalicao_ValueChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaAvaliacoes();
-		}
+		private void dateAvalicao_ValueChanged(object sender, EventArgs e) => chamaPesquisaAvaliacoes();
 
 		private void cmbAvaliacao_SelectedIndexChanged(object sender, EventArgs e)
 		{
@@ -1202,10 +1217,7 @@ namespace HelpTeacher.Forms
 			mostraAvaliacao();
 		}
 
-		private void chkAvaliacoesDeletadas_CheckedChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaAvaliacoes();
-		}
+		private void chkAvaliacoesDeletadas_CheckedChanged(object sender, EventArgs e) => chamaPesquisaAvaliacoes();
 
 		private void btnLimparRegistro_Click(object sender, EventArgs e)
 		{
@@ -1215,7 +1227,9 @@ namespace HelpTeacher.Forms
 				chamaPesquisaAvaliacoes();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void btnLimparHistorico_Click(object sender, EventArgs e)
@@ -1226,15 +1240,21 @@ namespace HelpTeacher.Forms
 				chamaPesquisaAvaliacoes();
 			}
 			else
+			{
 				Mensagem.erroAlteracao();
+			}
 		}
 
 		private void chamaPesquisaAvaliacoes()
 		{
 			if (chkAvaliacoesDeletadas.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			if (radData.Checked)
 			{
@@ -1244,14 +1264,14 @@ namespace HelpTeacher.Forms
 			{
 				if (!cmbMateriasAvaliacoes.Text.Equals("Opcional"))
 				{
-					String[] codigoMateria = cmbMateriasAvaliacoes.Text.Split
+					string[] codigoMateria = cmbMateriasAvaliacoes.Text.Split
 					(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 					pesquisaHistoricoEdit("D1_MATERIA", codigoMateria[0], deletados);
 				}
 				else if (!cmbDisciplinasAvaliacoes.Text.Equals("Opcional"))
 				{
-					String[] codigoDisciplina = cmbDisciplinasAvaliacoes.Text.
+					string[] codigoDisciplina = cmbDisciplinasAvaliacoes.Text.
 							Split(new char[] { '(', ')' }, StringSplitOptions.
 							RemoveEmptyEntries);
 
@@ -1259,7 +1279,7 @@ namespace HelpTeacher.Forms
 				}
 				else
 				{
-					String[] codigoCurso = cmbCursosAvaliacoes.Text.Split(new char[]
+					string[] codigoCurso = cmbCursosAvaliacoes.Text.Split(new char[]
 							{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 					pesquisaHistoricoEdit("C1_COD", codigoCurso[0], deletados);
@@ -1290,7 +1310,7 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboDisicplina()
 		{
-			String[] codigoCurso = cmbCursosAvaliacoes.Text.Split(new char[]
+			string[] codigoCurso = cmbCursosAvaliacoes.Text.Split(new char[]
 				{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
 
 			cmbDisciplinasAvaliacoes.Items.Clear();
@@ -1313,7 +1333,7 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboMaterias()
 		{
-			String[] codigoDisciplina = cmbDisciplinasAvaliacoes.
+			string[] codigoDisciplina = cmbDisciplinasAvaliacoes.
 					Text.Split(new char[] { '(', ')' },
 					StringSplitOptions.RemoveEmptyEntries);
 
@@ -1363,9 +1383,9 @@ namespace HelpTeacher.Forms
 
 		private void mostraAvaliacao()
 		{
-			String[] codigoAvaliacao = cmbAvaliacoes.Text.Split(new char[]
+			string[] codigoAvaliacao = cmbAvaliacoes.Text.Split(new char[]
 				{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-			String[] codigosQuestoes;
+			string[] codigosQuestoes;
 
 			/* Recupera os códigos das questões da avaliação */
 			if (banco.executeComando("SELECT D1_QUESTAO " +
@@ -1385,7 +1405,7 @@ namespace HelpTeacher.Forms
 					respostaBanco.Close();
 					banco.fechaConexao();
 					/* Recupera as questões da avaliação */
-					foreach (String questao in codigosQuestoes)
+					foreach (string questao in codigosQuestoes)
 					{
 						if (banco.executeComando("SELECT B1_QUEST " +
 							"FROM htb1 " +
@@ -1413,9 +1433,9 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private Boolean apagaRegistro()
+		private bool apagaRegistro()
 		{
-			String[] codigoAvaliacao = cmbAvaliacoes.Text.Split(
+			string[] codigoAvaliacao = cmbAvaliacoes.Text.Split(
 					new char[] { '(', ')' }, StringSplitOptions.
 					RemoveEmptyEntries);
 
@@ -1427,7 +1447,7 @@ namespace HelpTeacher.Forms
 			return false;
 		}
 
-		private Boolean apagaHistorico()
+		private bool apagaHistorico()
 		{
 			if (banco.executeComando("UPDATE htd1 SET D_E_L_E_T = '*'"))
 			{
@@ -1438,15 +1458,9 @@ namespace HelpTeacher.Forms
 
 		// PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  //
 		// PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  //
-		private void pagePesquisaGeral_Enter(object sender, EventArgs e)
-		{
-			cmbTabela.SelectedIndex = 0;
-		}
+		private void pagePesquisaGeral_Enter(object sender, EventArgs e) => cmbTabela.SelectedIndex = 0;
 
-		private void pagePesquisaGeral_Leave(object sender, EventArgs e)
-		{
-			txtPesquisaGeral.Clear();
-		}
+		private void pagePesquisaGeral_Leave(object sender, EventArgs e) => txtPesquisaGeral.Clear();
 
 		private void cmbTabela_SelectedIndexChanged(object sender, EventArgs e)
 		{
@@ -1460,20 +1474,11 @@ namespace HelpTeacher.Forms
 			chamaPesquisaGeral();
 		}
 
-		private void txtPesquisaGeral_TextChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaGeral();
-		}
+		private void txtPesquisaGeral_TextChanged(object sender, EventArgs e) => chamaPesquisaGeral();
 
-		private void radTrueGeral_CheckedChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaGeral();
-		}
+		private void radTrueGeral_CheckedChanged(object sender, EventArgs e) => chamaPesquisaGeral();
 
-		private void radGeralDeletados_CheckedChanged(object sender, EventArgs e)
-		{
-			chamaPesquisaGeral();
-		}
+		private void radGeralDeletados_CheckedChanged(object sender, EventArgs e) => chamaPesquisaGeral();
 
 		private void atualizaGridGeral()
 		{
@@ -1584,9 +1589,13 @@ namespace HelpTeacher.Forms
 		private void chamaPesquisaGeral()
 		{
 			if (radGeralDeletados.Checked)
+			{
 				deletados = "IS NOT NULL";
+			}
 			else
+			{
 				deletados = "IS NULL";
+			}
 
 			switch (cmbTabela.Text)
 			{
@@ -1776,7 +1785,7 @@ namespace HelpTeacher.Forms
 
 		// PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  //
 		// PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  //
-		private void pesquisaQuestoesEdit(String campo, String condicao, String deletados)
+		private void pesquisaQuestoesEdit(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT htb1.*, C3_NOME, " +
 						"C2_COD, C2_NOME, C1_COD, C1_NOME " +
@@ -1795,7 +1804,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaQuestoesEdit(String campo, Boolean isNull, String deletados)
+		private void pesquisaQuestoesEdit(string campo, bool isNull, string deletados)
 		{
 			if (isNull)
 			{
@@ -1835,7 +1844,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaQuestoesGrid(String campo, String condicao, String deletados)
+		private void pesquisaQuestoesGrid(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
 						"B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
@@ -1857,7 +1866,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaQuestoesGrid(String campo, Boolean isNull, String deletados)
+		private void pesquisaQuestoesGrid(string campo, bool isNull, string deletados)
 		{
 			if (isNull)
 			{
@@ -1905,7 +1914,7 @@ namespace HelpTeacher.Forms
 
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
-		private void pesquisaCursosEdit(String campo, String condicao, String deletados)
+		private void pesquisaCursosEdit(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT * " +
 					"FROM htc1 " +
@@ -1917,7 +1926,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaCursosGrid(String campo, String condicao, String deletados)
+		private void pesquisaCursosGrid(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT C1_COD AS 'Codigo', " +
 						"C1_NOME AS 'Curso'" +
@@ -1932,7 +1941,7 @@ namespace HelpTeacher.Forms
 
 		// DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  //
 		// DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  //
-		private void pesquisaDisciplinasEdit(String campo, String condicao, String deletados)
+		private void pesquisaDisciplinasEdit(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT htc2.*, C1_NOME " +
 					"FROM htc2 " +
@@ -1946,7 +1955,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaDisciplinasGrid(String campo, String condicao, String deletados)
+		private void pesquisaDisciplinasGrid(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT C2_COD AS 'Codigo', " +
 						"C2_NOME AS 'Disciplina', C1_NOME AS 'Curso'" +
@@ -1963,7 +1972,7 @@ namespace HelpTeacher.Forms
 
 		// MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  //
 		// MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  //
-		private void pesquisaMateriasEdit(String campo, String condicao, String deletados)
+		private void pesquisaMateriasEdit(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT htc3.*, C2_NOME " +
 						"FROM htc3 " +
@@ -1977,7 +1986,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaMateriasGrid(String campo, String condicao, String deletados)
+		private void pesquisaMateriasGrid(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT C3_COD AS 'Codigo', " +
 						"C3_NOME AS 'Materia', C2_NOME AS 'Disciplina', " +
@@ -1997,7 +2006,7 @@ namespace HelpTeacher.Forms
 
 		// AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  //
 		// AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  //
-		private void pesquisaHistoricoEdit(String campo, String condicao, String deletados)
+		private void pesquisaHistoricoEdit(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT D1_COD, D1_DATA, " +
 						"D1_QUESTAO, C2_NOME " +
@@ -2018,7 +2027,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaHistoricoGrid(String campo, String condicao, String deletados)
+		private void pesquisaHistoricoGrid(string campo, string condicao, string deletados)
 		{
 			if (banco.executeComando("SELECT D1_COD AS 'Codigo', D1_DATA " +
 						"AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS 'Inedita?', " +
@@ -2039,7 +2048,7 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void pesquisaHistoricoGrid(String campo, Boolean isNull, String deletados)
+		private void pesquisaHistoricoGrid(string campo, bool isNull, string deletados)
 		{
 			if (isNull)
 			{
