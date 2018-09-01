@@ -2,12 +2,17 @@
 * Since: 2018-08-31
 */
 
+using System.Collections.Generic;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade curso.</summary>
 	public class Course : IEntityBase
 	{
 		#region Properties
+		/// <summary><see cref="Discipline"/> oferecidas pelo curso.</summary>
+		public virtual ICollection<Discipline> Disciplines { get; set; }
+
 		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
 		public bool IsRecordActive { get; set; }
 

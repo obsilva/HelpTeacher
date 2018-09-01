@@ -97,7 +97,9 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarDisc_Click(object sender, EventArgs e)
 		{
-			if (cadastraDisciplina())
+			var discipline = new Discipline((Course) cmbCurso.SelectedItem, txtNomeDisciplina.Text);
+
+			if (cadastraDisciplina(discipline))
 			{
 				limparForm();
 				atualizaCodigoDisciplina();
@@ -143,17 +145,11 @@ namespace HelpTeacher.Forms
 			return false;
 		}
 
-		private bool cadastraDisciplina()
+		private bool cadastraDisciplina(Discipline value)
 		{
-			if (podeCadastrar())
-			{
-				string[] codigoCurso = cmbCurso.Text.Split(new char[] { '(', ')' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-				return banco.executeComando("INSERT INTO htc2 VALUES (NULL,'" +
-							txtNomeDisciplina.Text + "', " + codigoCurso[0] + ", NULL)");
-			}
-			return false;
+			return podeCadastrar()
+				? banco.executeComando($"INSERT INTO htc2 VALUES (NULL,'{value.Name}', {value.Course.RecordID}, NULL)")
+				: false;
 		}
 
 		private void atualizaCodigoDisciplina()
@@ -215,21 +211,39 @@ namespace HelpTeacher.Forms
 
 		private bool carregaDisciplinas()
 		{
-			if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-						"FROM htc2 " +
-						"WHERE D_E_L_E_T IS NULL", ref respostaBanco))
-			{
+			var disciplines = new List<Discipline>();
+			bindingSource.DataSource = disciplines;
 
+			bindingSource.ResetBindings(true);
+			if (banco.executeComando($"SELECT C1_COD, C1_NOME, htc1.D_E_L_E_T, C2_COD, C2_NOME " +
+				"FROM htc2 INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE htc2.D_E_L_E_T IS NULL", ref respostaBanco))
+			{
 				if (respostaBanco.HasRows)
 				{
-					cmbDisciplina.Items.Clear();
 					while (respostaBanco.Read())
 					{
-						cmbDisciplina.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+						var course = new Course(respostaBanco.GetString(1))
+						{
+							RecordID = respostaBanco.GetInt32(0),
+							IsRecordActive = !respostaBanco.IsDBNull(2)
+						};
+
+						disciplines.Add(new Discipline(course, respostaBanco.GetString(4))
+						{
+							RecordID = respostaBanco.GetInt32(3),
+							IsRecordActive = true
+						});
 					}
-					cmbDisciplina.SelectedIndex = 0;
+
 					respostaBanco.Close();
 					banco.fechaConexao();
+
+					cmbDisciplina.DataSource = bindingSource;
+					bindingSource.ResetBindings(true);
+					cmbDisciplina.DisplayMember = nameof(Course.Name);
+					cmbDisciplina.ValueMember = nameof(Course.RecordID);
+					cmbDisciplina.SelectedIndex = 0;
+
 					return true;
 				}
 				respostaBanco.Close();
@@ -240,19 +254,8 @@ namespace HelpTeacher.Forms
 
 		private void buscaCurso()
 		{
-			string[] codigoCurso = cmbDisciplina.Text.Split(new char[] { '(', ')', ' ' },
-				StringSplitOptions.RemoveEmptyEntries);
-
-			if (banco.executeComando("SELECT C1_NOME FROM htc1 INNER JOIN htc2 ON C1_COD = C2_CURSO " +
-						$"WHERE C2_COD = {codigoCurso[0]}", ref respostaBanco))
-			{
-				if (respostaBanco.Read())
-				{
-					txtCurso.Text = respostaBanco.GetString(0);
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			var discipline = (Discipline) cmbDisciplina.SelectedItem;
+			txtCurso.Text = discipline?.Course?.Name;
 		}
 
 		private bool cadastraMateria()
@@ -285,14 +288,10 @@ namespace HelpTeacher.Forms
 		private void autoCompleteMaterias()
 		{
 			collection.Clear();
-			if (!cmbCurso.Text.Equals(""))
+			if (cmbDisciplina.SelectedIndex != -1)
 			{
-				string[] codigoDisciplina = cmbDisciplina.Text.Split(new char[] { '(', ')' },
-								StringSplitOptions.RemoveEmptyEntries);
-
-				if (banco.executeComando("SELECT C3_NOME " +
-								"FROM htc3 " +
-								"WHERE C3_DISCIPL = " + codigoDisciplina[0], ref respostaBanco))
+				if (banco.executeComando($"SELECT C3_NOME FROM htc3 WHERE C3_DISCIPL = " +
+					((Discipline) cmbDisciplina.SelectedItem).RecordID, ref respostaBanco))
 				{
 					while (respostaBanco.Read())
 					{
@@ -319,7 +318,7 @@ namespace HelpTeacher.Forms
 			if (tabControlConteudo.SelectedTab == tabCursos)
 			{
 				/* Sem nome */
-				if (txtNomeCurso.Text.Equals(""))
+				if (String.IsNullOrWhiteSpace(txtNomeCurso.Text))
 				{
 					Mensagem.campoEmBranco();
 					return false;
@@ -330,15 +329,11 @@ namespace HelpTeacher.Forms
 					Mensagem.cursoExistente();
 					return false;
 				}
-				return true;
 			}
 			else if (tabControlConteudo.SelectedTab == tabDisciplinas)
 			{
-				string[] codigoCurso = cmbCurso.Text.Split(new char[] { '(', ')' },
-							StringSplitOptions.RemoveEmptyEntries);
-
 				/* Sem nome */
-				if (txtNomeDisciplina.Text.Equals(""))
+				if (String.IsNullOrWhiteSpace(txtNomeDisciplina.Text))
 				{
 					Mensagem.campoEmBranco();
 					txtNomeDisciplina.Focus();
@@ -350,15 +345,18 @@ namespace HelpTeacher.Forms
 					Mensagem.disciplinaExistente();
 					return false;
 				}
-				return true;
+				/* Nenhum curso selecionado */
+				if (cmbCurso.SelectedIndex == -1)
+				{
+					Mensagem.campoEmBranco();
+					cmbCurso.Focus();
+					return false;
+				}
 			}
 			else
 			{
-				string[] codigoDisciplina = cmbDisciplina.Text.Split(new char[] { '(', ')' },
-							StringSplitOptions.RemoveEmptyEntries);
-
 				/* Sem nome */
-				if (txtNomeMateria.Text.Equals(""))
+				if (String.IsNullOrWhiteSpace(txtNomeMateria.Text))
 				{
 					Mensagem.campoEmBranco();
 					txtNomeMateria.Focus();
@@ -370,8 +368,16 @@ namespace HelpTeacher.Forms
 					Mensagem.materiaExistente();
 					return false;
 				}
-				return true;
+				/* Nenhuma disciplina selecionada */
+				if (cmbDisciplina.SelectedIndex == -1)
+				{
+					Mensagem.campoEmBranco();
+					cmbDisciplina.Focus();
+					return false;
+				}
 			}
+
+			return true;
 		}
 
 		/* setaCursorClick
