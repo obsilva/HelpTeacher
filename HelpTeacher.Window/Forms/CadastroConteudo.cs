@@ -1,5 +1,7 @@
 ﻿using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace HelpTeacher.Forms
@@ -9,6 +11,7 @@ namespace HelpTeacher.Forms
 		private ConexaoBanco banco = new ConexaoBanco();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private AutoCompleteStringCollection collection = new AutoCompleteStringCollection();
+		private BindingSource bindingSource = new BindingSource();
 
 		public CadastroConteudo(int pag)
 		{
@@ -38,7 +41,9 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvarCurso_Click(object sender, EventArgs e)
 		{
-			if (cadastraCurso())
+			var course = new Course(txtNomeCurso.Text);
+
+			if (cadastraCurso(course))
 			{
 				limparForm();
 				atualizaCodigoCurso();
@@ -48,18 +53,10 @@ namespace HelpTeacher.Forms
 
 		private void btnCancelarCurso_Click(object sender, EventArgs e) => Close();
 
-		private bool cadastraCurso()
-		{
-			if (podeCadastrar())
-			{
-				if (banco.executeComando("INSERT INTO htc1 VALUES (NULL,'" +
-							txtNomeCurso.Text + "',NULL)"))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
+		private bool cadastraCurso(Course value)
+			=> podeCadastrar()
+				? banco.executeComando($"INSERT INTO htc1 VALUES (NULL, '{value.Name}', NULL)")
+				: false;
 
 		private void atualizaCodigoCurso()
 		{
@@ -75,15 +72,11 @@ namespace HelpTeacher.Forms
 		private void autoCompleteCursos()
 		{
 			collection.Clear();
-			if (banco.executeComando("SELECT C1_NOME " +
-							"FROM htc1", ref respostaBanco))
+			if (banco.executeComando("SELECT C1_NOME FROM htc1", ref respostaBanco))
 			{
-				if (respostaBanco.HasRows)
+				while (respostaBanco.Read())
 				{
-					while (respostaBanco.Read())
-					{
-						collection.Add(respostaBanco.GetString(0));
-					}
+					collection.Add(respostaBanco.GetString(0));
 				}
 				respostaBanco.Close();
 				banco.fechaConexao();
@@ -116,21 +109,32 @@ namespace HelpTeacher.Forms
 
 		private bool carregaCursos()
 		{
-			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-						"FROM htc1 " +
-						"WHERE D_E_L_E_T IS NULL", ref respostaBanco))
-			{
+			var courses = new List<Course>();
+			bindingSource.DataSource = courses;
 
+			bindingSource.ResetBindings(true);
+			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+			{
 				if (respostaBanco.HasRows)
 				{
-					cmbCurso.Items.Clear();
 					while (respostaBanco.Read())
 					{
-						cmbCurso.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+						courses.Add(new Course(respostaBanco.GetString(1))
+						{
+							RecordID = respostaBanco.GetInt32(0),
+							IsRecordActive = true
+						});
 					}
-					cmbCurso.SelectedIndex = 0;
+
 					respostaBanco.Close();
 					banco.fechaConexao();
+
+					cmbCurso.DataSource = bindingSource;
+					bindingSource.ResetBindings(true);
+					cmbCurso.DisplayMember = nameof(Course.Name);
+					cmbCurso.ValueMember = nameof(Course.RecordID);
+					cmbCurso.SelectedIndex = 0;
+
 					return true;
 				}
 				respostaBanco.Close();
@@ -146,13 +150,8 @@ namespace HelpTeacher.Forms
 				string[] codigoCurso = cmbCurso.Text.Split(new char[] { '(', ')' },
 							StringSplitOptions.RemoveEmptyEntries);
 
-				if (banco.executeComando("INSERT INTO htc2 VALUES (NULL,'" +
-							txtNomeDisciplina.Text + "', " +
-							codigoCurso[0] + ", NULL)"))
-				{
-					return true;
-				}
-				return false;
+				return banco.executeComando("INSERT INTO htc2 VALUES (NULL,'" +
+							txtNomeDisciplina.Text + "', " + codigoCurso[0] + ", NULL)");
 			}
 			return false;
 		}
@@ -171,21 +170,14 @@ namespace HelpTeacher.Forms
 		private void autoCompleteDisciplinas()
 		{
 			collection.Clear();
-			if (!cmbCurso.Text.Equals(""))
+			if (cmbCurso.SelectedIndex != -1)
 			{
-				string[] codigoCurso = cmbCurso.Text.Split(new char[] { '(', ')' },
-								StringSplitOptions.RemoveEmptyEntries);
-
-				if (banco.executeComando("SELECT C2_NOME " +
-								"FROM htc2 " +
-								"WHERE C2_CURSO = " + codigoCurso[0], ref respostaBanco))
+				if (banco.executeComando($"SELECT C2_NOME FROM htc2 WHERE C2_CURSO = " +
+					((Course) cmbCurso.SelectedItem).RecordID, ref respostaBanco))
 				{
-					if (respostaBanco.HasRows)
+					while (respostaBanco.Read())
 					{
-						while (respostaBanco.Read())
-						{
-							collection.Add(respostaBanco.GetString(0));
-						}
+						collection.Add(respostaBanco.GetString(0));
 					}
 					respostaBanco.Close();
 					banco.fechaConexao();
@@ -249,17 +241,13 @@ namespace HelpTeacher.Forms
 		private void buscaCurso()
 		{
 			string[] codigoCurso = cmbDisciplina.Text.Split(new char[] { '(', ')', ' ' },
-							StringSplitOptions.RemoveEmptyEntries);
+				StringSplitOptions.RemoveEmptyEntries);
 
-			if (banco.executeComando("SELECT C1_NOME " +
-						"FROM htc1 " +
-							"INNER JOIN htc2 " +
-								"ON C1_COD = C2_CURSO " +
-						"WHERE C2_COD = " + codigoCurso[0], ref respostaBanco))
+			if (banco.executeComando("SELECT C1_NOME FROM htc1 INNER JOIN htc2 ON C1_COD = C2_CURSO " +
+						$"WHERE C2_COD = {codigoCurso[0]}", ref respostaBanco))
 			{
-				if (respostaBanco.HasRows)
+				if (respostaBanco.Read())
 				{
-					respostaBanco.Read();
 					txtCurso.Text = respostaBanco.GetString(0);
 				}
 				respostaBanco.Close();
@@ -306,12 +294,9 @@ namespace HelpTeacher.Forms
 								"FROM htc3 " +
 								"WHERE C3_DISCIPL = " + codigoDisciplina[0], ref respostaBanco))
 				{
-					if (respostaBanco.HasRows)
+					while (respostaBanco.Read())
 					{
-						while (respostaBanco.Read())
-						{
-							collection.Add(respostaBanco.GetString(0));
-						}
+						collection.Add(respostaBanco.GetString(0));
 					}
 					respostaBanco.Close();
 					banco.fechaConexao();

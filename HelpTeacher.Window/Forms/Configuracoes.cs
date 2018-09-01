@@ -46,7 +46,7 @@ namespace HelpTeacher.Forms
 		{
 
 			if (banco.executeComando("UPDATE hta1 SET A1_LOGIN = '" + txtLogin.Text +
-						"' WHERE A1_COD = " + User.Instance.RecordID.ToString()))
+						"' WHERE A1_COD = " + User.Instance.RecordID))
 			{
 				if (!(txtNovaSenha.Text.Equals("") && txtConfirmacao.Text.Equals("")))
 				{
@@ -54,7 +54,7 @@ namespace HelpTeacher.Forms
 					{
 						if (!banco.executeComando("UPDATE hta1 SET A1_PWD = '" +
 									MD5.gerarHash(txtNovaSenha.Text) + "' " +
-									"WHERE A1_COD = " + User.Instance.RecordID.ToString()))
+									"WHERE A1_COD = " + User.Instance.RecordID))
 						{
 							return false;
 						}
@@ -68,7 +68,7 @@ namespace HelpTeacher.Forms
 				if (chkStopBD.Checked)
 				{
 					if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = '1'" +
-								"WHERE A1_COD = " + User.Instance.RecordID.ToString()))
+								"WHERE A1_COD = " + User.Instance.RecordID))
 					{
 						return false;
 					}
@@ -76,7 +76,7 @@ namespace HelpTeacher.Forms
 				else
 				{
 					if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = '0' " +
-								"WHERE A1_COD = " + User.Instance.RecordID.ToString()))
+								"WHERE A1_COD = " + User.Instance.RecordID))
 					{
 						return false;
 					}
@@ -90,7 +90,7 @@ namespace HelpTeacher.Forms
 		{
 			if (banco.executeComando("SELECT * " +
 						"FROM hta1 " +
-						"WHERE A1_COD = " + User.Instance.RecordID.ToString(), ref respostaBanco))
+						"WHERE A1_COD = " + User.Instance.RecordID, ref respostaBanco))
 			{
 				respostaBanco.Read();
 				User.Instance.Username = respostaBanco["A1_LOGIN"].ToString();
