@@ -1,8 +1,9 @@
-﻿using HelpTeacher.Classes;
-using HelpTeacher.Domain.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Forms
 {
@@ -145,12 +146,9 @@ namespace HelpTeacher.Forms
 			return false;
 		}
 
-		private bool cadastraDisciplina(Discipline value)
-		{
-			return podeCadastrar()
+		private bool cadastraDisciplina(Discipline value) => podeCadastrar()
 				? banco.executeComando($"INSERT INTO htc2 VALUES (NULL,'{value.Name}', {value.Course.RecordID}, NULL)")
 				: false;
-		}
 
 		private void atualizaCodigoDisciplina()
 		{
@@ -199,7 +197,9 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
-			if (cadastraMateria())
+			var subject = new Subject((Discipline) cmbDisciplina.SelectedItem, txtNomeMateria.Text);
+
+			if (cadastraMateria(subject))
 			{
 				limparForm();
 				atualizaCodigoMateria();
@@ -215,8 +215,8 @@ namespace HelpTeacher.Forms
 			bindingSource.DataSource = disciplines;
 
 			bindingSource.ResetBindings(true);
-			if (banco.executeComando($"SELECT C1_COD, C1_NOME, htc1.D_E_L_E_T, C2_COD, C2_NOME " +
-				"FROM htc2 INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE htc2.D_E_L_E_T IS NULL", ref respostaBanco))
+			if (banco.executeComando($"SELECT C1_COD, C1_NOME, htc1.D_E_L_E_T, C2_COD, C2_NOME FROM htc2 " +
+				"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE htc2.D_E_L_E_T IS NULL", ref respostaBanco))
 			{
 				if (respostaBanco.HasRows)
 				{
@@ -258,18 +258,12 @@ namespace HelpTeacher.Forms
 			txtCurso.Text = discipline?.Course?.Name;
 		}
 
-		private bool cadastraMateria()
+		private bool cadastraMateria(Subject value)
 		{
 			if (podeCadastrar())
 			{
-				string[] codigoDisciplina = cmbDisciplina.Text.Split(new char[] { '(', ')' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-				if (banco.executeComando("INSERT INTO htc3 VALUES (NULL, '" +
-							txtNomeMateria.Text + "', " + codigoDisciplina[0] + ", NULL)"))
-				{
-					return true;
-				}
+				string query = $"INSERT INTO htc3 VALUES(NULL, '{value.Name}', { value.Discipline.RecordID}, NULL)";
+				return banco.executeComando(query);
 			}
 			return false;
 		}

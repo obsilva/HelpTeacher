@@ -1,7 +1,8 @@
-﻿using HelpTeacher.Classes;
-using HelpTeacher.Domain.Entities;
-using System;
+﻿using System;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Forms
 {

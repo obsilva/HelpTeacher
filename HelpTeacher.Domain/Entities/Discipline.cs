@@ -2,6 +2,8 @@
  * Since: 2018-08-31
  */
 
+using System.Collections.Generic;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade disciplina.</summary>
@@ -22,6 +24,9 @@ namespace HelpTeacher.Domain.Entities
 
 		/// <summary>Implementa <see cref="IEntityBase.RecordID"/>.</summary>
 		public int RecordID { get; set; }
+
+		/// <summary><see cref="Subject"/> lecionados na disciplina.</summary>
+		public virtual ICollection<Subject> Subjects { get; set; }
 		#endregion
 
 
