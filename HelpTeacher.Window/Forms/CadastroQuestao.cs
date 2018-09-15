@@ -1,7 +1,10 @@
-﻿using HelpTeacher.Classes;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Forms
 {
@@ -9,6 +12,9 @@ namespace HelpTeacher.Forms
 	{
 		private ConexaoBanco banco = new ConexaoBanco();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
+		private BindingSource courseBindingSource = new BindingSource();
+		private BindingSource disciplineBindingSource = new BindingSource();
+		private BindingSource subjectBindingSource = new BindingSource();
 
 		public CadastroQuestao()
 		{
@@ -118,20 +124,31 @@ namespace HelpTeacher.Forms
 		 */
 		private bool atualizaCMB()
 		{
-			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-						"FROM htc1 " +
-						"WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+			var courses = new List<Course>();
+			courseBindingSource.DataSource = courses;
+
+			courseBindingSource.ResetBindings(true);
+			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
 			{
 				if (respostaBanco.HasRows)
 				{
-					cmbCursos.Items.Clear();
 					while (respostaBanco.Read())
 					{
-						cmbCursos.Items.Add(("(") + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+						courses.Add(new Course(respostaBanco.GetString(1))
+						{
+							RecordID = respostaBanco.GetInt32(0),
+							IsRecordActive = true
+						});
 					}
-					cmbCursos.SelectedIndex = 0;
 					respostaBanco.Close();
 					banco.fechaConexao();
+
+					cmbCursos.DataSource = courseBindingSource;
+					courseBindingSource.ResetBindings(true);
+					cmbCursos.DisplayMember = nameof(Course.Name);
+					cmbCursos.ValueMember = nameof(Course.RecordID);
+					cmbCursos.SelectedIndex = 0;
+
 					return true;
 				}
 				respostaBanco.Close();
@@ -149,27 +166,35 @@ namespace HelpTeacher.Forms
 		 */
 		private void atualizaCHKDisciplinas()
 		{
-			if (cmbCursos.Items.Count != 0)
+			var disciplines = new List<Discipline>();
+			disciplineBindingSource.DataSource = disciplines;
+
+			disciplineBindingSource.ResetBindings(true);
+			if (cmbCursos.SelectedIndex != -1)
 			{
-				string[] codigo = cmbCursos.Text.Split(new char[] { '(', ')', ' ' },
-							StringSplitOptions.RemoveEmptyEntries);
-				if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-							"FROM htc2 " +
-							"WHERE C2_CURSO = " + codigo[0] +
-								" AND D_E_L_E_T IS NULL", ref respostaBanco))
+				if (banco.executeComando($"SELECT C2_COD, C2_NOME FROM htc2 WHERE C2_CURSO = " +
+										 $"{((Course) cmbCursos.SelectedItem).RecordID} AND D_E_L_E_T IS NULL",
+										ref respostaBanco))
 				{
-					chkDisciplinas.Items.Clear();
-					chkMaterias.Items.Clear();
 					if (respostaBanco.HasRows)
 					{
 						while (respostaBanco.Read())
 						{
-							chkDisciplinas.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+							disciplines.Add(new Discipline((Course) cmbCursos.SelectedItem, respostaBanco.GetString(1))
+							{
+								RecordID = respostaBanco.GetInt32(0),
+								IsRecordActive = true
+							});
 						}
+
+						chkDisciplinas.DataSource = disciplineBindingSource;
+						disciplineBindingSource.ResetBindings(true);
+						chkDisciplinas.DisplayMember = nameof(Discipline.Name);
+						chkDisciplinas.ValueMember = nameof(Discipline.RecordID);
 					}
-					respostaBanco.Close();
-					banco.fechaConexao();
 				}
+				respostaBanco.Close();
+				banco.fechaConexao();
 			}
 		}
 
@@ -179,26 +204,34 @@ namespace HelpTeacher.Forms
 		 */
 		private void atualizaMaterias()
 		{
-			chkMaterias.Items.Clear();
-			foreach (string disciplina in chkDisciplinas.CheckedItems)
+			var subjects = new List<Subject>();
+			subjectBindingSource.DataSource = subjects;
+
+			subjectBindingSource.ResetBindings(true);
+			foreach (Discipline discipline in chkDisciplinas.CheckedItems)
 			{
-				string[] codigo = disciplina.Split(new char[] { '(', ')', ' ' },
-							StringSplitOptions.RemoveEmptyEntries);
-				if (banco.executeComando("SELECT C3_COD, C3_NOME " +
-							"FROM htc3 " +
-							"WHERE C3_DISCIPL = " + codigo[0] +
-								" AND D_E_L_E_T IS NULL", ref respostaBanco))
+				if (banco.executeComando("SELECT C3_COD, C3_NOME FROM htc3 WHERE C3_DISCIPL = " +
+								$"{discipline.RecordID} AND D_E_L_E_T IS NULL", ref respostaBanco))
 				{
 					if (respostaBanco.HasRows)
 					{
 						while (respostaBanco.Read())
 						{
-							chkMaterias.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+							subjects.Add(new Subject(discipline, respostaBanco.GetString(1))
+							{
+								RecordID = respostaBanco.GetInt32(0),
+								IsRecordActive = true
+							});
 						}
+
+						chkMaterias.DataSource = subjectBindingSource;
+						subjectBindingSource.ResetBindings(true);
+						chkMaterias.DisplayMember = nameof(Discipline.Name);
+						chkMaterias.ValueMember = nameof(Discipline.RecordID);
 					}
-					respostaBanco.Close();
-					banco.fechaConexao();
 				}
+				respostaBanco.Close();
+				banco.fechaConexao();
 			}
 		}
 
@@ -212,17 +245,18 @@ namespace HelpTeacher.Forms
 			//Verifica se existe alguma matéria selecionada
 			if (chkMaterias.CheckedItems.Count != 0)
 			{
-				foreach (string materia in chkMaterias.CheckedItems)
+				var subjects = new List<Subject>();
+				foreach (Subject subject in chkMaterias.CheckedItems)
 				{
-					string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-							StringSplitOptions.RemoveEmptyEntries);
+					subjects.Add(subject);
+
+					var question = new Question(subjects, txtQuestao.Text) { RecordID = 1 };
 
 					//Dissertativa
-					if (radDissertativa.Checked == true)
+					if (radDissertativa.Checked)
 					{
-						if (!banco.executeComando("INSERT INTO htb1 (B1_QUEST, B1_MATERIA) " +
-									"VALUES ('" + txtQuestao.Text + "', '" +
-									codigo[0] + "')"))
+						if (!banco.executeComando("INSERT INTO htb1 (B1_QUEST, B1_MATERIA) VALUES ('" +
+												  $"{question.Statement}', {subject.RecordID})"))
 						{
 							return false;
 						}
@@ -234,8 +268,7 @@ namespace HelpTeacher.Forms
 						if ((!txtAlternativaA.Text.Equals("")) && (!txtAlternativaB.Text.Equals("")) &&
 								(!txtAlternativaC.Text.Equals("")) && (!txtAlternativaD.Text.Equals("")))
 						{
-							if (!banco.executeComando("INSERT INTO htb1 VALUES (NULL, '" +
-										txtQuestao.Text +
+							if (!banco.executeComando($"INSERT INTO htb1 VALUES (NULL, '{question.Statement}" +
 										Environment.NewLine +
 										"a) " + txtAlternativaA.Text +
 										Environment.NewLine +
@@ -244,7 +277,7 @@ namespace HelpTeacher.Forms
 										"c) " + txtAlternativaC.Text +
 										Environment.NewLine +
 										"d) " + txtAlternativaD.Text +
-										"', '*', NULL, NULL, " + codigo[0] + ", NULL, NULL)"))
+										$"', '*', NULL, NULL, { subject.RecordID}, NULL, NULL)"))
 							{
 								return false;
 							}
@@ -277,7 +310,7 @@ namespace HelpTeacher.Forms
 					{
 						if (!banco.executeComando("UPDATE htb1 SET B1_QUEST = CONCAT(B1_QUEST, '" +
 										Environment.NewLine + "e) " + txtAlternativaE.Text +
-									"') WHERE B1_COD = " + txtCodQuestao.Text))
+									$"') WHERE B1_COD = {question.RecordID}"))
 						{
 							return false;
 						}
@@ -289,9 +322,8 @@ namespace HelpTeacher.Forms
 						//Apenas 1 arquivo
 						if ((txtArquivo1.Text.Equals("")) || (txtArquivo2.Text.Equals("")))
 						{
-							if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-										txtCodQuestao.Text + "_1' WHERE B1_COD = " +
-										txtCodQuestao.Text))
+							if (banco.executeComando($"UPDATE htb1 SET B1_ARQUIVO = '{question.RecordID}_1' " +
+										$"WHERE B1_COD = {question.RecordID}"))
 							{
 								copiaArquivo();
 							}
@@ -299,9 +331,8 @@ namespace HelpTeacher.Forms
 						//Dois arquivos
 						else
 						{
-							if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-										txtCodQuestao.Text + "_1, " + txtCodQuestao.Text +
-										"_2' WHERE B1_COD = " + txtCodQuestao.Text))
+							if (banco.executeComando($"UPDATE htb1 SET B1_ARQUIVO = '{question.RecordID}_1' " +
+										$"{question.RecordID}_2' WHERE B1_COD = { question.RecordID}"))
 							{
 								copiaArquivo();
 							}

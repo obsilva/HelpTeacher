@@ -12,7 +12,8 @@ namespace HelpTeacher.Forms
 		private ConexaoBanco banco = new ConexaoBanco();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private AutoCompleteStringCollection collection = new AutoCompleteStringCollection();
-		private BindingSource bindingSource = new BindingSource();
+		private BindingSource courseBindingSource = new BindingSource();
+		private BindingSource disciplineBindingSource = new BindingSource();
 
 		public CadastroConteudo(int pag)
 		{
@@ -113,9 +114,8 @@ namespace HelpTeacher.Forms
 		private bool carregaCursos()
 		{
 			var courses = new List<Course>();
-			bindingSource.DataSource = courses;
-
-			bindingSource.ResetBindings(true);
+			courseBindingSource.DataSource = courses;
+			courseBindingSource.ResetBindings(true);
 			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
 			{
 				if (respostaBanco.HasRows)
@@ -132,8 +132,8 @@ namespace HelpTeacher.Forms
 					respostaBanco.Close();
 					banco.fechaConexao();
 
-					cmbCurso.DataSource = bindingSource;
-					bindingSource.ResetBindings(true);
+					cmbCurso.DataSource = courseBindingSource;
+					courseBindingSource.ResetBindings(true);
 					cmbCurso.DisplayMember = nameof(Course.Name);
 					cmbCurso.ValueMember = nameof(Course.RecordID);
 					cmbCurso.SelectedIndex = 0;
@@ -212,9 +212,9 @@ namespace HelpTeacher.Forms
 		private bool carregaDisciplinas()
 		{
 			var disciplines = new List<Discipline>();
-			bindingSource.DataSource = disciplines;
+			disciplineBindingSource.DataSource = disciplines;
 
-			bindingSource.ResetBindings(true);
+			disciplineBindingSource.ResetBindings(true);
 			if (banco.executeComando($"SELECT C1_COD, C1_NOME, htc1.D_E_L_E_T, C2_COD, C2_NOME FROM htc2 " +
 				"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE htc2.D_E_L_E_T IS NULL", ref respostaBanco))
 			{
@@ -238,8 +238,8 @@ namespace HelpTeacher.Forms
 					respostaBanco.Close();
 					banco.fechaConexao();
 
-					cmbDisciplina.DataSource = bindingSource;
-					bindingSource.ResetBindings(true);
+					cmbDisciplina.DataSource = disciplineBindingSource;
+					disciplineBindingSource.ResetBindings(true);
 					cmbDisciplina.DisplayMember = nameof(Course.Name);
 					cmbDisciplina.ValueMember = nameof(Course.RecordID);
 					cmbDisciplina.SelectedIndex = 0;
