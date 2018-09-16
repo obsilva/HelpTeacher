@@ -1,10 +1,14 @@
-﻿using HelpTeacher.Classes;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
+
 using Word = Microsoft.Office.Interop.Word;
 
 namespace HelpTeacher.Forms
@@ -13,6 +17,9 @@ namespace HelpTeacher.Forms
 	{
 		private ConexaoBanco banco = new ConexaoBanco();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
+		private BindingSource courseBindingSource = new BindingSource();
+		private BindingSource disciplineBindingSource = new BindingSource();
+		private BindingSource subjectBindingSource = new BindingSource();
 		private string codigoAvaliacao;
 		private Label[] lblMateria;
 		private NumericUpDown[] numQuantidadeQuestoes;
@@ -90,17 +97,27 @@ namespace HelpTeacher.Forms
 
 		private void preencheComboCursos()
 		{
-			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-									"FROM htc1 " +
-									"WHERE D_E_L_E_T IS NULL", ref respostaBanco))
+			var courses = new List<Course>();
+			courseBindingSource.DataSource = courses;
+
+			courseBindingSource.ResetBindings(true);
+			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
 			{
 				if (respostaBanco.HasRows)
 				{
-					cmbCurso.Items.Clear();
 					while (respostaBanco.Read())
 					{
-						cmbCurso.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+						courses.Add(new Course(respostaBanco.GetString(1))
+						{
+							RecordID = respostaBanco.GetInt32(0),
+							IsRecordActive = true
+						});
 					}
+
+					cmbCurso.DataSource = courseBindingSource;
+					courseBindingSource.ResetBindings(true);
+					cmbCurso.DisplayMember = nameof(Course.Name);
+					cmbCurso.ValueMember = nameof(Course.RecordID);
 					cmbCurso.SelectedIndex = 0;
 				}
 				respostaBanco.Close();
@@ -110,55 +127,68 @@ namespace HelpTeacher.Forms
 
 		private void preencheComboDisciplinas()
 		{
-			if (!cmbCurso.Text.Equals(""))
-			{
-				string[] curso = cmbCurso.Text.Split(new char[] { '(', ')', ' ' },
-								 StringSplitOptions.RemoveEmptyEntries);
+			var disciplines = new List<Discipline>();
+			disciplineBindingSource.DataSource = disciplines;
 
-				if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-										"FROM htc2 " +
-										"WHERE D_E_L_E_T IS NULL " +
-											"and C2_CURSO = " + Convert.ToInt32(curso[0]), ref respostaBanco))
+			disciplineBindingSource.ResetBindings(true);
+
+			if (cmbCurso.SelectedIndex != -1)
+			{
+				if (banco.executeComando("SELECT C2_COD, C2_NOME FROM htc2 WHERE D_E_L_E_T IS NULL AND C2_CURSO = " +
+										 $"{((Course) cmbCurso.SelectedItem).RecordID}", ref respostaBanco))
 				{
-					cmbDisciplina.Items.Clear();
 					if (respostaBanco.HasRows)
 					{
 						while (respostaBanco.Read())
 						{
-							cmbDisciplina.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
+							disciplines.Add(new Discipline((Course) cmbCurso.SelectedItem, respostaBanco.GetString(1))
+							{
+								RecordID = respostaBanco.GetInt32(0),
+								IsRecordActive = true
+							});
 						}
+
+						cmbDisciplina.DataSource = disciplineBindingSource;
+						disciplineBindingSource.ResetBindings(true);
+						cmbDisciplina.DisplayMember = nameof(Discipline.Name);
+						cmbDisciplina.ValueMember = nameof(Discipline.RecordID);
 						cmbDisciplina.SelectedIndex = 0;
-					}
-					respostaBanco.Close();
-					banco.fechaConexao();
-				}
-			}
-		}
-
-		private void preencheCheckMaterias()
-		{
-			string[] codigo = cmbDisciplina.Text.Split(new char[] { '(', ')', ' ' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-			chkMaterias.Items.Clear();
-			if (banco.executeComando("SELECT C3_COD, C3_NOME " +
-					"FROM htc3 " +
-						"INNER JOIN htb1 " +
-							"ON C3_COD = B1_MATERIA " +
-					"WHERE C3_DISCIPL = " + Convert.ToInt32(codigo[0]) +
-						" AND htc3.D_E_L_E_T IS NULL " +
-					"GROUP BY C3_COD", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						chkMaterias.Items.Add("(" + respostaBanco.GetString(0) + ") " + respostaBanco.GetString(1));
 					}
 				}
 				respostaBanco.Close();
 				banco.fechaConexao();
 			}
+		}
+
+		private void preencheCheckMaterias()
+		{
+			var subjects = new List<Subject>();
+			subjectBindingSource.DataSource = subjects;
+
+			subjectBindingSource.ResetBindings(true);
+			if (banco.executeComando("SELECT C3_COD, C3_NOME FROM htc3 INNER JOIN htb1 ON C3_COD = B1_MATERIA " +
+									 $"WHERE C3_DISCIPL = {((Discipline) cmbDisciplina.SelectedItem).RecordID} " +
+									 "AND htc3.D_E_L_E_T IS NULL GROUP BY C3_COD", ref respostaBanco))
+			{
+				if (respostaBanco.HasRows)
+				{
+					while (respostaBanco.Read())
+					{
+						subjects.Add(new Subject((Discipline) cmbDisciplina.SelectedItem, respostaBanco.GetString(1))
+						{
+							RecordID = respostaBanco.GetInt32(0),
+							IsRecordActive = true
+						});
+					}
+
+					chkMaterias.DataSource = subjectBindingSource;
+					subjectBindingSource.ResetBindings(true);
+					chkMaterias.DisplayMember = nameof(Discipline.Name);
+					chkMaterias.ValueMember = nameof(Discipline.RecordID);
+				}
+			}
+			respostaBanco.Close();
+			banco.fechaConexao();
 		}
 
 		private void recuperaCodigos()
@@ -171,16 +201,11 @@ namespace HelpTeacher.Forms
 			{
 				if (chkAvaliacaoInedita.Checked)
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"B1_USADA IS NULL AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
+												ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -188,15 +213,10 @@ namespace HelpTeacher.Forms
 				}
 				else
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"D_E_L_E_T IS NULL ORDER BY B1_COD", ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -208,17 +228,11 @@ namespace HelpTeacher.Forms
 			{
 				if (chkAvaliacaoInedita.Checked)
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"B1_USADA IS NULL AND " +
-										"B1_OBJETIV IS NULL AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL " +
+												 $"ORDER BY B1_COD", ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -227,16 +241,11 @@ namespace HelpTeacher.Forms
 
 				else
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"B1_OBJETIV IS NULL AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
+												ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -248,17 +257,11 @@ namespace HelpTeacher.Forms
 			{
 				if (chkAvaliacaoInedita.Checked)
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"B1_USADA IS NULL AND " +
-										"B1_OBJETIV IS NOT NULL AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL " +
+												 $"ORDER BY B1_COD", ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -266,16 +269,11 @@ namespace HelpTeacher.Forms
 				}
 				else
 				{
-					foreach (string materia in chkMaterias.CheckedItems)
+					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						string[] codigo = materia.Split(new char[] { '(', ')', ' ' },
-									StringSplitOptions.RemoveEmptyEntries);
-						if (banco.executeComando("SELECT B1_COD " +
-									"FROM htb1 " +
-									"WHERE B1_MATERIA = " + codigo[0] + " AND " +
-										"B1_OBJETIV IS NOT NULL AND " +
-										"D_E_L_E_T IS NULL " +
-									"ORDER BY B1_COD", ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
+												ref respostaBanco))
 						{
 							atualizaValorCampos();
 						}
@@ -409,36 +407,25 @@ namespace HelpTeacher.Forms
 			int count = 0;
 
 			lstCodigosAleatorios.Items.Clear();
-			foreach (string materia in chkMaterias.CheckedItems)
+			foreach (Subject subject in chkMaterias.CheckedItems)
 			{
-				string[] codigoMateria = materia.Split(new char[] { '(', ')', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
 				/* Avaliação Mista */
 				if (radMista.Checked)
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"B1_USADA IS NULL AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
-								ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() LIMIT " +
+												 $"{numQuantidadeQuestoes[count].Value}", ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
 						}
 					}
 					else
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
-								ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"D_E_L_E_T IS NULL ORDER BY RAND() LIMIT " +
+												 $"{ numQuantidadeQuestoes[count].Value}", ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
 						}
@@ -449,29 +436,19 @@ namespace HelpTeacher.Forms
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"B1_USADA IS NULL AND " +
-									"B1_OBJETIV IS NULL AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
-								ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL " +
+												 $"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}",
+							ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
 						}
 					}
 					else
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"B1_OBJETIV IS NULL AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
-								ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+												 $"B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
+												 $"LIMIT {numQuantidadeQuestoes[count].Value}", ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
 						}
@@ -482,14 +459,9 @@ namespace HelpTeacher.Forms
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"B1_USADA IS NULL AND " +
-									"B1_OBJETIV IS NOT NULL AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
+												 $"B1_USADA IS NULL AND B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL " +
+												 $"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}",
 								ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
@@ -497,14 +469,9 @@ namespace HelpTeacher.Forms
 					}
 					else
 					{
-						if (banco.executeComando("SELECT B1_COD " +
-								"FROM htb1 " +
-								"WHERE B1_MATERIA = " + codigoMateria[0] + " AND " +
-									"B1_OBJETIV IS NOT NULL AND " +
-									"D_E_L_E_T IS NULL " +
-								"ORDER BY RAND() " +
-								"LIMIT " + numQuantidadeQuestoes[count].Value,
-								ref respostaBanco))
+						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
+												 $"B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
+												 $"LIMIT {numQuantidadeQuestoes[count].Value}", ref respostaBanco))
 						{
 							atualizaCodigosAleatorios();
 						}
@@ -532,22 +499,22 @@ namespace HelpTeacher.Forms
 		{
 			string[] itens = listBox.Items.Cast<string>().ToArray();
 			listBox.Items.Clear();
-			IOrderedEnumerable<string> ordenado = itens.OrderBy(p => int.Parse(p));
+			IOrderedEnumerable<string> ordenado = itens.OrderBy(p => Int32.Parse(p));
 			foreach (string item in ordenado)
 			{
-				listBox.Items.Add(item.ToString());
+				listBox.Items.Add(item);
 			}
 		}
 
 		private void geraDocumentoWord()
 		{
-			Object fimDocumento = "\\endofdoc";
+			object fimDocumento = "\\endofdoc";
 			Word.Range wordRange;
-			Object range;
+			object range;
 			int numQuestao = 0;
 
 			/* Abre a aplicação word e faz uma cópia do documento mapeado */
-			Object template = Path.GetFullPath(@"..\modelo.docx");
+			object template = Path.GetFullPath(@"..\modelo.docx");
 			var appWord = new Word.Application
 			{
 				Visible = true
@@ -557,7 +524,7 @@ namespace HelpTeacher.Forms
 			document.Paragraphs.Alignment = Word.WdParagraphAlignment.
 					wdAlignParagraphJustify;
 
-			String[] disciplina = cmbDisciplina.Text.Split(new char[] { '(', ')' },
+			string[] disciplina = cmbDisciplina.Text.Split(new char[] { '(', ')' },
 					StringSplitOptions.RemoveEmptyEntries);
 			substituiTagsWord(document, "@disciplina", disciplina[1]);
 
@@ -582,13 +549,13 @@ namespace HelpTeacher.Forms
 						/* Arquivos */
 						if (!Convert.IsDBNull(respostaBanco["B1_ARQUIVO"]))
 						{
-							String[] nomeArquivo = respostaBanco.GetString(1).
+							string[] nomeArquivo = respostaBanco.GetString(1).
 									Split(new char[] { ',', ' ' },
 									StringSplitOptions.RemoveEmptyEntries);
-							String[] arquivo = Directory.GetFiles(@"..\_files\",
+							string[] arquivo = Directory.GetFiles(@"..\_files\",
 									nomeArquivo[0] + ".*");
-							String caminhoImagem = Path.GetFullPath(arquivo[0]);
-							String extensao = Path.GetExtension(arquivo[0]);
+							string caminhoImagem = Path.GetFullPath(arquivo[0]);
+							string extensao = Path.GetExtension(arquivo[0]);
 
 							range = document.Bookmarks.get_Item(ref fimDocumento).Range;
 
@@ -644,44 +611,39 @@ namespace HelpTeacher.Forms
 			}
 		}
 
-		private void substituiTagsWord(Word.Document document, Object parametro, Object texto)
+		private void substituiTagsWord(Word.Document document, object parametro, object texto)
 		{
-			Object missing = System.Reflection.Missing.Value;
+			object missing = System.Reflection.Missing.Value;
 			Word.Range rng = document.Range(ref missing, ref missing);
-			Object FindText = parametro;
-			Object ReplaceWith = texto;
-			Object MatchWholeWord = true;
-			Object Forward = false;
+			object FindText = parametro;
+			object ReplaceWith = texto;
+			object MatchWholeWord = true;
+			object Forward = false;
 
 			rng.Find.Execute(ref FindText, ref missing, ref MatchWholeWord, ref missing,
 					ref missing, ref missing, ref Forward, ref missing, ref missing,
 					ref ReplaceWith, ref missing, ref missing, ref missing, ref missing, ref missing);
 		}
 
-		private Boolean insereHistorico()
+		private bool insereHistorico()
 		{
-			String data = DateTime.Now.ToShortDateString();
-			String codigosQuestoes = lstCodigosAleatorios.Items[0].ToString();
-			String codigosMateria = "";
+			string data = DateTime.Now.ToShortDateString();
+			string codigosQuestoes = lstCodigosAleatorios.Items[0].ToString();
+			string codigosMateria = "";
 
 
 			for (int cont = 1; cont < lstCodigosAleatorios.Items.Count; cont++)
 			{
-				codigosQuestoes += String.Concat(", ",
-						lstCodigosAleatorios.Items[cont].ToString());
+				codigosQuestoes += String.Concat(", ", lstCodigosAleatorios.Items[cont].ToString());
 			}
 
-			foreach (String materia in chkMaterias.CheckedItems)
+			foreach (Subject subject in chkMaterias.CheckedItems)
 			{
-				String[] codigoTemp = materia.Split(new char[] { '(',
-						')', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-				codigosMateria = String.Concat(codigosMateria, codigoTemp[0] + ", ");
+				codigosMateria = String.Concat(codigosMateria, $"{subject.RecordID}, ");
 			}
 			codigosMateria = codigosMateria.Substring(0, (codigosMateria.Length - 2));
 
-			if (banco.executeComando("INSERT INTO htd1 VALUES (NULL, " +
-						"'M', NULL, '" + codigosQuestoes + "', '" +
+			if (banco.executeComando("INSERT INTO htd1 VALUES (NULL, 'M', NULL, '" + codigosQuestoes + "', '" +
 						codigosMateria + "', '" + data + "', NULL)"))
 			{
 				if (radMista.Checked && !chkAvaliacaoInedita.Checked)
@@ -691,8 +653,7 @@ namespace HelpTeacher.Forms
 
 				if (chkAvaliacaoInedita.Checked)
 				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_INEDITA = '*' " +
-							"WHERE D1_COD = " + codigoAvaliacao))
+					if (!banco.executeComando("UPDATE htd1 SET D1_INEDITA = '*' WHERE D1_COD = " + codigoAvaliacao))
 					{
 						return false;
 					}
@@ -700,16 +661,14 @@ namespace HelpTeacher.Forms
 
 				if (radObjetiva.Checked)
 				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'O' " +
-							"WHERE D1_COD = " + codigoAvaliacao))
+					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'O' WHERE D1_COD = " + codigoAvaliacao))
 					{
 						return false;
 					}
 				}
 				else if (radDissertativa.Checked)
 				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'D' " +
-							"WHERE D1_COD = " + codigoAvaliacao))
+					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'D' WHERE D1_COD = " + codigoAvaliacao))
 					{
 						return false;
 					}
@@ -719,12 +678,11 @@ namespace HelpTeacher.Forms
 			return false;
 		}
 
-		private Boolean marcaQuestoesComoUsadas()
+		private bool marcaQuestoesComoUsadas()
 		{
-			foreach (String questao in lstCodigosAleatorios.Items)
+			foreach (string questao in lstCodigosAleatorios.Items)
 			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_USADA = '*' " +
-						"WHERE B1_COD = " + questao))
+				if (!banco.executeComando("UPDATE htb1 SET B1_USADA = '*' WHERE B1_COD = " + questao))
 				{
 					return false;
 				}
@@ -734,8 +692,7 @@ namespace HelpTeacher.Forms
 
 		private void geraAvaliacao()
 		{
-			if (!txtTotalQuestoes.Text.Equals("0") &&
-					!txtTotalQuestoes.Text.Equals(""))
+			if (!txtTotalQuestoes.Text.Equals("0") && !txtTotalQuestoes.Text.Equals(""))
 			{
 				geraCodigosAleatorios();
 				geraDocumentoWord();

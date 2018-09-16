@@ -6,8 +6,8 @@ namespace HelpTeacher.Domain.Entities
 	public class Question : IEntityBase
 	{
 		#region Properties
-		/// <summary><see cref="Entities.Subject"/>'s onde a questão pode ser usada.</summary>
-		public virtual ICollection<Subject> Subject { get; set; }
+		/// <summary><see cref="Subject"/>'s onde a questão pode ser usada.</summary>
+		public virtual ICollection<Subject> Subjects { get; set; }
 
 		/// <summary>Caminho completo para o primeiro anexo.</summary>
 		public string FirstAttachment { get; set; }
@@ -44,13 +44,13 @@ namespace HelpTeacher.Domain.Entities
 		#region Constructors
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Question"/> com os 
-		/// <see cref = "Subject" /> e enunciado específicados.
+		/// <see cref = "Subjects" /> e enunciado específicados.
 		/// </summary>
 		/// <param name="value">Assuntos onde a nova questão pode ser usada.</param>
 		/// <param name="statement">Enunciado</param>
 		public Question(ICollection<Subject> value, string statement)
 		{
-			Subject = value;
+			Subjects = value;
 			Statement = statement;
 		}
 		#endregion

@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Entities\Course.cs" />
     <Compile Include="Entities\Discipline.cs" />
+    <Compile Include="Entities\Exam.cs" />
     <Compile Include="Entities\IEntityBase.cs" />
     <Compile Include="Entities\Question.cs" />
     <Compile Include="Entities\Subject.cs" />
