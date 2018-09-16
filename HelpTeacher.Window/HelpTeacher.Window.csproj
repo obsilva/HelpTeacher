@@ -82,7 +82,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ConexaoBanco.cs" />
     <Compile Include="Classes\MD5.cs" />
     <Compile Include="Classes\Mensagem.cs" />
     <Compile Include="Forms\Ajuda.cs">
@@ -214,6 +213,10 @@
     <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">
       <Project>{4771fa15-88e3-4c55-b4cc-0ca9b0002cf9}</Project>
       <Name>HelpTeacher.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HelpTeacher.Repository\HelpTeacher.Repository.csproj">
+      <Project>{2C2D5ACF-D54E-42D3-A7DB-C71B289C9F6C}</Project>
+      <Name>HelpTeacher.Repository</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

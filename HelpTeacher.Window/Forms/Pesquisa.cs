@@ -1,16 +1,18 @@
-﻿using HelpTeacher.Classes;
-using System;
+﻿using System;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using HelpTeacher.Classes;
+using HelpTeacher.Repository;
+
 namespace HelpTeacher.Forms
 {
 	public partial class Pesquisa : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private MySql.Data.MySqlClient.MySqlDataAdapter adaptador;
 		private DataSet ds;

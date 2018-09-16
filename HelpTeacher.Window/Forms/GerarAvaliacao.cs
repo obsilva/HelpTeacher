@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 using HelpTeacher.Classes;
 using HelpTeacher.Domain.Entities;
+using HelpTeacher.Repository;
 
 using Word = Microsoft.Office.Interop.Word;
 
@@ -15,7 +16,7 @@ namespace HelpTeacher.Forms
 {
 	public partial class GerarAvaliacao : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();

@@ -1,13 +1,15 @@
-﻿using HelpTeacher.Classes;
-using System;
+﻿using System;
 using System.IO;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Repository;
 
 namespace HelpTeacher.Forms
 {
 	public partial class Principal : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 		private CadastroQuestao cadastraQuestao;
 		private CadastroConteudo cadastraConteudo;
 		private GerarAvaliacao geraAvaliacao;

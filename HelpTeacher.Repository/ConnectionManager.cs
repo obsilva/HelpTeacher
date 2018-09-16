@@ -1,9 +1,9 @@
 ﻿using MySql.Data.MySqlClient;
-using System.Diagnostics;
 
-namespace HelpTeacher.Classes
+namespace HelpTeacher.Repository
 {
-	internal class ConexaoBanco
+	/// <summary>Gerencia a conexão com o banco de dados.</summary>
+	public class ConnectionManager
 	{
 		private MySqlConnection conexao;
 		private MySqlCommand comando;
@@ -18,7 +18,6 @@ namespace HelpTeacher.Classes
 			}
 			catch
 			{
-				startBanco();
 				try
 				{
 					conexao = new MySqlConnection("server = 127.0.0.1; database = helpteacher; uid = root; pwd = 123456");
@@ -27,70 +26,12 @@ namespace HelpTeacher.Classes
 				}
 				catch
 				{
-					Mensagem.falhaNaConexao();
 					return false;
 				}
 			}
 		}
 
-		/* startBanco
-		 * 
-		 * Inicializa o banco de dados
-		 */
-		private void startBanco()
-		{
-			var startInfo = new ProcessStartInfo("cmd.exe")
-			{
-				RedirectStandardInput = true,
-				RedirectStandardOutput = true,
-				UseShellExecute = false,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				FileName = @"C:\xampp\xampp_start.exe"
-			};
-
-			try
-			{
-				using (var execProcess = Process.Start(startInfo))
-				{
-					Mensagem.inicializandoBanco();
-					execProcess.WaitForExit();
-				}
-			}
-			catch
-			{
-				Mensagem.falhaInicializacaoBanco();
-			}
-		}
-
 		public void fechaConexao() => conexao.Close();
-
-		/* stopBanco
-		 * 
-		 * Para a execução do banco de dados
-		 */
-		public void stopBanco()
-		{
-			var startInfo = new ProcessStartInfo("cmd.exe")
-			{
-				RedirectStandardInput = true,
-				RedirectStandardOutput = true,
-				UseShellExecute = false,
-				WindowStyle = ProcessWindowStyle.Minimized,
-				FileName = @"C:\xampp\xampp_stop.exe"
-			};
-
-			try
-			{
-				using (var execProcess = Process.Start(startInfo))
-				{
-					execProcess.WaitForExit();
-				}
-			}
-			catch
-			{
-				Mensagem.falhaEncerramentoBanco();
-			}
-		}
 
 		public bool conexaoOK()
 		{
@@ -126,7 +67,6 @@ namespace HelpTeacher.Classes
 				catch
 				{
 					fechaConexao();
-					Mensagem.erroComandoSQL();
 				}
 			}
 			return false;
@@ -145,7 +85,6 @@ namespace HelpTeacher.Classes
 				catch
 				{
 					fechaConexao();
-					Mensagem.erroComandoSQL();
 				}
 			}
 			return false;
@@ -163,7 +102,6 @@ namespace HelpTeacher.Classes
 				catch
 				{
 					fechaConexao();
-					Mensagem.erroComandoSQL();
 				}
 			}
 			return false;

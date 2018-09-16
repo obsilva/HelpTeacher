@@ -1,13 +1,15 @@
-﻿using HelpTeacher.Classes;
-using HelpTeacher.Domain.Entities;
-using System;
+﻿using System;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
+using HelpTeacher.Repository;
 
 namespace HelpTeacher.Forms
 {
 	public partial class ForcaTrocaSenha : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 
 		public ForcaTrocaSenha() => InitializeComponent();
 

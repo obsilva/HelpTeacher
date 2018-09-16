@@ -1,13 +1,15 @@
-﻿using HelpTeacher.Classes;
-using HelpTeacher.Domain.Entities;
-using System;
+﻿using System;
 using System.Windows.Forms;
+
+using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
+using HelpTeacher.Repository;
 
 namespace HelpTeacher.Forms
 {
 	public partial class Configuracoes : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 
 		public Configuracoes() => InitializeComponent();

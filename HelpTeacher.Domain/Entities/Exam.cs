@@ -7,6 +7,7 @@ namespace HelpTeacher.Domain.Entities
 	public class Exam : IEntityBase
 	{
 		#region Properties
+		/// <summary>Data de geração da avaliação.</summary>
 		public DateTime GeneratedDate { get; set; }
 
 		/// <summary>
@@ -35,6 +36,12 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
+		/// <summary>
+		/// Inicializa uma nova instância da classe <see cref="Exam"/> com as
+		/// <see cref="Question"/> e <see cref="Subject"/> específicados.
+		/// </summary>
+		/// <param name="questions">Questões utilizadas na avaliação.</param>
+		/// <param name="subjects">Assuntos abordados na avaliação.</param>
 		public Exam(ICollection<Question> questions, ICollection<Subject> subjects)
 		{
 			Questions = questions;

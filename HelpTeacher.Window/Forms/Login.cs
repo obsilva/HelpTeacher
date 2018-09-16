@@ -3,12 +3,13 @@ using System.Windows.Forms;
 
 using HelpTeacher.Classes;
 using HelpTeacher.Domain.Entities;
+using HelpTeacher.Repository;
 
 namespace HelpTeacher.Forms
 {
 	public partial class Login : Form
 	{
-		private ConexaoBanco banco = new ConexaoBanco();
+		private ConnectionManager banco = new ConnectionManager();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 
 		public Login() => InitializeComponent();
