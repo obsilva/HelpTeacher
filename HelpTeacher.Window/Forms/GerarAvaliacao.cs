@@ -142,7 +142,8 @@ namespace HelpTeacher.Forms
 					{
 						while (respostaBanco.Read())
 						{
-							disciplines.Add(new Discipline((Course) cmbCurso.SelectedItem, respostaBanco.GetString(1))
+							ICollection<Course> courses = new List<Course>() { (Course) cmbCurso.SelectedItem };
+							disciplines.Add(new Discipline(courses, respostaBanco.GetString(1))
 							{
 								RecordID = respostaBanco.GetInt32(0),
 								IsRecordActive = true
@@ -175,7 +176,8 @@ namespace HelpTeacher.Forms
 				{
 					while (respostaBanco.Read())
 					{
-						subjects.Add(new Subject((Discipline) cmbDisciplina.SelectedItem, respostaBanco.GetString(1))
+						ICollection<Discipline> disciplines = new List<Discipline>() { (Discipline) cmbDisciplina.SelectedItem };
+						subjects.Add(new Subject(disciplines, respostaBanco.GetString(1))
 						{
 							RecordID = respostaBanco.GetInt32(0),
 							IsRecordActive = true

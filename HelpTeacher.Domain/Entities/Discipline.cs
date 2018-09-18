@@ -10,8 +10,8 @@ namespace HelpTeacher.Domain.Entities
 	public class Discipline : IEntityBase
 	{
 		#region Properties
-		/// <summary><see cref="Entities.Course"/> no qual a disciplina está sendo lecionada.</summary>
-		public virtual Course Course { get; set; }
+		/// <summary><see cref="Course"/>'s onde a disciplina é lecionada.</summary>
+		public virtual ICollection<Course> Courses { get; set; }
 
 		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
 		public bool IsRecordActive { get; set; }
@@ -31,12 +31,15 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
-		/// <summary>Construtor.</summary>
-		/// <param name="value">Curso no qual a disciplina é lecionada.</param>
+		/// <summary>
+		/// Inicializa uma nova instância da clasee <see cref="Discipline"/> com o
+		/// <see cref="Courses"/> e nome especificados.
+		/// </summary>
+		/// <param name="courses">Cursos onde a disciplina é lecionada.</param>
 		/// <param name="name">Nome completo da disciplina.</param>
-		public Discipline(Course value, string name)
+		public Discipline(ICollection<Course> courses, string name)
 		{
-			Course = value;
+			Courses = courses;
 			Name = name;
 		}
 		#endregion

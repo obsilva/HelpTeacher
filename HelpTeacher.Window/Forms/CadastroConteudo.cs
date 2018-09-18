@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 using HelpTeacher.Classes;
@@ -100,7 +101,8 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarDisc_Click(object sender, EventArgs e)
 		{
-			var discipline = new Discipline((Course) cmbCurso.SelectedItem, txtNomeDisciplina.Text);
+			ICollection<Course> courses = new List<Course>() { (Course) cmbCurso.SelectedItem };
+			var discipline = new Discipline(courses, txtNomeDisciplina.Text);
 
 			if (cadastraDisciplina(discipline))
 			{
@@ -148,7 +150,8 @@ namespace HelpTeacher.Forms
 		}
 
 		private bool cadastraDisciplina(Discipline value) => podeCadastrar()
-				? banco.executeComando($"INSERT INTO htc2 VALUES (NULL,'{value.Name}', {value.Course.RecordID}, NULL)")
+				? banco.executeComando($"INSERT INTO htc2 VALUES (NULL,'{value.Name}', " +
+									   $"{value.Courses.FirstOrDefault()?.RecordID}, NULL)")
 				: false;
 
 		private void atualizaCodigoDisciplina()
@@ -198,7 +201,8 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
-			var subject = new Subject((Discipline) cmbDisciplina.SelectedItem, txtNomeMateria.Text);
+			ICollection<Discipline> disciplines = new List<Discipline>() { (Discipline) cmbDisciplina.SelectedItem };
+			var subject = new Subject(disciplines, txtNomeMateria.Text);
 
 			if (cadastraMateria(subject))
 			{
@@ -223,13 +227,15 @@ namespace HelpTeacher.Forms
 				{
 					while (respostaBanco.Read())
 					{
-						var course = new Course(respostaBanco.GetString(1))
-						{
-							RecordID = respostaBanco.GetInt32(0),
-							IsRecordActive = !respostaBanco.IsDBNull(2)
+						ICollection<Course> courses = new List<Course>() {
+							new Course(respostaBanco.GetString(1))
+							{
+								RecordID = respostaBanco.GetInt32(0),
+								IsRecordActive = !respostaBanco.IsDBNull(2)
+							}
 						};
 
-						disciplines.Add(new Discipline(course, respostaBanco.GetString(4))
+						disciplines.Add(new Discipline(courses, respostaBanco.GetString(4))
 						{
 							RecordID = respostaBanco.GetInt32(3),
 							IsRecordActive = true
@@ -256,14 +262,15 @@ namespace HelpTeacher.Forms
 		private void buscaCurso()
 		{
 			var discipline = (Discipline) cmbDisciplina.SelectedItem;
-			txtCurso.Text = discipline?.Course?.Name;
+			txtCurso.Text = discipline?.Courses?.FirstOrDefault()?.Name;
 		}
 
 		private bool cadastraMateria(Subject value)
 		{
 			if (podeCadastrar())
 			{
-				string query = $"INSERT INTO htc3 VALUES(NULL, '{value.Name}', { value.Discipline.RecordID}, NULL)";
+				string query = $"INSERT INTO htc3 VALUES(NULL, '{value.Name}', " +
+							   $"{ value.Disciplines.FirstOrDefault()?.RecordID}, NULL)";
 				return banco.executeComando(query);
 			}
 			return false;

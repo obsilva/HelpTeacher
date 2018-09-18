@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿/* Authors: Otávio Bueno Silva <obsilva94@gmail.com>
+ * Since: 2018-09-15
+ */
+
+using System.Collections.Generic;
 
 namespace HelpTeacher.Domain.Entities
 {
@@ -46,11 +50,11 @@ namespace HelpTeacher.Domain.Entities
 		/// Inicializa uma nova instância da classe <see cref="Question"/> com os 
 		/// <see cref = "Subjects" /> e enunciado específicados.
 		/// </summary>
-		/// <param name="value">Assuntos onde a nova questão pode ser usada.</param>
+		/// <param name="subjects">Assuntos onde a nova questão pode ser usada.</param>
 		/// <param name="statement">Enunciado</param>
-		public Question(ICollection<Subject> value, string statement)
+		public Question(ICollection<Subject> subjects, string statement)
 		{
-			Subjects = value;
+			Subjects = subjects;
 			Statement = statement;
 		}
 		#endregion

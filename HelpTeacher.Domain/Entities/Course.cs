@@ -28,7 +28,10 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
-		/// <summary>Construtor.</summary>
+		/// <summary>
+		/// Inicializa uma nova instância da classe <see cref="Course"/> com o
+		/// nome especificado.
+		/// </summary>
 		/// <param name="name">Nome completo do curso.</param>
 		public Course(string name) => Name = name;
 		#endregion

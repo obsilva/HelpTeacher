@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* Authors: Otávio Bueno Silva <obsilva94@gmail.com>
+ * Since: 2018-09-16
+ */
+
+using System;
 using System.Collections.Generic;
 
 namespace HelpTeacher.Domain.Entities
