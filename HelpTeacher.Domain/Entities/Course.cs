@@ -1,6 +1,6 @@
 ﻿/* Authors: Otávio Bueno Silva <obsilva94@gmail.com>
-* Since: 2018-08-31
-*/
+ * Since: 2018-08-31
+ */
 
 using System.Collections.Generic;
 
