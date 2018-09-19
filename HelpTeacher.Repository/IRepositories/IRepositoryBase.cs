@@ -38,13 +38,14 @@ namespace HelpTeacher.Repository.IRepositories
 
 		/// <summary>Recupera todos os registros.</summary>
 		/// <returns>
-		/// Todos os objetos em um <see cref="IQueryable{TEntity}"/>, permitindo a execução de consutlas.
+		/// Todos os objetos em um <see cref="IQueryable{TEntity}"/>, permitindo a execução de consutlas,
+		/// ordenados pelo ID de forma crescente..
 		/// </returns>
 		IQueryable<TEntity> Get();
 
 		/// <summary>Recupera todos os registros que estão ativos ou não.</summary>
 		/// <param name="IsRecordActive">Registro deve estar ativo?</param>
-		/// <returns>Todos os objetos ativos ou não.</returns>
+		/// <returns>Todos os objetos ativos ou não, ordenados pelo ID de forma crescente..</returns>
 		IQueryable<TEntity> Get(bool IsRecordActive);
 
 		/// <summary>Recupera um registro específico.</summary>
