@@ -17,7 +17,7 @@ namespace HelpTeacher.Repository.IRepositories
 		/// <returns>
 		/// Todos os registros ativos, com exceção do objeto informado, ordenados pelo ID de forma crescente.
 		/// </returns>
-		IQueryable<Course> GetDifferentId(Course obj);
+		IQueryable<Course> GetWhereDifferentId(Course obj);
 
 		/// <summary>Recupera todos os registros ativos e que possuem ID diferente do informado.</summary>
 		/// <param name="id">Identificador que deve ser evitado.</param>
@@ -25,7 +25,7 @@ namespace HelpTeacher.Repository.IRepositories
 		/// Todos os registros ativos, com exceção do registro com o ID informado,
 		/// ordenados pelo ID de forma crescente.
 		/// </returns>
-		IQueryable<Course> GetDifferentId(int id);
+		IQueryable<Course> GetWhereDifferentId(int id);
 		#endregion
 	}
 }

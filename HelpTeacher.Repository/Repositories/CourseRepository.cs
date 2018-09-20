@@ -137,10 +137,10 @@ namespace HelpTeacher.Repository.Repositories
 		}
 
 		/// <inheritdoc />
-		public IQueryable<Course> GetDifferentId(Course obj) => GetDifferentId(obj.RecordID);
+		public IQueryable<Course> GetWhereDifferentId(Course obj) => GetWhereDifferentId(obj.RecordID);
 
 		/// <inheritdoc />
-		public IQueryable<Course> GetDifferentId(int id)
+		public IQueryable<Course> GetWhereDifferentId(int id)
 		{
 			string query = $"SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 " +
 						   $"WHERE C1_COD <> {id} AND D_E_L_E_T IS NULL";
