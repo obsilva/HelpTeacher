@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 using HelpTeacher.Classes;
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository;
+using HelpTeacher.Repository.Repositories;
 
 namespace HelpTeacher.Forms
 {
@@ -22,12 +24,10 @@ namespace HelpTeacher.Forms
 			InitializeComponent();
 
 			atualizaCodigoQuestao();
-			if (!atualizaCMB())
-			{
-				cmbCursos.Items.Clear();
-				chkDisciplinas.Items.Clear();
-				chkMaterias.Items.Clear();
-			}
+			atualizaCMB();
+			cmbCursos.Items.Clear();
+			chkDisciplinas.Items.Clear();
+			chkMaterias.Items.Clear();
 		}
 
 		private void radObjetiva_CheckedChanged(object sender, EventArgs e)
@@ -123,39 +123,16 @@ namespace HelpTeacher.Forms
 		 * 
 		 * Popula o comboBox com os cursos cadastrados
 		 */
-		private bool atualizaCMB()
+		private void atualizaCMB()
 		{
-			var courses = new List<Course>();
+			IQueryable<Course> courses = new CourseRepository().Get(true);
+
 			courseBindingSource.DataSource = courses;
-
+			cmbCursos.DataSource = courseBindingSource;
 			courseBindingSource.ResetBindings(true);
-			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						courses.Add(new Course(respostaBanco.GetString(1))
-						{
-							RecordID = respostaBanco.GetInt32(0),
-							IsRecordActive = true
-						});
-					}
-					respostaBanco.Close();
-					banco.fechaConexao();
-
-					cmbCursos.DataSource = courseBindingSource;
-					courseBindingSource.ResetBindings(true);
-					cmbCursos.DisplayMember = nameof(Course.Name);
-					cmbCursos.ValueMember = nameof(Course.RecordID);
-					cmbCursos.SelectedIndex = 0;
-
-					return true;
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
-			return false;
+			cmbCursos.DisplayMember = nameof(Course.Name);
+			cmbCursos.ValueMember = nameof(Course.RecordID);
+			cmbCursos.SelectedIndex = 0;
 		}
 
 		/* atualizaCHKDisciplinas

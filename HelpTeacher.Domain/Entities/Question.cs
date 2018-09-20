@@ -28,10 +28,10 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary>Define se a questão é do fipo objetiva.</summary>
 		public bool IsObjective { get; set; }
 
-		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
+		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
-		/// <summary>Implementa <see cref="IEntityBase.RecordID"/>.</summary>
+		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary>Caminho completo para o segundo anexo.</summary>

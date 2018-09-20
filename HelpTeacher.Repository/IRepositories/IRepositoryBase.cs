@@ -9,9 +9,13 @@ using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Repository.IRepositories
 {
-	/// <summary>Define o repositório base.</summary>
+	/// <summary>Define um repositório base genérico.</summary>
+	/// <typeparam name="TEntity">
+	/// Define o tipo do repositório. Para ser considerado um tipo válido, deve herdar <see cref="IEntityBase"/>.
+	/// </typeparam>
 	public interface IRepositoryBase<TEntity> where TEntity : IEntityBase
 	{
+		#region Methods
 		/// <summary>Adiciona um novo registro à base de dados.</summary>
 		/// <param name="obj">Objeto que deve ser adicionado.</param>
 		void Add(TEntity obj);
@@ -19,18 +23,6 @@ namespace HelpTeacher.Repository.IRepositories
 		/// <summary>Adiciona vários registros à base de dados.</summary>
 		/// <param name="collection">Coleção com os objetos que devem ser adicionados.</param>
 		void Add(IEnumerable<TEntity> collection);
-
-		/// <summary>Define um registro como desativado. </summary>
-		/// <param name="obj">Objeto que deve ser atualizado. </param>
-		void Disable(TEntity obj);
-
-		/// <summary>Define vários registros como desativados. </summary>
-		/// <param name="list">Coleção com os objetos que devem ser atualizados. </param>
-		void Disable(IEnumerable<TEntity> list);
-
-		/// <summary>Define um registro como desativado. </summary>
-		/// <param name="id">Número ID do objeto que deve ser atualizado. </param>
-		void Disable(int id);
 
 		/// <summary>Recupera o primeiro registro.</summary>
 		/// <returns>Objeto <see cref="TEntity"/></returns>
@@ -44,9 +36,9 @@ namespace HelpTeacher.Repository.IRepositories
 		IQueryable<TEntity> Get();
 
 		/// <summary>Recupera todos os registros que estão ativos ou não.</summary>
-		/// <param name="IsRecordActive">Registro deve estar ativo?</param>
+		/// <param name="isRecordActive">Registro deve estar ativo?</param>
 		/// <returns>Todos os objetos ativos ou não, ordenados pelo ID de forma crescente..</returns>
-		IQueryable<TEntity> Get(bool IsRecordActive);
+		IQueryable<TEntity> Get(bool isRecordActive);
 
 		/// <summary>Recupera um registro específico.</summary>
 		/// <param name="id">Número ID do objeto que deve ser recuperado.</param>
@@ -58,7 +50,8 @@ namespace HelpTeacher.Repository.IRepositories
 		void Update(TEntity obj);
 
 		/// <summary>Atualiza vários registros na base de dados.</summary>
-		/// <param name="list">Coleção com os objetos que devem ser atualizados.</param>
-		void Update(IEnumerable<TEntity> list);
+		/// <param name="collection">Coleção com os objetos que devem ser atualizados.</param>
+		void Update(IEnumerable<TEntity> collection);
+		#endregion
 	}
 }

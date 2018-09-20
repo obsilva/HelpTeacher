@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using HelpTeacher.Classes;
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository;
+using HelpTeacher.Repository.Repositories;
 
 using Word = Microsoft.Office.Interop.Word;
 
@@ -98,32 +99,14 @@ namespace HelpTeacher.Forms
 
 		private void preencheComboCursos()
 		{
-			var courses = new List<Course>();
+			IQueryable<Course> courses = new CourseRepository().Get(true);
+
 			courseBindingSource.DataSource = courses;
-
+			cmbCurso.DataSource = courseBindingSource;
 			courseBindingSource.ResetBindings(true);
-			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						courses.Add(new Course(respostaBanco.GetString(1))
-						{
-							RecordID = respostaBanco.GetInt32(0),
-							IsRecordActive = true
-						});
-					}
-
-					cmbCurso.DataSource = courseBindingSource;
-					courseBindingSource.ResetBindings(true);
-					cmbCurso.DisplayMember = nameof(Course.Name);
-					cmbCurso.ValueMember = nameof(Course.RecordID);
-					cmbCurso.SelectedIndex = 0;
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			cmbCurso.DisplayMember = nameof(Course.Name);
+			cmbCurso.ValueMember = nameof(Course.RecordID);
+			cmbCurso.SelectedIndex = 0;
 		}
 
 		private void preencheComboDisciplinas()

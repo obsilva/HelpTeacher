@@ -13,7 +13,7 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary><see cref="Course"/>'s onde a disciplina é lecionada.</summary>
 		public virtual ICollection<Course> Courses { get; set; }
 
-		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
+		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
 		/// <summary>Iniciais da disciplina (sigla).</summary>
@@ -22,7 +22,7 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary>Nome completo da disciplina.</summary>
 		public string Name { get; set; }
 
-		/// <summary>Implementa <see cref="IEntityBase.RecordID"/>.</summary>
+		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary><see cref="Subject"/> lecionados na disciplina.</summary>

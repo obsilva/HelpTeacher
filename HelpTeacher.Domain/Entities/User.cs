@@ -14,7 +14,7 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary>Recupera a instanância única de usuário.</summary>
 		public static User Instance { get; } = new User();
 
-		/// <summary>Implementa <see cref="IEntityBase.IsRecordActive"/>.</summary>
+		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
 		/// <summary>Sobrenome do usuário.</summary>
@@ -27,7 +27,7 @@ namespace HelpTeacher.Domain.Entities
 		/// <remarks>A senha é armazenada criptografada.</remarks>
 		public string Password { get; set; }
 
-		/// <summary>Implementa <see cref="IEntityBase.RecordID"/>.</summary>
+		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary>Nome de usuário utilizado para ter acesso ao sistema.</summary>

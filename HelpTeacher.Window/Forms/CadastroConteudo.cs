@@ -6,17 +6,22 @@ using System.Windows.Forms;
 using HelpTeacher.Classes;
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository;
+using HelpTeacher.Repository.Repositories;
 
 namespace HelpTeacher.Forms
 {
 	public partial class CadastroConteudo : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
+		#region Fields
+		private readonly BindingSource courseBindingSource = new BindingSource();
+		private readonly BindingSource disciplineBindingSource = new BindingSource();
 		private AutoCompleteStringCollection collection = new AutoCompleteStringCollection();
-		private BindingSource courseBindingSource = new BindingSource();
-		private BindingSource disciplineBindingSource = new BindingSource();
+		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
+		private ConnectionManager banco = new ConnectionManager();
+		#endregion
 
+
+		#region Constructors
 		public CadastroConteudo(int pag)
 		{
 			InitializeComponent();
@@ -34,7 +39,10 @@ namespace HelpTeacher.Forms
 				tabControlConteudo.SelectedTab = tabMaterias;
 			}
 		}
+		#endregion
 
+
+		#region Methods
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
 		private void tabCursos_Enter(object sender, EventArgs e)
@@ -46,21 +54,21 @@ namespace HelpTeacher.Forms
 		private void btnSalvarCurso_Click(object sender, EventArgs e)
 		{
 			var course = new Course(txtNomeCurso.Text);
-
-			if (cadastraCurso(course))
-			{
-				limparForm();
-				atualizaCodigoCurso();
-				Mensagem.cadastradoEfetuado();
-			}
+			cadastraCurso(course);
+			limparForm();
+			atualizaCodigoCurso();
+			Mensagem.cadastradoEfetuado();
 		}
 
 		private void btnCancelarCurso_Click(object sender, EventArgs e) => Close();
 
-		private bool cadastraCurso(Course value)
-			=> podeCadastrar()
-				? banco.executeComando($"INSERT INTO htc1 VALUES (NULL, '{value.Name}', NULL)")
-				: false;
+		private void cadastraCurso(Course value)
+		{
+			if (podeCadastrar())
+			{
+				new CourseRepository().Add(value);
+			}
+		}
 
 		private void atualizaCodigoCurso()
 		{
@@ -76,15 +84,13 @@ namespace HelpTeacher.Forms
 		private void autoCompleteCursos()
 		{
 			collection.Clear();
-			if (banco.executeComando("SELECT C1_NOME FROM htc1", ref respostaBanco))
+
+			IQueryable<Course> courses = new CourseRepository().Get();
+			foreach (Course course in courses)
 			{
-				while (respostaBanco.Read())
-				{
-					collection.Add(respostaBanco.GetString(0));
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
+				collection.Add(course.Name);
 			}
+
 			txtNomeCurso.AutoCompleteCustomSource = collection;
 		}
 
@@ -114,39 +120,16 @@ namespace HelpTeacher.Forms
 
 		private void btnCancelarDisc_Click(object sender, EventArgs e) => Close();
 
-		private bool carregaCursos()
+		private void carregaCursos()
 		{
-			var courses = new List<Course>();
+			IQueryable<Course> courses = new CourseRepository().Get(true);
+
 			courseBindingSource.DataSource = courses;
+			cmbCurso.DataSource = courseBindingSource;
 			courseBindingSource.ResetBindings(true);
-			if (banco.executeComando("SELECT C1_COD, C1_NOME FROM htc1 WHERE D_E_L_E_T IS NULL", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						courses.Add(new Course(respostaBanco.GetString(1))
-						{
-							RecordID = respostaBanco.GetInt32(0),
-							IsRecordActive = true
-						});
-					}
-
-					respostaBanco.Close();
-					banco.fechaConexao();
-
-					cmbCurso.DataSource = courseBindingSource;
-					courseBindingSource.ResetBindings(true);
-					cmbCurso.DisplayMember = nameof(Course.Name);
-					cmbCurso.ValueMember = nameof(Course.RecordID);
-					cmbCurso.SelectedIndex = 0;
-
-					return true;
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
-			return false;
+			cmbCurso.DisplayMember = nameof(Course.Name);
+			cmbCurso.ValueMember = nameof(Course.RecordID);
+			cmbCurso.SelectedIndex = 0;
 		}
 
 		private bool cadastraDisciplina(Discipline value) => podeCadastrar()
@@ -392,5 +375,6 @@ namespace HelpTeacher.Forms
 			var evento = e as MouseEventArgs;
 			txt.Select(txt.GetCharIndexFromPosition(evento.Location), 0);
 		}
+		#endregion
 	}
 }

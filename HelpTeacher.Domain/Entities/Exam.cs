@@ -19,13 +19,13 @@ namespace HelpTeacher.Domain.Entities
 		/// </summary>
 		public bool HasOnlyUnusedQuestion { get; set; }
 
-		/// <summary>Implementa <see cref="P:HelpTeacher.Domain.Entities.IEntityBase.IsRecordActive" />.</summary>
+		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
 		/// <summary><see cref="Question"/>'s utilizadas na geração da avaliação.</summary>
 		public ICollection<Question> Questions { get; set; }
 
-		/// <summary>Implementa <see cref="P:HelpTeacher.Domain.Entities.IEntityBase.RecordID" />.</summary>
+		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary><see cref="Subject"/>'s a qual a avaliação pertence.</summary>

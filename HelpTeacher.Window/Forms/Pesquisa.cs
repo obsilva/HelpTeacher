@@ -6,7 +6,9 @@ using System.Linq;
 using System.Windows.Forms;
 
 using HelpTeacher.Classes;
+using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository;
+using HelpTeacher.Repository.Repositories;
 
 namespace HelpTeacher.Forms
 {
@@ -15,6 +17,9 @@ namespace HelpTeacher.Forms
 		private ConnectionManager banco = new ConnectionManager();
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private MySql.Data.MySqlClient.MySqlDataAdapter adaptador;
+		private BindingSource courseBindingSource = new BindingSource();
+		private BindingSource disciplineBindingSource = new BindingSource();
+		private BindingSource subjectBindingSource = new BindingSource();
 		private DataSet ds;
 		private string deletados;
 
@@ -89,26 +94,14 @@ namespace HelpTeacher.Forms
 
 		private void atualizaCursos(ComboBox combo)
 		{
-			string[] codigo = combo.Text.Split(new char[] { '(', ')' },
-						StringSplitOptions.RemoveEmptyEntries);
+			IQueryable<Course> courses = new CourseRepository().Get(true);
 
-			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-						"FROM htc1 " +
-						"WHERE C1_COD <> " + codigo[0] + " AND " +
-							"D_E_L_E_T IS NULL " +
-						"ORDER BY C1_COD", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						combo.Items.Add("(" + respostaBanco.GetString(0) + ") " +
-									respostaBanco.GetString(1));
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			courseBindingSource.DataSource = courses;
+			combo.DataSource = courseBindingSource;
+			courseBindingSource.ResetBindings(true);
+			combo.DisplayMember = nameof(Course.Name);
+			combo.ValueMember = nameof(Course.RecordID);
+			combo.SelectedIndex = 0;
 		}
 
 		private void atualizaDisciplinas(ComboBox combo)
@@ -650,16 +643,10 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvarCurso_Click(object sender, EventArgs e)
 		{
-			if (salvaCursoModificado())
-			{
-				ativaDesativaEdicaoCurso(false);
-				chamaPesquisaCursos();
-				Mensagem.dadosAlterados();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			salvaCursoModificado();
+			ativaDesativaEdicaoCurso(false);
+			chamaPesquisaCursos();
+			Mensagem.dadosAlterados();
 		}
 
 		private void btnCancelarCurso_Click(object sender, EventArgs e)
@@ -673,20 +660,11 @@ namespace HelpTeacher.Forms
 			if (respostaBanco.HasRows)
 			{
 				respostaBanco.Read();
-
 				btnEditarCursos.Enabled = true;
 
 				txtCodigoCurso.Text = respostaBanco["C1_COD"].ToString();
 				txtNomeCurso.Text = respostaBanco["C1_NOME"].ToString();
-
-				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
-				{
-					chkCursoDeletado.Checked = true;
-				}
-				else
-				{
-					chkCursoDeletado.Checked = false;
-				}
+				chkCursoDeletado.Checked = respostaBanco["D_E_L_E_T"].ToString().Equals("*");
 			}
 			else
 			{
@@ -751,32 +729,15 @@ namespace HelpTeacher.Forms
 			pnlCursos.Enabled = ativa;
 		}
 
-		private bool salvaCursoModificado()
+		private void salvaCursoModificado()
 		{
-			if (!banco.executeComando("UPDATE htc1 SET C1_NOME = '" + txtNomeCurso.Text +
-						"' WHERE C1_COD = " + txtCodigoCurso.Text))
+			var course = new Course(txtNomeCurso.Text)
 			{
-				return false;
-			}
+				IsRecordActive = !chkCursoDeletado.Checked,
+				RecordID = Convert.ToInt32(txtCodigoCurso)
+			};
 
-			//Deletada
-			if (chkCursoDeletado.Checked)
-			{
-				if (!banco.executeComando("UPDATE htc1 SET D_E_L_E_T = '*' " +
-							"WHERE C1_COD = " + txtCodigoCurso.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htc1 SET D_E_L_E_T = NULL " +
-							"WHERE C1_COD = " + txtCodigoCurso.Text))
-				{
-					return false;
-				}
-			}
-			return true;
+			new CourseRepository().Update(course);
 		}
 
 		// PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  PAGE DISCIPLINAS  //
@@ -1291,23 +1252,15 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboCursos()
 		{
-			cmbCursosAvaliacoes.Items.Clear();
 			cmbAvaliacoes.Items.Clear();
 
-			if (banco.executeComando("SELECT C1_COD, C1_NOME " +
-					"FROM htc1", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						cmbCursosAvaliacoes.Items.Add("(" + respostaBanco.GetString(0) +
-							")" + respostaBanco.GetString(1));
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			IQueryable<Course> courses = new CourseRepository().Get();
+
+			courseBindingSource.DataSource = courses;
+			cmbCursosAvaliacoes.DataSource = courseBindingSource;
+			courseBindingSource.ResetBindings(true);
+			cmbCursosAvaliacoes.DisplayMember = nameof(Course.Name);
+			cmbCursosAvaliacoes.ValueMember = nameof(Course.RecordID);
 		}
 
 		private void atualizaComboDisicplina()
