@@ -110,12 +110,10 @@ namespace HelpTeacher.Forms
 			ICollection<Course> courses = new List<Course>() { (Course) cmbCurso.SelectedItem };
 			var discipline = new Discipline(courses, txtNomeDisciplina.Text);
 
-			if (cadastraDisciplina(discipline))
-			{
-				limparForm();
-				atualizaCodigoDisciplina();
-				Mensagem.cadastradoEfetuado();
-			}
+			cadastraDisciplina(discipline);
+			limparForm();
+			atualizaCodigoDisciplina();
+			Mensagem.cadastradoEfetuado();
 		}
 
 		private void btnCancelarDisc_Click(object sender, EventArgs e) => Close();
@@ -132,10 +130,13 @@ namespace HelpTeacher.Forms
 			cmbCurso.SelectedIndex = 0;
 		}
 
-		private bool cadastraDisciplina(Discipline value) => podeCadastrar()
-				? banco.executeComando($"INSERT INTO htc2 VALUES (NULL,'{value.Name}', " +
-									   $"{value.Courses.FirstOrDefault()?.RecordID}, NULL)")
-				: false;
+		private void cadastraDisciplina(Discipline value)
+		{
+			if (podeCadastrar())
+			{
+				new DisciplineRepository().Add(value);
+			}
+		}
 
 		private void atualizaCodigoDisciplina()
 		{
@@ -151,18 +152,18 @@ namespace HelpTeacher.Forms
 		private void autoCompleteDisciplinas()
 		{
 			collection.Clear();
+
 			if (cmbCurso.SelectedIndex != -1)
 			{
-				if (banco.executeComando($"SELECT C2_NOME FROM htc2 WHERE C2_CURSO = " +
-					((Course) cmbCurso.SelectedItem).RecordID, ref respostaBanco))
+				IQueryable<Discipline> disciplines = new DisciplineRepository()
+					.GetWhereCourse((Course) cmbCurso.SelectedItem);
+				foreach (Discipline discipline in disciplines)
 				{
-					while (respostaBanco.Read())
-					{
-						collection.Add(respostaBanco.GetString(0));
-					}
-					respostaBanco.Close();
-					banco.fechaConexao();
+					collection.Add(discipline.Name);
 				}
+
+				respostaBanco.Close();
+				banco.fechaConexao();
 			}
 			txtNomeDisciplina.AutoCompleteCustomSource = collection;
 		}
@@ -197,49 +198,16 @@ namespace HelpTeacher.Forms
 
 		private void btnCancelarMateria_Click(object sender, EventArgs e) => Close();
 
-		private bool carregaDisciplinas()
+		private void carregaDisciplinas()
 		{
-			var disciplines = new List<Discipline>();
+			IQueryable<Discipline> disciplines = new DisciplineRepository().Get(true);
+
 			disciplineBindingSource.DataSource = disciplines;
-
+			cmbDisciplina.DataSource = disciplineBindingSource;
 			disciplineBindingSource.ResetBindings(true);
-			if (banco.executeComando($"SELECT C1_COD, C1_NOME, htc1.D_E_L_E_T, C2_COD, C2_NOME FROM htc2 " +
-				"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE htc2.D_E_L_E_T IS NULL", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						ICollection<Course> courses = new List<Course>() {
-							new Course(respostaBanco.GetString(1))
-							{
-								RecordID = respostaBanco.GetInt32(0),
-								IsRecordActive = !respostaBanco.IsDBNull(2)
-							}
-						};
-
-						disciplines.Add(new Discipline(courses, respostaBanco.GetString(4))
-						{
-							RecordID = respostaBanco.GetInt32(3),
-							IsRecordActive = true
-						});
-					}
-
-					respostaBanco.Close();
-					banco.fechaConexao();
-
-					cmbDisciplina.DataSource = disciplineBindingSource;
-					disciplineBindingSource.ResetBindings(true);
-					cmbDisciplina.DisplayMember = nameof(Course.Name);
-					cmbDisciplina.ValueMember = nameof(Course.RecordID);
-					cmbDisciplina.SelectedIndex = 0;
-
-					return true;
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
-			return false;
+			cmbDisciplina.DisplayMember = nameof(Course.Name);
+			cmbDisciplina.ValueMember = nameof(Course.RecordID);
+			cmbDisciplina.SelectedIndex = 0;
 		}
 
 		private void buscaCurso()

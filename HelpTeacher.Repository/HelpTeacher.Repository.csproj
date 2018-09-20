@@ -45,6 +45,7 @@
     <Compile Include="IRepositories\IRepositoryBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CourseRepository.cs" />
+    <Compile Include="Repositories\DisciplineRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">

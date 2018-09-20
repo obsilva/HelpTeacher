@@ -144,36 +144,23 @@ namespace HelpTeacher.Forms
 		 */
 		private void atualizaCHKDisciplinas()
 		{
-			var disciplines = new List<Discipline>();
-			disciplineBindingSource.DataSource = disciplines;
-
-			disciplineBindingSource.ResetBindings(true);
 			if (cmbCursos.SelectedIndex != -1)
 			{
-				if (banco.executeComando($"SELECT C2_COD, C2_NOME FROM htc2 WHERE C2_CURSO = " +
-										 $"{((Course) cmbCursos.SelectedItem).RecordID} AND D_E_L_E_T IS NULL",
-										ref respostaBanco))
-				{
-					if (respostaBanco.HasRows)
-					{
-						while (respostaBanco.Read())
-						{
-							ICollection<Course> courses = new List<Course>() { (Course) cmbCursos.SelectedItem };
-							disciplines.Add(new Discipline(courses, respostaBanco.GetString(1))
-							{
-								RecordID = respostaBanco.GetInt32(0),
-								IsRecordActive = true
-							});
-						}
+				IQueryable<Discipline> disciplines = new DisciplineRepository()
+						.GetWhereCourse((Course) cmbCursos.SelectedItem, true);
 
-						chkDisciplinas.DataSource = disciplineBindingSource;
-						disciplineBindingSource.ResetBindings(true);
-						chkDisciplinas.DisplayMember = nameof(Discipline.Name);
-						chkDisciplinas.ValueMember = nameof(Discipline.RecordID);
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
+				disciplineBindingSource.DataSource = disciplines;
+				chkDisciplinas.DataSource = disciplineBindingSource;
+				disciplineBindingSource.ResetBindings(true);
+				chkDisciplinas.DisplayMember = nameof(Course.Name);
+				chkDisciplinas.ValueMember = nameof(Course.RecordID);
+				chkDisciplinas.SelectedIndex = 0;
+			}
+			else
+			{
+				disciplineBindingSource.Clear();
+				chkDisciplinas.DataSource = disciplineBindingSource;
+				disciplineBindingSource.ResetBindings(true);
 			}
 		}
 

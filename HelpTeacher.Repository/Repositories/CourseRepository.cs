@@ -71,7 +71,6 @@ namespace HelpTeacher.Repository.Repositories
 		public IQueryable<Course> Get()
 		{
 			string query = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1";
-
 			DatabaseConnection.executeComando(query, ref _dataReader);
 
 			var output = new List<Course>();
@@ -96,7 +95,6 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 " +
 						   $"WHERE D_E_L_E_T {(isRecordActive ? "IS" : "IS NOT")} NULL";
-
 			DatabaseConnection.executeComando(query, ref _dataReader);
 
 			var output = new List<Course>();
@@ -137,7 +135,8 @@ namespace HelpTeacher.Repository.Repositories
 		}
 
 		/// <inheritdoc />
-		public IQueryable<Course> GetWhereDifferentId(Course obj) => GetWhereDifferentId(obj.RecordID);
+		public IQueryable<Course> GetWhereDifferentId(Course obj)
+			=> GetWhereDifferentId(obj.RecordID);
 
 		/// <inheritdoc />
 		public IQueryable<Course> GetWhereDifferentId(int id)

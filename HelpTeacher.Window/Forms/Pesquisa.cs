@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.IO;
@@ -106,26 +107,14 @@ namespace HelpTeacher.Forms
 
 		private void atualizaDisciplinas(ComboBox combo)
 		{
-			string[] codigo = combo.Text.Split(new char[] { '(', ')' },
-						StringSplitOptions.RemoveEmptyEntries);
+			IQueryable<Discipline> disciplines = new DisciplineRepository().Get(true);
 
-			if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-						"FROM htc2 " +
-						"WHERE C2_COD <> " + codigo[0] + " AND " +
-							"D_E_L_E_T IS NULL " +
-						"ORDER BY C2_COD", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						combo.Items.Add("(" + respostaBanco.GetString(0) + ") " +
-									respostaBanco.GetString(1));
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			disciplineBindingSource.DataSource = disciplines;
+			combo.DataSource = disciplineBindingSource;
+			disciplineBindingSource.ResetBindings(true);
+			combo.DisplayMember = nameof(Discipline.Name);
+			combo.ValueMember = nameof(Discipline.RecordID);
+			combo.SelectedIndex = 0;
 		}
 
 		/* setaCursorClick
@@ -768,16 +757,10 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarDisc_Click(object sender, EventArgs e)
 		{
-			if (salvaDiscModificada())
-			{
-				ativaDesativaEdicaoDisc(false);
-				chamaPesquisaDisciplinas();
-				Mensagem.dadosAlterados();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			salvaDiscModificada();
+			ativaDesativaEdicaoDisc(false);
+			chamaPesquisaDisciplinas();
+			Mensagem.dadosAlterados();
 		}
 
 		private void btnCancelarDisc_Click(object sender, EventArgs e)
@@ -793,24 +776,23 @@ namespace HelpTeacher.Forms
 				respostaBanco.Read();
 
 				btnEditarDisciplina.Enabled = true;
-				cmbCursosDisciplina.Items.Clear();
-
 				txtCodigoDisciplina.Text = respostaBanco["C2_COD"].ToString();
 				textNomeDisciplina.Text = respostaBanco["C2_NOME"].ToString();
-				cmbCursosDisciplina.Items.Add("(" + respostaBanco["C2_CURSO"].ToString() +
-					") " + respostaBanco["C1_NOME"].ToString());
+				chkDisciplinaDeletada.Checked = !respostaBanco["D_E_L_E_T"].ToString().Equals("*");
 
-				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				var courses = new List<Course>()
 				{
-					chkDisciplinaDeletada.Checked = true;
-				}
-				else
-				{
-					chkDisciplinaDeletada.Checked = false;
-				}
+					new Course(respostaBanco["C1_NOME"].ToString())
+					{
+						RecordID = Convert.ToInt32(respostaBanco["C2_CURSO"].ToString())
+					}
+				};
 
-				respostaBanco.Close();
-				banco.fechaConexao();
+				courseBindingSource.DataSource = courses;
+				cmbCursosDisciplina.DataSource = courseBindingSource;
+				courseBindingSource.ResetBindings(true);
+				cmbCursosDisciplina.DisplayMember = nameof(Course.Name);
+				cmbCursosDisciplina.ValueMember = nameof(Course.RecordID);
 				cmbCursosDisciplina.SelectedIndex = 0;
 			}
 			else
@@ -820,9 +802,11 @@ namespace HelpTeacher.Forms
 				chkDisciplinaDeletada.Checked = false;
 				textNomeDisciplina.Clear();
 				cmbCursosDisciplina.Items.Clear();
-				respostaBanco.Close();
-				banco.fechaConexao();
+
 			}
+
+			respostaBanco.Close();
+			banco.fechaConexao();
 		}
 
 		private void chamaPesquisaDisciplinas()
@@ -880,36 +864,17 @@ namespace HelpTeacher.Forms
 			pnlDisciplina.Enabled = ativa;
 		}
 
-		private bool salvaDiscModificada()
+		private void salvaDiscModificada()
 		{
-			string[] curso = cmbCursosDisciplina.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+			var courses = new List<Course>() { (Course) cmbCursosDisciplina.SelectedItem };
+			var discipline = new Discipline(courses, textNomeDisciplina.Text)
+			{
+				IsRecordActive = !chkDisciplinaDeletada.Checked,
+				RecordID = Convert.ToInt32(txtCodigoDisciplina.Text),
 
-			if (!banco.executeComando("UPDATE htc2 SET C2_NOME = '" +
-							textNomeDisciplina.Text + "', C2_CURSO =  " +
-							curso[0] +
-						" WHERE C2_COD = " + txtCodigoDisciplina.Text))
-			{
-				return false;
-			}
+			};
 
-			/* Deletado */
-			if (chkDisciplinaDeletada.Checked)
-			{
-				if (!banco.executeComando("UPDATE htc2 SET D_E_L_E_T = '*' " +
-						"WHERE C2_COD = " + txtCodigoDisciplina.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htc2 SET D_E_L_E_T = NULL " +
-						"WHERE C2_COD = " + txtCodigoDisciplina.Text))
-				{
-					return false;
-				}
-			}
-			return true;
+			new DisciplineRepository().Update(discipline);
 		}
 
 		// PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  PAGE MATÉRIAS  //
@@ -967,24 +932,23 @@ namespace HelpTeacher.Forms
 				respostaBanco.Read();
 
 				btnEditarMateria.Enabled = true;
-				cmbDisciplinaMateria.Items.Clear();
-
 				txtCodigoMateria.Text = respostaBanco["C3_COD"].ToString();
 				txtNomeMateria.Text = respostaBanco["C3_NOME"].ToString();
-				cmbDisciplinaMateria.Items.Add("(" + respostaBanco["C3_DISCIPL"].ToString() +
-					") " + respostaBanco["C2_NOME"].ToString());
+				chkMateriaDeletada.Checked = !respostaBanco["D_E_L_E_T"].ToString().Equals("*");
 
-				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				var disciplines = new List<Discipline>()
 				{
-					chkMateriaDeletada.Checked = true;
-				}
-				else
-				{
-					chkMateriaDeletada.Checked = false;
-				}
+					new Discipline(null, respostaBanco["C2_NOME"].ToString())
+					{
+						RecordID = Convert.ToInt32(respostaBanco["C3_DISCIPL"].ToString())
+					}
+				};
 
-				respostaBanco.Close();
-				banco.fechaConexao();
+				disciplineBindingSource.DataSource = disciplines;
+				cmbDisciplinaMateria.DataSource = disciplineBindingSource;
+				disciplineBindingSource.ResetBindings(true);
+				cmbDisciplinaMateria.DisplayMember = nameof(Discipline.Name);
+				cmbDisciplinaMateria.ValueMember = nameof(Discipline.RecordID);
 				cmbDisciplinaMateria.SelectedIndex = 0;
 			}
 			else
@@ -995,9 +959,10 @@ namespace HelpTeacher.Forms
 				txtNomeMateria.Clear();
 				cmbDisciplinaMateria.Items.Clear();
 				txtCursoMateria.Clear();
-				respostaBanco.Close();
-				banco.fechaConexao();
 			}
+
+			respostaBanco.Close();
+			banco.fechaConexao();
 		}
 
 		private void chamaPesquisaMaterias()
@@ -1090,20 +1055,12 @@ namespace HelpTeacher.Forms
 
 		private void recuperaNomeCurso()
 		{
-			string[] codMateria = cmbDisciplinaMateria.Text.Split(new char[]
-					{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-
-			if (banco.executeComando("SELECT C1_NOME " +
-						"FROM htc2 " +
-							"INNER JOIN htc1 " +
-								"ON C2_CURSO = C1_COD " +
-						"WHERE C2_COD = " + codMateria[0], ref respostaBanco))
+			if (cmbDisciplinaMateria.SelectedIndex != -1)
 			{
-				respostaBanco.Read();
-				txtCursoMateria.Text = respostaBanco.GetString(0);
+				Discipline discipline = new DisciplineRepository()
+					.Get(((Discipline) cmbDisciplinaMateria.SelectedItem).RecordID);
 
-				respostaBanco.Close();
-				banco.fechaConexao();
+				txtCursoMateria.Text = discipline.Courses.FirstOrDefault()?.Name;
 			}
 		}
 
@@ -1265,25 +1222,15 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboDisicplina()
 		{
-			string[] codigoCurso = cmbCursosAvaliacoes.Text.Split(new char[]
-				{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+			IQueryable<Discipline> disciplines = new DisciplineRepository()
+				.GetWhereCourse((Course) cmbCursosAvaliacoes.SelectedItem);
 
-			cmbDisciplinasAvaliacoes.Items.Clear();
-			if (banco.executeComando("SELECT C2_COD, C2_NOME " +
-					"FROM htc2 " +
-					"WHERE C2_CURSO = " + codigoCurso[0], ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						cmbDisciplinasAvaliacoes.Items.Add("(" + respostaBanco.
-								GetString(0) + ")" + respostaBanco.GetString(1));
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			disciplineBindingSource.DataSource = disciplines;
+			cmbDisciplinasAvaliacoes.DataSource = disciplineBindingSource;
+			disciplineBindingSource.ResetBindings(true);
+			cmbDisciplinasAvaliacoes.DisplayMember = nameof(Discipline.Name);
+			cmbDisciplinasAvaliacoes.ValueMember = nameof(Discipline.RecordID);
+			cmbDisciplinasAvaliacoes.SelectedIndex = 0;
 		}
 
 		private void atualizaComboMaterias()
