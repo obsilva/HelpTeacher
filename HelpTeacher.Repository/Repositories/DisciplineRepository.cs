@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿/* Authors: Otávio Bueno Silva <obsilva94@gmail.com>
+ * Since: 2018-09-19
+ */
+
+using System.Collections.Generic;
 using System.Linq;
 
 using HelpTeacher.Domain.Entities;

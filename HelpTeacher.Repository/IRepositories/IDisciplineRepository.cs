@@ -22,30 +22,43 @@ namespace HelpTeacher.Repository.IRepositories
 		/// <returns>Todos os registros ativos, com exceção do registro com o ID informado.</returns>
 		IQueryable<Discipline> GetWhereDifferentId(int id);
 
-		/// <summary>Recupera todos os registros que possuem relação o objeto informado.</summary>
-		/// <param name="obj">Objeto que deve ser buscado.</param>
-		/// <returns>Todos os registros com relacionados ao objeto especificado.</returns>
+		/// <summary>
+		/// Recupera todos os registros que correspondem à informação especificada.
+		/// 
+		/// <para>O objeto informado é considerado uma chave estrangeira e seu ID é utilizado na busca.</para>
+		/// </summary>
+		/// <param name="obj">Objeto da chave estrangeira.</param>
+		/// <returns>Todos os registros selecionados com o filtro.</returns>
 		IQueryable<Discipline> GetWhereCourse(Course obj);
 
-		/// <summary>Recupera todos os registros que possuem relação o objeto de ID informado.</summary>
-		/// <param name="obj">ID do que deve ser buscado.</param>
-		/// <returns>Todos os registros com relacionados ao ID especificado.</returns>
+		/// <summary>
+		/// Recupera todos os registros que correspondem à informação especificada.
+		///
+		/// <para>O ID informado é considerado uma chave estrangeira e é utilizado na busca.</para>
+		/// </summary>
+		/// <param name="id">ID da chave estrangeira.</param>
+		/// <returns>Todos os registros selecionados com o filtro.</returns>
 		IQueryable<Discipline> GetWhereCourse(int id);
 
 		/// <summary>
-		/// Recupera todos os registros ativos ou não e que possuem relação o <see cref="Course"/> especificado.
+		/// Recupera todos os registros que correspondem às informações especificadas, considerando uma
+		/// cláusula AND - todos os requisitos devem ser satisfeitos para que o registro seja selecionado.
+		///
+		/// <para>O objeto informado é considerado uma chave estrangeira e seu ID é utilizado na busca.</para>
 		/// </summary>
-		/// <param name="obj">Objeto que deve ser buscado.</param>
+		/// <param name="obj">Objeto da chave estrangeira.</param>
 		/// <param name="isRecordActive">Registro deve estar ativo?</param>
-		/// <returns>Todos os registros com relacionados ao objeto especificado.</returns>
+		/// <returns>Todos os registros selecionados com o filtro.</returns>
 		IQueryable<Discipline> GetWhereCourse(Course obj, bool isRecordActive);
 
 		/// <summary>
-		/// Recupera todos os registros ativos ou não e que possuem o <see cref="Course"/> com o ID especificado.
+		/// Recupera todos os registros que correspondem à informação especificada.
+		///
+		/// <para>O ID informado é considerado uma chave estrangeira e é utilizado na busca.</para>
 		/// </summary>
-		/// <param name="obj">Objeto que deve ser buscado.</param>
-		/// /// <param name="isRecordActive">Registro deve estar ativo?</param>
-		/// <returns>Todos os registros com relacionados ao ID especificado.</returns>
+		/// <param name="id">ID da chave estrangeira.</param>
+		/// <param name="isRecordActive">Registro deve estar ativo?</param>
+		/// <returns>Todos os registros selecionados com o filtro.</returns>
 		IQueryable<Discipline> GetWhereCourse(int id, bool isRecordActive);
 		#endregion
 	}
