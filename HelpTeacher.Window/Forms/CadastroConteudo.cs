@@ -161,10 +161,8 @@ namespace HelpTeacher.Forms
 				{
 					collection.Add(discipline.Name);
 				}
-
-				respostaBanco.Close();
-				banco.fechaConexao();
 			}
+
 			txtNomeDisciplina.AutoCompleteCustomSource = collection;
 		}
 
@@ -188,12 +186,10 @@ namespace HelpTeacher.Forms
 			ICollection<Discipline> disciplines = new List<Discipline>() { (Discipline) cmbDisciplina.SelectedItem };
 			var subject = new Subject(disciplines, txtNomeMateria.Text);
 
-			if (cadastraMateria(subject))
-			{
-				limparForm();
-				atualizaCodigoMateria();
-				Mensagem.cadastradoEfetuado();
-			}
+			cadastraMateria(subject);
+			limparForm();
+			atualizaCodigoMateria();
+			Mensagem.cadastradoEfetuado();
 		}
 
 		private void btnCancelarMateria_Click(object sender, EventArgs e) => Close();
@@ -216,15 +212,12 @@ namespace HelpTeacher.Forms
 			txtCurso.Text = discipline?.Courses?.FirstOrDefault()?.Name;
 		}
 
-		private bool cadastraMateria(Subject value)
+		private void cadastraMateria(Subject value)
 		{
 			if (podeCadastrar())
 			{
-				string query = $"INSERT INTO htc3 VALUES(NULL, '{value.Name}', " +
-							   $"{ value.Disciplines.FirstOrDefault()?.RecordID}, NULL)";
-				return banco.executeComando(query);
+				new SubjectRepository().Add(value);
 			}
-			return false;
 		}
 
 		private void atualizaCodigoMateria()
@@ -241,19 +234,18 @@ namespace HelpTeacher.Forms
 		private void autoCompleteMaterias()
 		{
 			collection.Clear();
+
 			if (cmbDisciplina.SelectedIndex != -1)
 			{
-				if (banco.executeComando($"SELECT C3_NOME FROM htc3 WHERE C3_DISCIPL = " +
-					((Discipline) cmbDisciplina.SelectedItem).RecordID, ref respostaBanco))
+				IQueryable<Subject> subjects = new SubjectRepository()
+					.GetWhereDiscipline((Discipline) cmbDisciplina.SelectedItem);
+
+				foreach (Subject subject in subjects)
 				{
-					while (respostaBanco.Read())
-					{
-						collection.Add(respostaBanco.GetString(0));
-					}
-					respostaBanco.Close();
-					banco.fechaConexao();
+					collection.Add(subject.Name);
 				}
 			}
+
 			txtNomeMateria.AutoCompleteCustomSource = collection;
 		}
 

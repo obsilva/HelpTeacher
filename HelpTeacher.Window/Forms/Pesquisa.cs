@@ -907,16 +907,10 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
-			if (salvaMateriaModificada())
-			{
-				ativaDesativaEdicaoMateria(false);
-				chamaPesquisaMaterias();
-				Mensagem.dadosAlterados();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			salvaMateriaModificada();
+			ativaDesativaEdicaoMateria(false);
+			chamaPesquisaMaterias();
+			Mensagem.dadosAlterados();
 		}
 
 		private void btnCancelarMateria_Click(object sender, EventArgs e)
@@ -1020,37 +1014,16 @@ namespace HelpTeacher.Forms
 			pnlMateria.Enabled = ativa;
 		}
 
-		private bool salvaMateriaModificada()
+		private void salvaMateriaModificada()
 		{
-			string[] disciplina = cmbDisciplinaMateria.Text.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-
-			if (!banco.executeComando("UPDATE htc3 SET C3_NOME = '" +
-							txtNomeMateria.Text + "', C3_DISCIPL =  " +
-							disciplina[0] +
-						" WHERE C3_COD = " + txtCodigoMateria.Text))
+			var disciplines = new List<Discipline>() { (Discipline) cmbDisciplinaMateria.SelectedItem };
+			var subject = new Subject(disciplines, txtNomeMateria.Text)
 			{
-				return false;
-			}
+				IsRecordActive = !chkMateriaDeletada.Checked,
+				RecordID = Convert.ToInt32(txtCodigoMateria.Text)
+			};
 
-			/* Deletada */
-			if (chkMateriaDeletada.Checked)
-			{
-				if (!banco.executeComando("UPDATE htc3 SET D_E_L_E_T = '*' " +
-						"WHERE C3_COD = " + txtCodigoMateria.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htc3 SET D_E_L_E_T = NULL " +
-						"WHERE C3_COD = " + txtCodigoMateria.Text))
-				{
-					return false;
-				}
-			}
-
-			return true;
+			new SubjectRepository().Update(subject);
 		}
 
 		private void recuperaNomeCurso()
@@ -1235,26 +1208,15 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboMaterias()
 		{
-			string[] codigoDisciplina = cmbDisciplinasAvaliacoes.
-					Text.Split(new char[] { '(', ')' },
-					StringSplitOptions.RemoveEmptyEntries);
+			IQueryable<Subject> subjects = new SubjectRepository()
+				.GetWhereDiscipline((Discipline) cmbDisciplinasAvaliacoes.SelectedItem);
 
-			cmbMateriasAvaliacoes.Items.Clear();
-			if (banco.executeComando("SELECT C3_COD, C3_NOME " +
-					"FROM htc3 " +
-					"WHERE C3_DISCIPL = " + codigoDisciplina[0], ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						cmbMateriasAvaliacoes.Items.Add("(" + respostaBanco.
-								GetString(0) + ")" + respostaBanco.GetString(1));
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
+			subjectBindingSource.DataSource = subjects;
+			cmbMateriasAvaliacoes.DataSource = subjectBindingSource;
+			subjectBindingSource.ResetBindings(true);
+			cmbMateriasAvaliacoes.DisplayMember = nameof(Discipline.Name);
+			cmbMateriasAvaliacoes.ValueMember = nameof(Discipline.RecordID);
+			cmbMateriasAvaliacoes.SelectedIndex = 0;
 		}
 
 		private void atualizaCamposAvaliacao()

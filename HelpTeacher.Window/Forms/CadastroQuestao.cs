@@ -25,9 +25,6 @@ namespace HelpTeacher.Forms
 
 			atualizaCodigoQuestao();
 			atualizaCMB();
-			cmbCursos.Items.Clear();
-			chkDisciplinas.Items.Clear();
-			chkMaterias.Items.Clear();
 		}
 
 		private void radObjetiva_CheckedChanged(object sender, EventArgs e)
@@ -152,8 +149,8 @@ namespace HelpTeacher.Forms
 				disciplineBindingSource.DataSource = disciplines;
 				chkDisciplinas.DataSource = disciplineBindingSource;
 				disciplineBindingSource.ResetBindings(true);
-				chkDisciplinas.DisplayMember = nameof(Course.Name);
-				chkDisciplinas.ValueMember = nameof(Course.RecordID);
+				chkDisciplinas.DisplayMember = nameof(Discipline.Name);
+				chkDisciplinas.ValueMember = nameof(Discipline.RecordID);
 				chkDisciplinas.SelectedIndex = 0;
 			}
 			else
@@ -170,36 +167,20 @@ namespace HelpTeacher.Forms
 		 */
 		private void atualizaMaterias()
 		{
-			var subjects = new List<Subject>();
-			subjectBindingSource.DataSource = subjects;
+			var sourceList = new List<Subject>();
+			subjectBindingSource.DataSource = sourceList;
 
-			subjectBindingSource.ResetBindings(true);
 			foreach (Discipline discipline in chkDisciplinas.CheckedItems)
 			{
-				if (banco.executeComando("SELECT C3_COD, C3_NOME FROM htc3 WHERE C3_DISCIPL = " +
-								$"{discipline.RecordID} AND D_E_L_E_T IS NULL", ref respostaBanco))
-				{
-					if (respostaBanco.HasRows)
-					{
-						while (respostaBanco.Read())
-						{
-							ICollection<Discipline> disciplines = new List<Discipline>() { discipline };
-							subjects.Add(new Subject(disciplines, respostaBanco.GetString(1))
-							{
-								RecordID = respostaBanco.GetInt32(0),
-								IsRecordActive = true
-							});
-						}
+				IQueryable<Subject> subjects = new SubjectRepository().GetWhereDiscipline(discipline, true);
 
-						chkMaterias.DataSource = subjectBindingSource;
-						subjectBindingSource.ResetBindings(true);
-						chkMaterias.DisplayMember = nameof(Discipline.Name);
-						chkMaterias.ValueMember = nameof(Discipline.RecordID);
-					}
-				}
-				respostaBanco.Close();
-				banco.fechaConexao();
+				sourceList.AddRange(subjects);
 			}
+
+			chkMaterias.DataSource = subjectBindingSource;
+			subjectBindingSource.ResetBindings(true);
+			chkMaterias.DisplayMember = nameof(Subject.Name);
+			chkMaterias.ValueMember = nameof(Subject.RecordID);
 		}
 
 		/* cadastrarQuestao

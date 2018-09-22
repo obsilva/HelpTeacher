@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -133,34 +132,14 @@ namespace HelpTeacher.Forms
 
 		private void preencheCheckMaterias()
 		{
-			var subjects = new List<Subject>();
+			IQueryable<Subject> subjects = new SubjectRepository().
+				GetWhereDiscipline((Discipline) cmbDisciplina.SelectedItem, true);
+
 			subjectBindingSource.DataSource = subjects;
-
+			chkMaterias.DataSource = subjectBindingSource;
 			subjectBindingSource.ResetBindings(true);
-			if (banco.executeComando("SELECT C3_COD, C3_NOME FROM htc3 INNER JOIN htb1 ON C3_COD = B1_MATERIA " +
-									 $"WHERE C3_DISCIPL = {((Discipline) cmbDisciplina.SelectedItem).RecordID} " +
-									 "AND htc3.D_E_L_E_T IS NULL GROUP BY C3_COD", ref respostaBanco))
-			{
-				if (respostaBanco.HasRows)
-				{
-					while (respostaBanco.Read())
-					{
-						ICollection<Discipline> disciplines = new List<Discipline>() { (Discipline) cmbDisciplina.SelectedItem };
-						subjects.Add(new Subject(disciplines, respostaBanco.GetString(1))
-						{
-							RecordID = respostaBanco.GetInt32(0),
-							IsRecordActive = true
-						});
-					}
-
-					chkMaterias.DataSource = subjectBindingSource;
-					subjectBindingSource.ResetBindings(true);
-					chkMaterias.DisplayMember = nameof(Discipline.Name);
-					chkMaterias.ValueMember = nameof(Discipline.RecordID);
-				}
-			}
-			respostaBanco.Close();
-			banco.fechaConexao();
+			chkMaterias.DisplayMember = nameof(Discipline.Name);
+			chkMaterias.ValueMember = nameof(Discipline.RecordID);
 		}
 
 		private void recuperaCodigos()
@@ -327,8 +306,7 @@ namespace HelpTeacher.Forms
 
 			for (int count = 0; count < chkMaterias.CheckedItems.Count; count++)
 			{
-				string[] materia = chkMaterias.CheckedItems[count].ToString().Split(
-							new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+				var subject = (Subject) chkMaterias.CheckedItems[count];
 				lblMateria[count] = new Label();
 				numQuantidadeQuestoes[count] = new NumericUpDown();
 				lblDe[count] = new Label();
@@ -340,7 +318,7 @@ namespace HelpTeacher.Forms
 				lblMateria[count].AutoSize = false;
 				lblMateria[count].Location = new System.Drawing.Point(xInicial, (y + 3));
 				lblMateria[count].Size = new System.Drawing.Size(409, 14);
-				lblMateria[count].Text = "Quantidade de questões  de" + materia[1];
+				lblMateria[count].Text = $"Quantidade de questões de {subject.Name}";
 				// 
 				// NumericUpDown
 				//
