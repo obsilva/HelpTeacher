@@ -10,9 +10,6 @@ namespace HelpTeacher.Domain.Entities
 	public class Question : IEntityBase
 	{
 		#region Properties
-		/// <summary><see cref="Subject"/>'s onde a questão pode ser usada.</summary>
-		public virtual ICollection<Subject> Subjects { get; set; }
-
 		/// <summary>Caminho completo para o primeiro anexo.</summary>
 		public string FirstAttachment { get; set; }
 
@@ -39,6 +36,9 @@ namespace HelpTeacher.Domain.Entities
 
 		/// <summary>Enunciado da questão.</summary>
 		public string Statement { get; set; }
+
+		/// <summary><see cref="Subject"/>'s onde a questão pode ser usada.</summary>
+		public virtual ICollection<Subject> Subjects { get; set; }
 
 		/// <summary>Define se a questão já foi usada alguma vez.</summary>
 		public bool WasUsed { get; set; }

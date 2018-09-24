@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -20,6 +21,7 @@ namespace HelpTeacher.Forms
 		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();
+		private BindingSource questionBindingSource = new BindingSource();
 		private BindingSource subjectBindingSource = new BindingSource();
 		private string codigoAvaliacao;
 		private Label[] lblMateria;
@@ -144,6 +146,7 @@ namespace HelpTeacher.Forms
 
 		private void recuperaCodigos()
 		{
+			IQueryable<Question> questions = new List<Question>().AsQueryable();
 			lstCodigos.Items.Clear();
 			countGlob = 0;
 
@@ -154,23 +157,15 @@ namespace HelpTeacher.Forms
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
-												ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true, true, false);
+						questions = questions.Concat(new QuestionRepository().GetWhereSubject(subject, true, false, false));
 					}
 				}
 				else
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"D_E_L_E_T IS NULL ORDER BY B1_COD", ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true);
 					}
 				}
 			}
@@ -181,12 +176,7 @@ namespace HelpTeacher.Forms
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL " +
-												 $"ORDER BY B1_COD", ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true, true, true);
 					}
 				}
 
@@ -194,12 +184,7 @@ namespace HelpTeacher.Forms
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
-												ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true, true);
 					}
 				}
 			}
@@ -210,56 +195,37 @@ namespace HelpTeacher.Forms
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL " +
-												 $"ORDER BY B1_COD", ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true, false, true);
 					}
 				}
 				else
 				{
 					foreach (Subject subject in chkMaterias.CheckedItems)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL ORDER BY B1_COD",
-												ref respostaBanco))
-						{
-							atualizaValorCampos();
-						}
+						questions = new QuestionRepository().GetWhereSubject(subject, true, false);
 					}
 				}
 			}
+
+			atualizaValorCampos(questions);
 		}
 
-		private void atualizaValorCampos()
+		private void atualizaValorCampos(IQueryable<Question> questions)
 		{
-			int numeroDeCodigos = 0;
+			int numeroDeCodigos = questions.Count();
 
-			if (respostaBanco.HasRows)
-			{
-				while (respostaBanco.Read())
-				{
-					lstCodigos.Items.Add(respostaBanco.GetString(0));
-					numeroDeCodigos++;
-				}
-				numQuantidadeQuestoes[countGlob].Maximum =
-							numeroDeCodigos;
-				numQuantidadeQuestoes[countGlob].Value = 1;
-				txtQuantidadeMaxima[countGlob].Text =
-							numeroDeCodigos.ToString();
-			}
-			else
-			{
-				numQuantidadeQuestoes[countGlob].Maximum = 0;
-				txtQuantidadeMaxima[countGlob].Text = "0";
-			}
+			questionBindingSource.DataSource = questions;
+			lstCodigos.DataSource = questionBindingSource;
+			questionBindingSource.ResetBindings(true);
+			lstCodigos.DisplayMember = nameof(Question.RecordID);
+			lstCodigos.ValueMember = nameof(Question.RecordID);
+
+			numQuantidadeQuestoes[countGlob].Maximum = numeroDeCodigos;
+			numQuantidadeQuestoes[countGlob].Value = 1;
+			txtQuantidadeMaxima[countGlob].Text = numeroDeCodigos.ToString();
+
 			countGlob++;
 			ordenarListBox(lstCodigos);
-
-			respostaBanco.Close();
-			banco.fechaConexao();
 		}
 
 		private void insereComponentes()
@@ -628,16 +594,14 @@ namespace HelpTeacher.Forms
 			return false;
 		}
 
-		private bool marcaQuestoesComoUsadas()
+		private void marcaQuestoesComoUsadas()
 		{
-			foreach (string questao in lstCodigosAleatorios.Items)
+			foreach (Question item in lstCodigosAleatorios.SelectedItems)
 			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_USADA = '*' WHERE B1_COD = " + questao))
-				{
-					return false;
-				}
+				item.WasUsed = true;
+				new QuestionRepository().Update(item);
 			}
-			return true;
+
 		}
 
 		private void geraAvaliacao()
@@ -650,15 +614,9 @@ namespace HelpTeacher.Forms
 				{
 					if (insereHistorico())
 					{
-						if (marcaQuestoesComoUsadas())
-						{
-							recuperaCodigos();
-							atualizaCodigoaAvaliacao();
-						}
-						else
-						{
-							Mensagem.erroAlteracao();
-						}
+						marcaQuestoesComoUsadas();
+						recuperaCodigos();
+						atualizaCodigoaAvaliacao();
 					}
 					else
 					{

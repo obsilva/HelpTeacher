@@ -189,16 +189,10 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvarQuestoes_Click(object sender, EventArgs e)
 		{
-			if (salvaQuestaoModificada())
-			{
-				ativaDesativaEdicaoQuestao(false);
-				chamaPesquisaQuestoes();
-				Mensagem.dadosAlterados();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			salvaQuestaoModificada();
+			ativaDesativaEdicaoQuestao(false);
+			chamaPesquisaQuestoes();
+			Mensagem.dadosAlterados();
 		}
 
 		private void btnCancelarQuestoes_Click(object sender, EventArgs e)
@@ -411,123 +405,19 @@ namespace HelpTeacher.Forms
 			pnlQuestao.Enabled = ativa;
 		}
 
-		private bool salvaQuestaoModificada()
+		private void salvaQuestaoModificada()
 		{
-			/* Dissertativa ou Objetiva */
-			if (radDissertativa.Checked)
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = NULL " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_OBJETIV = '*' " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
+			Question question = new QuestionRepository().Get(Convert.ToInt32(txtCodigoQuestao.Text));
 
-			/* Questão */
-			if (!banco.executeComando("UPDATE htb1 SET B1_QUEST = '" +
-						txtQuestao.Text + "' WHERE B1_COD = " +
-						txtCodigoQuestao.Text))
-			{
-				return false;
-			}
+			question.FirstAttachment = txtArquivo1.Text;
+			question.IsDefault = chkQuestaoPadrao.Checked;
+			question.IsObjective = !radDissertativa.Checked;
+			question.IsRecordActive = !chkQuestaoDeletada.Checked;
+			question.SecondAttachment = txtArquivo2.Text;
+			question.Statement = txtQuestao.Text;
+			question.WasUsed = chkQuestaoUsada.Checked;
 
-			/* Arquivos */
-			if (!(txtArquivo1.Text.Equals("")) || !(txtArquivo2.Text.Equals("")))
-			{
-				/* Apenas 1 arquivo */
-				if ((txtArquivo1.Text.Equals("")) || (txtArquivo2.Text.Equals("")))
-				{
-					if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-									txtCodigoQuestao.Text + "_1' " +
-								"WHERE B1_COD = " + txtCodigoQuestao.Text))
-					{
-						apagaArquivos();
-						copiaArquivo();
-					}
-				}
-				/* Dois arquivos */
-				else
-				{
-					if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = '" +
-									txtCodigoQuestao.Text + "_1, " +
-									txtCodigoQuestao.Text + "_2' " +
-								"WHERE B1_COD = " + txtCodigoQuestao.Text))
-					{
-						copiaArquivo();
-					}
-				}
-			}
-			else
-			{
-				if (banco.executeComando("UPDATE htb1 SET B1_ARQUIVO = NULL " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					apagaArquivos();
-				}
-			}
-
-			/* Usada */
-			if (chkQuestaoUsada.Checked)
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_USADA = '*' " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_USADA = NULL " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-
-			/* Padrão */
-			if (chkQuestaoPadrao.Checked)
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_PADRAO = '*' " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htb1 SET B1_PADRAO = NULL " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-
-			/* Deletada */
-			if (chkQuestaoDeletada.Checked)
-			{
-				if (!banco.executeComando("UPDATE htb1 SET D_E_L_E_T = '*' " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (!banco.executeComando("UPDATE htb1 SET D_E_L_E_T = NULL " +
-							"WHERE B1_COD = " + txtCodigoQuestao.Text))
-				{
-					return false;
-				}
-			}
-			return true;
+			new QuestionRepository().Update(question);
 		}
 
 		private void copiaArquivo()
@@ -1271,21 +1161,10 @@ namespace HelpTeacher.Forms
 					/* Recupera as questões da avaliação */
 					foreach (string questao in codigosQuestoes)
 					{
-						if (banco.executeComando("SELECT B1_QUEST " +
-							"FROM htb1 " +
-							"WHERE B1_COD = " + questao, ref respostaBanco))
-						{
-							if (respostaBanco.HasRows)
-							{
-								respostaBanco.Read();
-								txtAvaliacao.Text += (++count) + ") " +
-										respostaBanco.GetString(0) +
-										Environment.NewLine +
-										Environment.NewLine;
-							}
-							respostaBanco.Close();
-							banco.fechaConexao();
-						}
+						Question question = new QuestionRepository().Get(Convert.ToInt32(questao));
+
+						txtAvaliacao.Text += $"{(++count)}) {question.Statement}{Environment.NewLine}" +
+											 $"{Environment.NewLine}";
 					}
 				}
 				else

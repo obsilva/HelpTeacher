@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 using HelpTeacher.Classes;
@@ -84,23 +85,10 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvar_Click(object sender, EventArgs e)
 		{
-			if (cadastrarQuestao())
-			{
-				limpaForm();
-				Mensagem.cadastradoEfetuado();
-			}
-			else
-			{
-				if (chkMaterias.CheckedItems.Count == 0)
-				{
-					Mensagem.selecionarMateria();
-				}
-				else
-				{
-					Mensagem.erroCadastro();
-				}
-
-			}
+			cadastrarQuestao();
+			limpaForm();
+			atualizaCodigoQuestao();
+			Mensagem.cadastradoEfetuado();
 		}
 
 		private void btnCancelar_Click(object sender, EventArgs e) => Close();
@@ -188,109 +176,38 @@ namespace HelpTeacher.Forms
 		* Cadastra a questão no banco de dados, levando em conta
 		* as opções que o usuário tem a disposição
 		*/
-		private bool cadastrarQuestao()
+		private void cadastrarQuestao()
 		{
-			//Verifica se existe alguma matéria selecionada
-			if (chkMaterias.CheckedItems.Count != 0)
+			if (podeCadastrar())
 			{
-				var subjects = new List<Subject>();
 				foreach (Subject subject in chkMaterias.CheckedItems)
 				{
-					subjects.Add(subject);
-
-					var question = new Question(subjects, txtQuestao.Text) { RecordID = 1 };
-
-					//Dissertativa
-					if (radDissertativa.Checked)
+					var subjects = new List<Subject>() { subject };
+					var question = new Question(subjects, txtQuestao.Text)
 					{
-						if (!banco.executeComando("INSERT INTO htb1 (B1_QUEST, B1_MATERIA) VALUES ('" +
-												  $"{question.Statement}', {subject.RecordID})"))
-						{
-							return false;
-						}
-					}
-					//Objetiva
-					else
-					{
-						//Sem alternativas em branco
-						if ((!txtAlternativaA.Text.Equals("")) && (!txtAlternativaB.Text.Equals("")) &&
-								(!txtAlternativaC.Text.Equals("")) && (!txtAlternativaD.Text.Equals("")))
-						{
-							if (!banco.executeComando($"INSERT INTO htb1 VALUES (NULL, '{question.Statement}" +
-										Environment.NewLine +
-										"a) " + txtAlternativaA.Text +
-										Environment.NewLine +
-										"b) " + txtAlternativaB.Text +
-										Environment.NewLine +
-										"c) " + txtAlternativaC.Text +
-										Environment.NewLine +
-										"d) " + txtAlternativaD.Text +
-										$"', '*', NULL, NULL, { subject.RecordID}, NULL, NULL)"))
-							{
-								return false;
-							}
-						}
-						else
-						{
-							Mensagem.alternativasEmBranco();
-							if (txtAlternativaA.Text.Equals(""))
-							{
-								txtAlternativaA.Focus();
-							}
-							else if (txtAlternativaB.Text.Equals(""))
-							{
-								txtAlternativaB.Focus();
-							}
-							else if (txtAlternativaC.Text.Equals(""))
-							{
-								txtAlternativaC.Focus();
-							}
-							else
-							{
-								txtAlternativaD.Focus();
-							}
+						FirstAttachment = txtArquivo1.Text,
+						IsObjective = !radDissertativa.Checked,
+						SecondAttachment = txtArquivo2.Text
+					};
 
-							//return false;
-						}
+					if (!String.IsNullOrWhiteSpace(txtAlternativaA.Text))
+					{
+						question.Statement += new StringBuilder(txtQuestao.Text)
+							.Append(Environment.NewLine)
+							.Append("a) ").Append(txtAlternativaA.Text)
+							.Append(Environment.NewLine)
+							.Append("b) ").Append(txtAlternativaB.Text)
+							.Append(Environment.NewLine)
+							.Append("c) ").Append(txtAlternativaC.Text)
+							.Append(Environment.NewLine)
+							.Append("d) ").Append(txtAlternativaD.Text)
+							.Append(Environment.NewLine)
+							.Append("e) ").Append(txtAlternativaE.Text);
 					}
 
-					if (!txtAlternativaE.Text.Equals(""))
-					{
-						if (!banco.executeComando("UPDATE htb1 SET B1_QUEST = CONCAT(B1_QUEST, '" +
-										Environment.NewLine + "e) " + txtAlternativaE.Text +
-									$"') WHERE B1_COD = {question.RecordID}"))
-						{
-							return false;
-						}
-					}
-
-					//Arquivos
-					if (!(txtArquivo1.Text.Equals("")) || !(txtArquivo2.Text.Equals("")))
-					{
-						//Apenas 1 arquivo
-						if ((txtArquivo1.Text.Equals("")) || (txtArquivo2.Text.Equals("")))
-						{
-							if (banco.executeComando($"UPDATE htb1 SET B1_ARQUIVO = '{question.RecordID}_1' " +
-										$"WHERE B1_COD = {question.RecordID}"))
-							{
-								copiaArquivo();
-							}
-						}
-						//Dois arquivos
-						else
-						{
-							if (banco.executeComando($"UPDATE htb1 SET B1_ARQUIVO = '{question.RecordID}_1' " +
-										$"{question.RecordID}_2' WHERE B1_COD = { question.RecordID}"))
-							{
-								copiaArquivo();
-							}
-						}
-					}
-					atualizaCodigoQuestao();
+					new QuestionRepository().Add(question);
 				}
-				return true;
 			}
-			return false;
 		}
 
 		/* copiaArquivo
@@ -326,6 +243,53 @@ namespace HelpTeacher.Forms
 					File.Copy(txtArquivo2.Text, segundoArquivo, true);
 				}
 			}
+		}
+
+		private bool podeCadastrar()
+		{
+			if (chkMaterias.CheckedItems.Count == 0)
+			{
+				Mensagem.selecionarMateria();
+				chkMaterias.Focus();
+				return false;
+			}
+
+			if (String.IsNullOrWhiteSpace(txtAlternativaA.Text))
+			{
+				Mensagem.alternativasEmBranco();
+				txtAlternativaA.Focus();
+				return false;
+			}
+
+			if (String.IsNullOrWhiteSpace(txtAlternativaB.Text))
+			{
+				Mensagem.alternativasEmBranco();
+				txtAlternativaB.Focus();
+				return false;
+			}
+
+			if (String.IsNullOrWhiteSpace(txtAlternativaC.Text))
+			{
+				Mensagem.alternativasEmBranco();
+				txtAlternativaC.Focus();
+				return false;
+			}
+
+			if (String.IsNullOrWhiteSpace(txtAlternativaD.Text))
+			{
+				Mensagem.alternativasEmBranco();
+				txtAlternativaD.Focus();
+				return false;
+			}
+
+			if (String.IsNullOrWhiteSpace(txtAlternativaE.Text))
+			{
+				Mensagem.alternativasEmBranco();
+				txtAlternativaE.Focus();
+				return false;
+			}
+
+			return true;
 		}
 
 		/* limpaForm
