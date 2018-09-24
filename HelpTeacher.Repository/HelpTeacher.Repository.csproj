@@ -53,6 +53,7 @@
     <Compile Include="Repositories\DisciplineRepository.cs" />
     <Compile Include="Repositories\QuestionRepository.cs" />
     <Compile Include="Repositories\SubjectRepository.cs" />
+    <Compile Include="Repositories\UserRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">

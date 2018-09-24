@@ -38,7 +38,7 @@ namespace HelpTeacher.Domain.Entities
 		#region Constructors
 		static User() { }
 
-		private User() { }
+		public User() { }
 		#endregion
 	}
 }
