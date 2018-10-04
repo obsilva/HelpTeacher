@@ -44,7 +44,7 @@ namespace HelpTeacher.Forms
 			preencheComboDisciplinas();
 			insereComponentes();
 
-			lstCodigos.Items.Clear();
+			questionBindingSource.Clear();
 			lstCodigosAleatorios.Items.Clear();
 		}
 
@@ -53,7 +53,7 @@ namespace HelpTeacher.Forms
 			preencheCheckMaterias();
 			insereComponentes();
 
-			lstCodigos.Items.Clear();
+			questionBindingSource.Clear();
 			lstCodigosAleatorios.Items.Clear();
 		}
 
@@ -66,8 +66,6 @@ namespace HelpTeacher.Forms
 		private void questoesMaterias_ValueChanged(object sender, EventArgs e)
 		{
 			int somatoria = 0;
-
-			var numAtivado = sender as NumericUpDown;
 
 			for (int count = 0; count < lblMateria.Length; count++)
 			{
@@ -147,7 +145,7 @@ namespace HelpTeacher.Forms
 		private void recuperaCodigos()
 		{
 			IQueryable<Question> questions = new List<Question>().AsQueryable();
-			lstCodigos.Items.Clear();
+			questionBindingSource.Clear();
 			countGlob = 0;
 
 			/* Avaliação Mista */
@@ -212,20 +210,25 @@ namespace HelpTeacher.Forms
 
 		private void atualizaValorCampos(IQueryable<Question> questions)
 		{
-			int numeroDeCodigos = questions.Count();
+			if (questions.Count() > 0)
+			{
+				questions.OrderBy(p => p.RecordID);
 
-			questionBindingSource.DataSource = questions;
-			lstCodigos.DataSource = questionBindingSource;
-			questionBindingSource.ResetBindings(true);
-			lstCodigos.DisplayMember = nameof(Question.RecordID);
-			lstCodigos.ValueMember = nameof(Question.RecordID);
+				questionBindingSource.DataSource = questions;
+				lstCodigos.DataSource = questionBindingSource;
+				questionBindingSource.ResetBindings(true);
+				lstCodigos.DisplayMember = nameof(Question.RecordID);
+				lstCodigos.ValueMember = nameof(Question.RecordID);
 
-			numQuantidadeQuestoes[countGlob].Maximum = numeroDeCodigos;
-			numQuantidadeQuestoes[countGlob].Value = 1;
-			txtQuantidadeMaxima[countGlob].Text = numeroDeCodigos.ToString();
+
+				txtQuantidadeMaxima[countGlob].Text = questions.Count().ToString();
+				numQuantidadeQuestoes[countGlob].Maximum = questions.Count();
+				numQuantidadeQuestoes[countGlob].Minimum = 1;
+				numQuantidadeQuestoes[countGlob].Value = 1;
+
+			}
 
 			countGlob++;
-			ordenarListBox(lstCodigos);
 		}
 
 		private void insereComponentes()
@@ -291,7 +294,8 @@ namespace HelpTeacher.Forms
 				x = xInicial + 6 + lblMateria[count].Width;
 				numQuantidadeQuestoes[count].Location = new System.Drawing.Point(x, y);
 				numQuantidadeQuestoes[count].Size = new System.Drawing.Size(65, 22);
-				numQuantidadeQuestoes[count].Minimum = 1;
+				numQuantidadeQuestoes[count].Maximum = 0;
+				numQuantidadeQuestoes[count].Minimum = 0;
 				numQuantidadeQuestoes[count].ValueChanged += new System.EventHandler(
 							questoesMaterias_ValueChanged);
 				// 
@@ -403,23 +407,11 @@ namespace HelpTeacher.Forms
 			{
 				while (respostaBanco.Read())
 				{
-					lstCodigosAleatorios.Items.Add(
-							respostaBanco.GetString(0));
+					lstCodigosAleatorios.Items.Add(respostaBanco.GetString(0));
 				}
 			}
 			respostaBanco.Close();
 			banco.fechaConexao();
-		}
-
-		private void ordenarListBox(ListBox listBox)
-		{
-			string[] itens = listBox.Items.Cast<string>().ToArray();
-			listBox.Items.Clear();
-			IOrderedEnumerable<string> ordenado = itens.OrderBy(p => Int32.Parse(p));
-			foreach (string item in ordenado)
-			{
-				listBox.Items.Add(item);
-			}
 		}
 
 		private void geraDocumentoWord()
@@ -541,57 +533,26 @@ namespace HelpTeacher.Forms
 					ref ReplaceWith, ref missing, ref missing, ref missing, ref missing, ref missing);
 		}
 
-		private bool insereHistorico()
+		private void insereHistorico()
 		{
-			string data = DateTime.Now.ToShortDateString();
-			string codigosQuestoes = lstCodigosAleatorios.Items[0].ToString();
-			string codigosMateria = "";
+			var questions = new List<Question>();
+			var subjects = new Subject[chkMaterias.CheckedItems.Count];
 
-
-			for (int cont = 1; cont < lstCodigosAleatorios.Items.Count; cont++)
+			chkMaterias.CheckedItems.CopyTo(subjects, 0);
+			foreach (object item in lstCodigosAleatorios.Items)
 			{
-				codigosQuestoes += String.Concat(", ", lstCodigosAleatorios.Items[cont].ToString());
+				questions.Add(new QuestionRepository().Get(Convert.ToInt32(item.ToString())));
 			}
 
-			foreach (Subject subject in chkMaterias.CheckedItems)
+			var exam = new Exam(questions, subjects)
 			{
-				codigosMateria = String.Concat(codigosMateria, $"{subject.RecordID}, ");
-			}
-			codigosMateria = codigosMateria.Substring(0, (codigosMateria.Length - 2));
+				GeneratedDate = DateTime.Now,
+				HasOnlyUnusedQuestion = chkAvaliacaoInedita.Checked,
+				IsRecordActive = true,
+				Type = radMista.Checked ? 'M' : (radObjetiva.Checked ? 'O' : 'D')
+			};
 
-			if (banco.executeComando("INSERT INTO htd1 VALUES (NULL, 'M', NULL, '" + codigosQuestoes + "', '" +
-						codigosMateria + "', '" + data + "', NULL)"))
-			{
-				if (radMista.Checked && !chkAvaliacaoInedita.Checked)
-				{
-					return true;
-				}
-
-				if (chkAvaliacaoInedita.Checked)
-				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_INEDITA = '*' WHERE D1_COD = " + codigoAvaliacao))
-					{
-						return false;
-					}
-				}
-
-				if (radObjetiva.Checked)
-				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'O' WHERE D1_COD = " + codigoAvaliacao))
-					{
-						return false;
-					}
-				}
-				else if (radDissertativa.Checked)
-				{
-					if (!banco.executeComando("UPDATE htd1 SET D1_TIPO = 'D' WHERE D1_COD = " + codigoAvaliacao))
-					{
-						return false;
-					}
-				}
-				return true;
-			}
-			return false;
+			new ExamRepository().Add(exam);
 		}
 
 		private void marcaQuestoesComoUsadas()
@@ -612,16 +573,11 @@ namespace HelpTeacher.Forms
 				geraDocumentoWord();
 				if (!Mensagem.gerarAvaliacaoNovamente())
 				{
-					if (insereHistorico())
-					{
-						marcaQuestoesComoUsadas();
-						recuperaCodigos();
-						atualizaCodigoaAvaliacao();
-					}
-					else
-					{
-						Mensagem.erroCadastro();
-					}
+					insereHistorico();
+
+					marcaQuestoesComoUsadas();
+					recuperaCodigos();
+					atualizaCodigoaAvaliacao();
 				}
 				else
 				{

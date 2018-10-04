@@ -21,6 +21,7 @@ namespace HelpTeacher.Forms
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();
 		private BindingSource subjectBindingSource = new BindingSource();
+		private BindingSource examBindingSource = new BindingSource();
 		private DataSet ds;
 		private string deletados;
 
@@ -937,12 +938,11 @@ namespace HelpTeacher.Forms
 
 		private void pageAvaliacoes_Leave(object sender, EventArgs e)
 		{
-			cmbAvaliacoes.Items.Clear();
-			cmbDisciplinasAvaliacoes.Items.Clear();
-			cmbMateriasAvaliacoes.Items.Clear();
+			cmbAvaliacoes.ResetBindings();
+			cmbDisciplinasAvaliacoes.ResetBindings();
+			cmbMateriasAvaliacoes.ResetBindings();
 			txtAvaliacao.Clear();
 
-			cmbAvaliacoes.Text = "Selecionar...";
 			cmbAvaliacoes.Text = "Selecionar...";
 
 			radData.Checked = true;
@@ -976,7 +976,7 @@ namespace HelpTeacher.Forms
 			atualizaComboDisicplina();
 
 			cmbMateriasAvaliacoes.Text = "Opcional";
-			cmbMateriasAvaliacoes.Items.Clear();
+			cmbMateriasAvaliacoes.ResetBindings();
 
 			chamaPesquisaAvaliacoes();
 		}
@@ -1004,28 +1004,16 @@ namespace HelpTeacher.Forms
 
 		private void btnLimparRegistro_Click(object sender, EventArgs e)
 		{
-			if (apagaRegistro())
-			{
-				Mensagem.dadosAlterados();
-				chamaPesquisaAvaliacoes();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			apagaRegistro();
+			Mensagem.dadosAlterados();
+			chamaPesquisaAvaliacoes();
 		}
 
 		private void btnLimparHistorico_Click(object sender, EventArgs e)
 		{
-			if (apagaHistorico())
-			{
-				Mensagem.dadosAlterados();
-				chamaPesquisaAvaliacoes();
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			apagaHistorico();
+			Mensagem.dadosAlterados();
+			chamaPesquisaAvaliacoes();
 		}
 
 		private void chamaPesquisaAvaliacoes()
@@ -1072,7 +1060,7 @@ namespace HelpTeacher.Forms
 
 		private void atualizaComboCursos()
 		{
-			cmbAvaliacoes.Items.Clear();
+			cmbAvaliacoes.ResetBindings();
 
 			IQueryable<Course> courses = new CourseRepository().Get();
 
@@ -1104,26 +1092,28 @@ namespace HelpTeacher.Forms
 			subjectBindingSource.DataSource = subjects;
 			cmbMateriasAvaliacoes.DataSource = subjectBindingSource;
 			subjectBindingSource.ResetBindings(true);
-			cmbMateriasAvaliacoes.DisplayMember = nameof(Discipline.Name);
-			cmbMateriasAvaliacoes.ValueMember = nameof(Discipline.RecordID);
+			cmbMateriasAvaliacoes.DisplayMember = nameof(Subject.Name);
+			cmbMateriasAvaliacoes.ValueMember = nameof(Subject.RecordID);
 			cmbMateriasAvaliacoes.SelectedIndex = 0;
 		}
 
 		private void atualizaCamposAvaliacao()
 		{
-			cmbAvaliacoes.Items.Clear();
+			var exams = new List<Exam>();
 
+			examBindingSource.DataSource = exams;
+			cmbAvaliacoes.DataSource = examBindingSource;
 			if (respostaBanco.HasRows)
 			{
 				while (respostaBanco.Read())
 				{
-					cmbAvaliacoes.Items.Add("(" + respostaBanco.GetString(0) + ") " +
-							respostaBanco.GetString(1) + " - " + respostaBanco.GetString(3));
+					exams.Add(new ExamRepository().Get(respostaBanco.GetInt32(0)));
 				}
-				respostaBanco.Close();
-				banco.fechaConexao();
+
+
+				cmbAvaliacoes.DisplayMember = nameof(Exam.GeneratedDate);
+				cmbAvaliacoes.ValueMember = nameof(Exam.RecordID);
 				cmbAvaliacoes.SelectedIndex = 0;
-				btnLimparRegistro.Enabled = true;
 			}
 			else
 			{
@@ -1133,70 +1123,40 @@ namespace HelpTeacher.Forms
 				respostaBanco.Close();
 				banco.fechaConexao();
 			}
+
+			examBindingSource.ResetBindings(true);
 		}
 
 		private void mostraAvaliacao()
 		{
-			string[] codigoAvaliacao = cmbAvaliacoes.Text.Split(new char[]
-				{ '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-			string[] codigosQuestoes;
+			var exam = (Exam) cmbAvaliacoes.SelectedItem;
 
-			/* Recupera os códigos das questões da avaliação */
-			if (banco.executeComando("SELECT D1_QUESTAO " +
-						"FROM htd1 " +
-						"WHERE D1_COD = " + codigoAvaliacao[0],
-						ref respostaBanco))
+			txtAvaliacao.Text = "Sem histórico";
+			for (int i = 0; i < exam.Questions.Count; i++)
 			{
-				if (respostaBanco.HasRows)
-				{
-					int count = 0;
-
-					respostaBanco.Read();
-					codigosQuestoes = respostaBanco.GetString(0).Split(new char[]
-							{ ',', ' ' }, StringSplitOptions.
-							RemoveEmptyEntries);
-
-					respostaBanco.Close();
-					banco.fechaConexao();
-					/* Recupera as questões da avaliação */
-					foreach (string questao in codigosQuestoes)
-					{
-						Question question = new QuestionRepository().Get(Convert.ToInt32(questao));
-
-						txtAvaliacao.Text += $"{(++count)}) {question.Statement}{Environment.NewLine}" +
-											 $"{Environment.NewLine}";
-					}
-				}
-				else
-				{
-					txtAvaliacao.Text = "Sem histórico";
-					respostaBanco.Close();
-					banco.fechaConexao();
-				}
+				txtAvaliacao.Text += $"{(i + 1)}) {exam.Questions.ElementAt(i).Statement}{Environment.NewLine}" +
+									 $"{Environment.NewLine}";
 			}
 		}
 
-		private bool apagaRegistro()
+		private void apagaRegistro()
 		{
-			string[] codigoAvaliacao = cmbAvaliacoes.Text.Split(
-					new char[] { '(', ')' }, StringSplitOptions.
-					RemoveEmptyEntries);
+			var exam = (Exam) cmbAvaliacoes.SelectedItem;
+			exam.IsRecordActive = false;
 
-			if (banco.executeComando("UPDATE htd1 SET D_E_L_E_T = '*' " +
-						"WHERE D1_COD = " + codigoAvaliacao[0]))
-			{
-				return true;
-			}
-			return false;
+			new ExamRepository().Update(exam);
 		}
 
-		private bool apagaHistorico()
+		private void apagaHistorico()
 		{
-			if (banco.executeComando("UPDATE htd1 SET D_E_L_E_T = '*'"))
+			IQueryable<Exam> exams = new ExamRepository().Get();
+
+			foreach (Exam exam in exams)
 			{
-				return true;
+				exam.IsRecordActive = false;
 			}
-			return false;
+
+			new ExamRepository().Update(exams);
 		}
 
 		// PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  PAGE PESQUISA GERAL  //
