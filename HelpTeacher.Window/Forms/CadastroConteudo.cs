@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -16,8 +17,6 @@ namespace HelpTeacher.Forms
 		private readonly BindingSource courseBindingSource = new BindingSource();
 		private readonly BindingSource disciplineBindingSource = new BindingSource();
 		private AutoCompleteStringCollection collection = new AutoCompleteStringCollection();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
-		private ConnectionManager banco = new ConnectionManager();
 		#endregion
 
 
@@ -72,12 +71,10 @@ namespace HelpTeacher.Forms
 
 		private void atualizaCodigoCurso()
 		{
-			if (banco.executeComando("SHOW TABLE STATUS LIKE 'htc1'", ref respostaBanco))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader("SHOW TABLE STATUS LIKE 'htc1'"))
 			{
-				respostaBanco.Read();
-				txtCodigoCurso.Text = respostaBanco["Auto_increment"].ToString();
-				respostaBanco.Close();
-				banco.fechaConexao();
+				dataReader.Read();
+				txtCodigoCurso.Text = dataReader["Auto_increment"].ToString();
 			}
 		}
 
@@ -140,12 +137,10 @@ namespace HelpTeacher.Forms
 
 		private void atualizaCodigoDisciplina()
 		{
-			if (banco.executeComando("SHOW TABLE STATUS LIKE 'htc2'", ref respostaBanco))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader("SHOW TABLE STATUS LIKE 'htc2'"))
 			{
-				respostaBanco.Read();
-				txtCodigoDisciplina.Text = respostaBanco["Auto_increment"].ToString();
-				respostaBanco.Close();
-				banco.fechaConexao();
+				dataReader.Read();
+				txtCodigoDisciplina.Text = dataReader["Auto_increment"].ToString();
 			}
 		}
 
@@ -222,12 +217,10 @@ namespace HelpTeacher.Forms
 
 		private void atualizaCodigoMateria()
 		{
-			if (banco.executeComando("SHOW TABLE STATUS LIKE 'htc3'", ref respostaBanco))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader("SHOW TABLE STATUS LIKE 'htc3'"))
 			{
-				respostaBanco.Read();
-				txtCodigoMateria.Text = respostaBanco["Auto_increment"].ToString();
-				respostaBanco.Close();
-				banco.fechaConexao();
+				dataReader.Read();
+				txtCodigoMateria.Text = dataReader["Auto_increment"].ToString();
 			}
 		}
 

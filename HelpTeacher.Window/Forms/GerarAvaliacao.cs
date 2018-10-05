@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -17,8 +18,6 @@ namespace HelpTeacher.Forms
 {
 	public partial class GerarAvaliacao : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();
 		private BindingSource questionBindingSource = new BindingSource();
@@ -35,7 +34,6 @@ namespace HelpTeacher.Forms
 		{
 			InitializeComponent();
 
-			atualizaCodigoaAvaliacao();
 			preencheComboCursos();
 		}
 
@@ -84,18 +82,6 @@ namespace HelpTeacher.Forms
 
 		// FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  //
 		// FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  FUNÇÕES  //
-		private void atualizaCodigoaAvaliacao()
-		{
-			if (banco.executeComando("SHOW TABLE STATUS LIKE 'htd1'",
-					ref respostaBanco))
-			{
-				respostaBanco.Read();
-				codigoAvaliacao = respostaBanco["Auto_increment"].ToString();
-				respostaBanco.Close();
-				banco.fechaConexao();
-			}
-		}
-
 		private void preencheComboCursos()
 		{
 			IQueryable<Course> courses = new CourseRepository().Get(true);
@@ -325,6 +311,7 @@ namespace HelpTeacher.Forms
 		private void geraCodigosAleatorios()
 		{
 			int count = 0;
+			string query;
 
 			lstCodigosAleatorios.Items.Clear();
 			foreach (Subject subject in chkMaterias.CheckedItems)
@@ -334,21 +321,14 @@ namespace HelpTeacher.Forms
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() LIMIT " +
-												 $"{numQuantidadeQuestoes[count].Value}", ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+								$"B1_USADA IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() LIMIT " +
+								$"{numQuantidadeQuestoes[count].Value}";
 					}
 					else
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"D_E_L_E_T IS NULL ORDER BY RAND() LIMIT " +
-												 $"{ numQuantidadeQuestoes[count].Value}", ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+								$"D_E_L_E_T IS NULL ORDER BY RAND() LIMIT { numQuantidadeQuestoes[count].Value}";
 					}
 				}
 				/* Avaliação Dissertativa */
@@ -356,22 +336,15 @@ namespace HelpTeacher.Forms
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL " +
-												 $"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}",
-							ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+								$"B1_USADA IS NULL AND B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL " +
+								$"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}";
 					}
 					else
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
-												 $"B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
-												 $"LIMIT {numQuantidadeQuestoes[count].Value}", ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA = {subject.RecordID} AND " +
+								$"B1_OBJETIV IS NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
+								$"LIMIT {numQuantidadeQuestoes[count].Value}";
 					}
 				}
 				/* Avaliação Objetiva */
@@ -379,39 +352,35 @@ namespace HelpTeacher.Forms
 				{
 					if (chkAvaliacaoInedita.Checked)
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
-												 $"B1_USADA IS NULL AND B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL " +
-												 $"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}",
-								ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
+								$"B1_USADA IS NULL AND B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL " +
+								$"ORDER BY RAND() LIMIT {numQuantidadeQuestoes[count].Value}";
 					}
 					else
 					{
-						if (banco.executeComando($"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
-												 $"B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
-												 $"LIMIT {numQuantidadeQuestoes[count].Value}", ref respostaBanco))
-						{
-							atualizaCodigosAleatorios();
-						}
+						query = $"SELECT B1_COD FROM htb1 WHERE B1_MATERIA =  {subject.RecordID} AND " +
+								$"B1_OBJETIV IS NOT NULL AND D_E_L_E_T IS NULL ORDER BY RAND() " +
+								$"LIMIT {numQuantidadeQuestoes[count].Value}";
 					}
 				}
+
+				atualizaCodigosAleatorios(query);
 				count++;
 			}
 		}
 
-		private void atualizaCodigosAleatorios()
+		private void atualizaCodigosAleatorios(string query)
 		{
-			if (respostaBanco.HasRows)
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
 			{
-				while (respostaBanco.Read())
+				if (dataReader.HasRows)
 				{
-					lstCodigosAleatorios.Items.Add(respostaBanco.GetString(0));
+					while (dataReader.Read())
+					{
+						lstCodigosAleatorios.Items.Add(dataReader.GetString(0));
+					}
 				}
 			}
-			respostaBanco.Close();
-			banco.fechaConexao();
 		}
 
 		private void geraDocumentoWord()
@@ -439,25 +408,24 @@ namespace HelpTeacher.Forms
 			/* Busca as questões no banco e insere no Word */
 			while (numQuestao < Convert.ToInt32(txtTotalQuestoes.Text))
 			{
-				if (banco.executeComando("SELECT RTRIM(B1_QUEST), B1_ARQUIVO " +
-							"FROM htb1 " +
-							"WHERE B1_COD = " + lstCodigosAleatorios.Items[numQuestao],
-								ref respostaBanco))
+				string query = $"SELECT RTRIM(B1_QUEST), B1_ARQUIVO FROM htb1 WHERE B1_COD = " +
+							   $"{lstCodigosAleatorios.Items[numQuestao]}";
+				using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
 				{
-					if (respostaBanco.HasRows)
+					if (dataReader.HasRows)
 					{
-						respostaBanco.Read();
+						dataReader.Read();
 
 						/* Questão */
 						wordRange = document.Bookmarks.get_Item(ref fimDocumento).Range;
 						wordRange.InsertParagraphAfter();
 						wordRange.InsertAfter((numQuestao + 1) + ") " +
-								respostaBanco.GetString(0) + Environment.NewLine);
+								dataReader.GetString(0) + Environment.NewLine);
 
 						/* Arquivos */
-						if (!Convert.IsDBNull(respostaBanco["B1_ARQUIVO"]))
+						if (!Convert.IsDBNull(dataReader["B1_ARQUIVO"]))
 						{
-							string[] nomeArquivo = respostaBanco.GetString(1).
+							string[] nomeArquivo = dataReader.GetString(1).
 									Split(new char[] { ',', ' ' },
 									StringSplitOptions.RemoveEmptyEntries);
 							string[] arquivo = Directory.GetFiles(@"..\_files\",
@@ -512,8 +480,6 @@ namespace HelpTeacher.Forms
 							wordRange.InsertParagraphAfter();
 						}
 					}
-					respostaBanco.Close();
-					banco.fechaConexao();
 				}
 				numQuestao++;
 			}
@@ -577,7 +543,6 @@ namespace HelpTeacher.Forms
 
 					marcaQuestoesComoUsadas();
 					recuperaCodigos();
-					atualizaCodigoaAvaliacao();
 				}
 				else
 				{

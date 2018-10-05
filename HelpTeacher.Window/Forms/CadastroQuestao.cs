@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,8 +15,6 @@ namespace HelpTeacher.Forms
 {
 	public partial class CadastroQuestao : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();
 		private BindingSource subjectBindingSource = new BindingSource();
@@ -95,12 +94,10 @@ namespace HelpTeacher.Forms
 
 		private void atualizaCodigoQuestao()
 		{
-			if (banco.executeComando("SHOW TABLE STATUS LIKE 'htb1'", ref respostaBanco))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader("SHOW TABLE STATUS LIKE 'htb1'"))
 			{
-				respostaBanco.Read();
-				txtCodQuestao.Text = respostaBanco["Auto_increment"].ToString();
-				respostaBanco.Close();
-				banco.fechaConexao();
+				dataReader.Read();
+				txtCodQuestao.Text = dataReader["Auto_increment"].ToString();
 			}
 		}
 

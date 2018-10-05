@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Windows.Forms;
 
 using HelpTeacher.Classes;
@@ -9,9 +10,6 @@ namespace HelpTeacher.Forms
 {
 	public partial class Configuracoes : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
-
 		public Configuracoes() => InitializeComponent();
 
 		private void Configuracoes_Load(object sender, EventArgs e) => txtLogin.Text = User.Instance.Username;
@@ -24,85 +22,55 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvar_Click(object sender, EventArgs e)
 		{
-			if (alteraDados())
-			{
-				Mensagem.dadosAlterados();
-				if (atualizaDadosUsuario())
-				{
-					Close();
-				}
-				else
-				{
-					Mensagem.erroAlteracao();
-				}
-			}
-			else
-			{
-				Mensagem.erroAlteracao();
-			}
+			alteraDados();
+			Mensagem.dadosAlterados();
+			atualizaDadosUsuario();
+			Close();
 		}
 
 		private void btnCancelar_Click(object sender, EventArgs e) => Close();
 
-		private bool alteraDados()
+		private void alteraDados()
 		{
 
-			if (banco.executeComando("UPDATE hta1 SET A1_LOGIN = '" + txtLogin.Text +
-						"' WHERE A1_COD = " + User.Instance.RecordID))
+			ConnectionManager.ExecuteQuery("UPDATE hta1 SET A1_LOGIN = '" + txtLogin.Text +
+										   "' WHERE A1_COD = " + User.Instance.RecordID);
+
+			if (!(txtNovaSenha.Text.Equals("") && txtConfirmacao.Text.Equals("")))
 			{
-				if (!(txtNovaSenha.Text.Equals("") && txtConfirmacao.Text.Equals("")))
+				if (txtNovaSenha.Text == txtConfirmacao.Text)
 				{
-					if (txtNovaSenha.Text == txtConfirmacao.Text)
-					{
-						if (!banco.executeComando("UPDATE hta1 SET A1_PWD = '" +
-									MD5.gerarHash(txtNovaSenha.Text) + "' " +
-									"WHERE A1_COD = " + User.Instance.RecordID))
-						{
-							return false;
-						}
-					}
-					else
-					{
-						Mensagem.senhasDiferentes();
-						return false;
-					}
-				}
-				if (chkStopBD.Checked)
-				{
-					if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = '1'" +
-								"WHERE A1_COD = " + User.Instance.RecordID))
-					{
-						return false;
-					}
+					ConnectionManager.ExecuteQuery("UPDATE hta1 SET A1_PWD = '" +
+												   MD5.gerarHash(txtNovaSenha.Text) + "' " +
+												   "WHERE A1_COD = " + User.Instance.RecordID);
 				}
 				else
 				{
-					if (!banco.executeComando("UPDATE hta1 SET A1_STOPBD = '0' " +
-								"WHERE A1_COD = " + User.Instance.RecordID))
-					{
-						return false;
-					}
+					Mensagem.senhasDiferentes();
+					return;
 				}
-				return true;
 			}
-			return false;
+			if (chkStopBD.Checked)
+			{
+				ConnectionManager.ExecuteQuery("UPDATE hta1 SET A1_STOPBD = '1' WHERE A1_COD = " +
+											   User.Instance.RecordID);
+			}
+			else
+			{
+				ConnectionManager.ExecuteQuery("UPDATE hta1 SET A1_STOPBD = '0' WHERE A1_COD = " +
+											   User.Instance.RecordID);
+			}
 		}
 
-		private bool atualizaDadosUsuario()
+		private void atualizaDadosUsuario()
 		{
-			if (banco.executeComando("SELECT * " +
-						"FROM hta1 " +
-						"WHERE A1_COD = " + User.Instance.RecordID, ref respostaBanco))
+			string query = $"SELECT * FROM hta1 WHERE A1_COD = {User.Instance.RecordID}";
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
 			{
-				respostaBanco.Read();
-				User.Instance.Username = respostaBanco["A1_LOGIN"].ToString();
-				User.Instance.Password = respostaBanco["A1_PWD"].ToString();
-
-				banco.fechaConexao();
-				respostaBanco.Close();
-				return true;
+				dataReader.Read();
+				User.Instance.Username = dataReader["A1_LOGIN"].ToString();
+				User.Instance.Password = dataReader["A1_PWD"].ToString();
 			}
-			return false;
 		}
 	}
 }

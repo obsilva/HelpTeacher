@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,9 +16,6 @@ namespace HelpTeacher.Forms
 {
 	public partial class Pesquisa : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
-		private MySql.Data.MySqlClient.MySqlDataReader respostaBanco;
-		private MySql.Data.MySqlClient.MySqlDataAdapter adaptador;
 		private BindingSource courseBindingSource = new BindingSource();
 		private BindingSource disciplineBindingSource = new BindingSource();
 		private BindingSource subjectBindingSource = new BindingSource();
@@ -202,29 +200,29 @@ namespace HelpTeacher.Forms
 			chamaPesquisaQuestoes();
 		}
 
-		private void atualizaCamposQuestoes()
+		private void atualizaCamposQuestoes(ref DbDataReader dataReader)
 		{
-			if (respostaBanco.HasRows)
+			if (dataReader.HasRows)
 			{
-				respostaBanco.Read();
+				dataReader.Read();
 
 				btnEditarQuestao.Enabled = true;
 				cmbCursosQuestoes.Items.Clear();
 				chkDisciplinasQuestoes.Items.Clear();
 				chkMateriasQuestoes.Items.Clear();
 
-				txtCodigoQuestao.Text = respostaBanco["B1_COD"].ToString();
-				txtQuestao.Text = respostaBanco["B1_QUEST"].ToString();
-				cmbCursosQuestoes.Items.Add("(" + respostaBanco["C1_COD"].ToString() +
-					") " + respostaBanco["C1_NOME"].ToString());
-				chkDisciplinasQuestoes.Items.Add("(" + respostaBanco["C2_COD"].ToString() +
-					") " + respostaBanco["C2_NOME"].ToString());
+				txtCodigoQuestao.Text = dataReader["B1_COD"].ToString();
+				txtQuestao.Text = dataReader["B1_QUEST"].ToString();
+				cmbCursosQuestoes.Items.Add("(" + dataReader["C1_COD"].ToString() +
+					") " + dataReader["C1_NOME"].ToString());
+				chkDisciplinasQuestoes.Items.Add("(" + dataReader["C2_COD"].ToString() +
+					") " + dataReader["C2_NOME"].ToString());
 				chkDisciplinasQuestoes.SetItemChecked(0, true);
-				chkMateriasQuestoes.Items.Add("(" + respostaBanco["B1_MATERIA"].ToString() +
-					") " + respostaBanco["C3_NOME"].ToString());
+				chkMateriasQuestoes.Items.Add("(" + dataReader["B1_MATERIA"].ToString() +
+					") " + dataReader["C3_NOME"].ToString());
 				chkMateriasQuestoes.SetItemChecked(0, true);
 
-				if (respostaBanco["B1_OBJETIV"].ToString().Equals("*"))
+				if (dataReader["B1_OBJETIV"].ToString().Equals("*"))
 				{
 					radObjetiva.Checked = true;
 				}
@@ -233,7 +231,7 @@ namespace HelpTeacher.Forms
 					radDissertativa.Checked = true;
 				}
 
-				if (respostaBanco["B1_USADA"].ToString().Equals("*"))
+				if (dataReader["B1_USADA"].ToString().Equals("*"))
 				{
 					chkQuestaoUsada.Checked = true;
 				}
@@ -242,7 +240,7 @@ namespace HelpTeacher.Forms
 					chkQuestaoUsada.Checked = false;
 				}
 
-				if (respostaBanco["B1_PADRAO"].ToString().Equals("*"))
+				if (dataReader["B1_PADRAO"].ToString().Equals("*"))
 				{
 					chkQuestaoPadrao.Checked = true;
 				}
@@ -251,7 +249,7 @@ namespace HelpTeacher.Forms
 					chkQuestaoPadrao.Checked = false;
 				}
 
-				if (respostaBanco["D_E_L_E_T"].ToString().Equals("*"))
+				if (dataReader["D_E_L_E_T"].ToString().Equals("*"))
 				{
 					chkQuestaoDeletada.Checked = true;
 				}
@@ -260,11 +258,11 @@ namespace HelpTeacher.Forms
 					chkQuestaoDeletada.Checked = false;
 				}
 
-				if (!respostaBanco["B1_ARQUIVO"].ToString().Equals(""))
+				if (!dataReader["B1_ARQUIVO"].ToString().Equals(""))
 				{
-					if (respostaBanco["B1_ARQUIVO"].ToString().Contains(','))
+					if (dataReader["B1_ARQUIVO"].ToString().Contains(','))
 					{
-						string[] nomes = respostaBanco["B1_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
+						string[] nomes = dataReader["B1_ARQUIVO"].ToString().Split(new char[] { ',', ' ' },
 									StringSplitOptions.RemoveEmptyEntries);
 
 						string[] arquivos = Directory.GetFiles(@"..\_files", nomes[0] + ".*");
@@ -278,7 +276,7 @@ namespace HelpTeacher.Forms
 					else
 					{
 						string[] arquivo = Directory.GetFiles(@"..\_files",
-							respostaBanco["B1_ARQUIVO"].ToString() + ".*");
+							dataReader["B1_ARQUIVO"].ToString() + ".*");
 						string caminho = Path.GetFullPath(arquivo[0]);
 						txtArquivo1.Text = caminho;
 						txtArquivo2.Clear();
@@ -290,8 +288,6 @@ namespace HelpTeacher.Forms
 					txtArquivo2.Clear();
 				}
 
-				respostaBanco.Close();
-				banco.fechaConexao();
 				cmbCursosQuestoes.SelectedIndex = 0;
 			}
 			else
@@ -307,8 +303,6 @@ namespace HelpTeacher.Forms
 				chkQuestaoUsada.Checked = false;
 				chkQuestaoPadrao.Checked = false;
 				chkQuestaoDeletada.Checked = false;
-				respostaBanco.Close();
-				banco.fechaConexao();
 			}
 		}
 
@@ -535,16 +529,16 @@ namespace HelpTeacher.Forms
 			chamaPesquisaCursos();
 		}
 
-		private void atualizaCamposCursos()
+		private void atualizaCamposCursos(ref DbDataReader dataReader)
 		{
-			if (respostaBanco.HasRows)
+			if (dataReader.HasRows)
 			{
-				respostaBanco.Read();
+				dataReader.Read();
 				btnEditarCursos.Enabled = true;
 
-				txtCodigoCurso.Text = respostaBanco["C1_COD"].ToString();
-				txtNomeCurso.Text = respostaBanco["C1_NOME"].ToString();
-				chkCursoDeletado.Checked = respostaBanco["D_E_L_E_T"].ToString().Equals("*");
+				txtCodigoCurso.Text = dataReader["C1_COD"].ToString();
+				txtNomeCurso.Text = dataReader["C1_NOME"].ToString();
+				chkCursoDeletado.Checked = dataReader["D_E_L_E_T"].ToString().Equals("*");
 			}
 			else
 			{
@@ -553,9 +547,6 @@ namespace HelpTeacher.Forms
 				chkCursoDeletado.Checked = false;
 				txtNomeCurso.Clear();
 			}
-
-			respostaBanco.Close();
-			banco.fechaConexao();
 		}
 
 		private void chamaPesquisaCursos()
@@ -660,22 +651,22 @@ namespace HelpTeacher.Forms
 			chamaPesquisaDisciplinas();
 		}
 
-		private void atualizaCamposDisciplinas()
+		private void atualizaCamposDisciplinas(ref DbDataReader dataReader)
 		{
-			if (respostaBanco.HasRows)
+			if (dataReader.HasRows)
 			{
-				respostaBanco.Read();
+				dataReader.Read();
 
 				btnEditarDisciplina.Enabled = true;
-				txtCodigoDisciplina.Text = respostaBanco["C2_COD"].ToString();
-				textNomeDisciplina.Text = respostaBanco["C2_NOME"].ToString();
-				chkDisciplinaDeletada.Checked = !respostaBanco["D_E_L_E_T"].ToString().Equals("*");
+				txtCodigoDisciplina.Text = dataReader["C2_COD"].ToString();
+				textNomeDisciplina.Text = dataReader["C2_NOME"].ToString();
+				chkDisciplinaDeletada.Checked = !dataReader["D_E_L_E_T"].ToString().Equals("*");
 
 				var courses = new List<Course>()
 				{
-					new Course(respostaBanco["C1_NOME"].ToString())
+					new Course(dataReader["C1_NOME"].ToString())
 					{
-						RecordID = Convert.ToInt32(respostaBanco["C2_CURSO"].ToString())
+						RecordID = Convert.ToInt32(dataReader["C2_CURSO"].ToString())
 					}
 				};
 
@@ -695,9 +686,6 @@ namespace HelpTeacher.Forms
 				cmbCursosDisciplina.Items.Clear();
 
 			}
-
-			respostaBanco.Close();
-			banco.fechaConexao();
 		}
 
 		private void chamaPesquisaDisciplinas()
@@ -810,22 +798,22 @@ namespace HelpTeacher.Forms
 			chamaPesquisaMaterias();
 		}
 
-		private void atualizaCamposMaterias()
+		private void atualizaCamposMaterias(ref DbDataReader dataReader)
 		{
-			if (respostaBanco.HasRows)
+			if (dataReader.HasRows)
 			{
-				respostaBanco.Read();
+				dataReader.Read();
 
 				btnEditarMateria.Enabled = true;
-				txtCodigoMateria.Text = respostaBanco["C3_COD"].ToString();
-				txtNomeMateria.Text = respostaBanco["C3_NOME"].ToString();
-				chkMateriaDeletada.Checked = !respostaBanco["D_E_L_E_T"].ToString().Equals("*");
+				txtCodigoMateria.Text = dataReader["C3_COD"].ToString();
+				txtNomeMateria.Text = dataReader["C3_NOME"].ToString();
+				chkMateriaDeletada.Checked = !dataReader["D_E_L_E_T"].ToString().Equals("*");
 
 				var disciplines = new List<Discipline>()
 				{
-					new Discipline(null, respostaBanco["C2_NOME"].ToString())
+					new Discipline(null, dataReader["C2_NOME"].ToString())
 					{
-						RecordID = Convert.ToInt32(respostaBanco["C3_DISCIPL"].ToString())
+						RecordID = Convert.ToInt32(dataReader["C3_DISCIPL"].ToString())
 					}
 				};
 
@@ -845,9 +833,6 @@ namespace HelpTeacher.Forms
 				cmbDisciplinaMateria.Items.Clear();
 				txtCursoMateria.Clear();
 			}
-
-			respostaBanco.Close();
-			banco.fechaConexao();
 		}
 
 		private void chamaPesquisaMaterias()
@@ -1097,17 +1082,17 @@ namespace HelpTeacher.Forms
 			cmbMateriasAvaliacoes.SelectedIndex = 0;
 		}
 
-		private void atualizaCamposAvaliacao()
+		private void atualizaCamposAvaliacao(ref DbDataReader dataReader)
 		{
 			var exams = new List<Exam>();
 
 			examBindingSource.DataSource = exams;
 			cmbAvaliacoes.DataSource = examBindingSource;
-			if (respostaBanco.HasRows)
+			if (dataReader.HasRows)
 			{
-				while (respostaBanco.Read())
+				while (dataReader.Read())
 				{
-					exams.Add(new ExamRepository().Get(respostaBanco.GetInt32(0)));
+					exams.Add(new ExamRepository().Get(dataReader.GetInt32(0)));
 				}
 
 
@@ -1120,8 +1105,6 @@ namespace HelpTeacher.Forms
 				txtAvaliacao.Clear();
 				cmbAvaliacoes.Text = "Sem histórico";
 				btnLimparRegistro.Enabled = false;
-				respostaBanco.Close();
-				banco.fechaConexao();
 			}
 
 			examBindingSource.ResetBindings(true);
@@ -1183,19 +1166,15 @@ namespace HelpTeacher.Forms
 
 		private void radGeralDeletados_CheckedChanged(object sender, EventArgs e) => chamaPesquisaGeral();
 
-		private void atualizaGridGeral()
+		private void atualizaGridGeral(ref DbDataAdapter dataAdapter)
 		{
 			ds = new DataSet();
 
 			gridResultado.DataSource = null;
 
-			adaptador.Fill(ds, "nome");
+			dataAdapter.Fill(ds, "nome");
 			gridResultado.DataSource = ds;
 			gridResultado.DataMember = "nome";
-
-			ds.Dispose();
-			adaptador.Dispose();
-			banco.fechaConexao();
 		}
 
 		private void atualizaComboCampos()
@@ -1490,309 +1469,184 @@ namespace HelpTeacher.Forms
 		// PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  PESQUISAS  //
 		private void pesquisaQuestoesEdit(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT htb1.*, C3_NOME, " +
-						"C2_COD, C2_NOME, C1_COD, C1_NOME " +
-					"FROM htb1 " +
-						"INNER JOIN htc3 " +
-							"ON B1_MATERIA = C3_COD " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-						"htb1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY B1_COD", ref respostaBanco))
-			{
-				atualizaCamposQuestoes();
-			}
+			string query = $"SELECT htb1.*, C3_NOME, C2_COD, C2_NOME, C1_COD, C1_NOME FROM htb1 " +
+						   $"INNER JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 ON " +
+						   $"C3_DISCIPL = C2_COD INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} " +
+						   $"LIKE '%{condicao}%' AND htb1.D_E_L_E_T {deletados} ORDER BY B1_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposQuestoes(ref dataReader);
+			dataReader.Dispose();
+
 		}
 
 		private void pesquisaQuestoesEdit(string campo, bool isNull, string deletados)
 		{
-			if (isNull)
-			{
-				if (banco.executeComando("SELECT htb1.*, C3_COD, C3_NOME, " +
-							"C2_COD, C2_NOME, C1_COD, C1_NOME " +
-						"FROM htb1 " +
-							"INNER JOIN htc3 " +
-								"ON B1_MATERIA = C3_COD " +
-							"INNER JOIN htc2 " +
-								"ON C3_DISCIPL = C2_COD " +
-							"INNER JOIN htc1 " +
-								"ON C2_CURSO = C1_COD " +
-						"WHERE " + campo + " IS NULL AND " +
-							"htb1.D_E_L_E_T " + deletados + " " +
-						"ORDER BY B1_COD", ref respostaBanco))
-				{
-					atualizaCamposQuestoes();
-				}
-			}
-			else
-			{
-				if (banco.executeComando("SELECT htb1.*, C3_COD, C3_NOME, " +
-							"C2_COD, C2_NOME, C1_COD, C1_NOME " +
-						"FROM htb1 " +
-							"INNER JOIN htc3 " +
-								"ON B1_MATERIA = C3_COD " +
-							"INNER JOIN htc2 " +
-								"ON C3_DISCIPL = C2_COD " +
-							"INNER JOIN htc1 " +
-								"ON C2_CURSO = C1_COD " +
-						"WHERE " + campo + " IS NOT NULL AND " +
-							"htb1.D_E_L_E_T " + deletados + " " +
-						"ORDER BY B1_COD", ref respostaBanco))
-				{
-					atualizaCamposQuestoes();
-				}
-			}
+			string query = isNull
+				? $"SELECT htb1.*, C3_COD, C3_NOME, C2_COD, C2_NOME, C1_COD, C1_NOME FROM htb1 " +
+						$"INNER JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+						$"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} IS NULL AND " +
+						$"htb1.D_E_L_E_T {deletados} ORDER BY B1_COD"
+				: $"SELECT htb1.*, C3_COD, C3_NOME, C2_COD, C2_NOME, C1_COD, C1_NOME FROM htb1 " +
+						$"INNER JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+						$"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} IS NOT NULL AND " +
+						$"htb1.D_E_L_E_T {deletados} ORDER BY B1_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposQuestoes(ref dataReader);
+			dataReader.Dispose();
 		}
 
 		private void pesquisaQuestoesGrid(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-						"B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-						"B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
-						"C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " +
-						"B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
-					"FROM htb1 " +
-						"INNER JOIN htc3 " +
-							"ON B1_MATERIA = C3_COD " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-						"htb1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY B1_COD", ref adaptador))
-			{
-				atualizaGridGeral();
-			}
+			string query = $"SELECT B1_COD AS 'Codigo', B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS " +
+						   $"'Arquivo?', B1_USADA AS 'Usada?', C1_NOME AS 'Curso', C2_NOME AS " +
+						   $"'Disciplina', C3_NOME AS 'Materia', B1_PADRAO AS 'Padrao?', B1_QUEST AS " +
+						   $"'Questao' FROM htb1 INNER JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 " +
+						   $"ON C3_DISCIPL = C2_COD INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE " +
+						   $"{campo} LIKE '%{condicao}%' AND htb1.D_E_L_E_T {deletados} ORDER BY B1_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		private void pesquisaQuestoesGrid(string campo, bool isNull, string deletados)
 		{
-			if (isNull)
-			{
-				if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-						"B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-						"B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
-						"C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " +
-						"B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
-					"FROM htb1 " +
-						"INNER JOIN htc3 " +
-							"ON B1_MATERIA = C3_COD " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " IS NULL AND " +
-						"htb1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY B1_COD", ref adaptador))
-				{
-					atualizaGridGeral();
-				}
-			}
-			else
-			{
-				if (banco.executeComando("SELECT B1_COD AS 'Codigo', " +
-						"B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
-						"B1_USADA AS 'Usada?', C1_NOME AS 'Curso', " +
-						"C2_NOME AS 'Disciplina', C3_NOME AS 'Materia', " +
-						"B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao'" +
-					"FROM htb1 " +
-						"INNER JOIN htc3 " +
-							"ON B1_MATERIA = C3_COD " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " IS NOT NULL AND " +
-						"htb1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY B1_COD", ref adaptador))
-				{
-					atualizaGridGeral();
-				}
-			}
+			string query = isNull
+				? $"SELECT B1_COD AS 'Codigo', B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
+						$"B1_USADA AS 'Usada?', C1_NOME AS 'Curso', C2_NOME AS 'Disciplina', C3_NOME " +
+						$"AS 'Materia', B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao' FROM htb1 INNER " +
+						$"JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+						$"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} IS NULL AND " +
+						$"htb1.D_E_L_E_T {deletados} ORDER BY B1_COD"
+				: $"SELECT B1_COD AS 'Codigo', B1_OBJETIV AS 'Objetiva?', B1_ARQUIVO AS 'Arquivo?', " +
+						$"B1_USADA AS 'Usada?', C1_NOME AS 'Curso', C2_NOME AS 'Disciplina', C3_NOME " +
+						$"AS 'Materia', B1_PADRAO AS 'Padrao?', B1_QUEST AS 'Questao' FROM htb1 INNER " +
+						$"JOIN htc3 ON B1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+						$"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} IS NOT NULL AND " +
+						$"htb1.D_E_L_E_T {deletados} ORDER BY B1_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
 		// CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  CURSO  //
 		private void pesquisaCursosEdit(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT * " +
-					"FROM htc1 " +
-					"WHERE " + campo + " LIKE '%" + condicao +
-						"%' AND D_E_L_E_T " + deletados + " " +
-					"ORDER BY C1_COD", ref respostaBanco))
-			{
-				atualizaCamposCursos();
-			}
+			string query = $"SELECT * FROM htc1 WHERE {campo} LIKE '%{condicao}%' AND D_E_L_E_T" +
+						   $"{deletados} ORDER BY C1_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposCursos(ref dataReader);
+			dataReader.Dispose();
 		}
 
 		private void pesquisaCursosGrid(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT C1_COD AS 'Codigo', " +
-						"C1_NOME AS 'Curso'" +
-					"FROM htc1 " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-						"D_E_L_E_T " + deletados + " " +
-					"ORDER BY C1_COD", ref adaptador))
-			{
-				atualizaGridGeral();
-			}
+			string query = $"SELECT C1_COD AS 'Codigo', C1_NOME AS 'Curso' FROM htc1 WHERE {campo} " +
+						   $"LIKE '%{condicao}%' AND D_E_L_E_T {deletados} ORDER BY C1_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		// DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  //
 		// DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  DISCIPLINA  //
 		private void pesquisaDisciplinasEdit(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT htc2.*, C1_NOME " +
-					"FROM htc2 " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao +
-						"%' AND htc2.D_E_L_E_T " + deletados +
-					" ORDER BY C2_COD", ref respostaBanco))
-			{
-				atualizaCamposDisciplinas();
-			}
+			string query = $"SELECT htc2.*, C1_NOME FROM htc2 INNER JOIN htc1 ON C2_CURSO = C1_COD " +
+						   $"WHERE {campo} LIKE '%{condicao}%' AND htc2.D_E_L_E_T {deletados} ORDER BY C2_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposDisciplinas(ref dataReader);
+			dataReader.Dispose();
 		}
 
 		private void pesquisaDisciplinasGrid(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT C2_COD AS 'Codigo', " +
-						"C2_NOME AS 'Disciplina', C1_NOME AS 'Curso'" +
-					"FROM htc2 " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' AND " +
-						"htc2.D_E_L_E_T " + deletados + " " +
-					"ORDER BY C2_COD", ref adaptador))
-			{
-				atualizaGridGeral();
-			}
+			string query = $"SELECT C2_COD AS 'Codigo', C2_NOME AS 'Disciplina', C1_NOME AS 'Curso' " +
+						   $"FROM htc2 INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} LIKE " +
+						   $"'%{condicao}%' AND htc2.D_E_L_E_T {deletados} ORDER BY C2_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		// MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  //
 		// MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  MATÉRIA  //
 		private void pesquisaMateriasEdit(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT htc3.*, C2_NOME " +
-						"FROM htc3 " +
-							"INNER JOIN htc2 " +
-								"ON C3_DISCIPL = C2_COD " +
-						"WHERE " + campo + " LIKE '%" + condicao +
-							"%' AND htc3.D_E_L_E_T " + deletados +
-						" ORDER BY C3_COD", ref respostaBanco))
-			{
-				atualizaCamposMaterias();
-			}
+			string query = $"SELECT htc3.*, C2_NOME FROM htc3 INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+						   $"WHERE {campo} LIKE '%{condicao}%' AND htc3.D_E_L_E_T {deletados} ORDER BY C3_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposMaterias(ref dataReader);
+			dataReader.Dispose();
 		}
 
 		private void pesquisaMateriasGrid(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT C3_COD AS 'Codigo', " +
-						"C3_NOME AS 'Materia', C2_NOME AS 'Disciplina', " +
-						"C1_NOME AS 'Curso'" +
-					"FROM htc3 " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao +
-						"%' AND htc3.D_E_L_E_T " + deletados +
-					" ORDER BY C3_COD", ref adaptador))
-			{
-				atualizaGridGeral();
-			}
+			string query =
+				$"SELECT C3_COD AS 'Codigo', C3_NOME AS 'Materia', C2_NOME AS 'Disciplina', " +
+				$"C1_NOME AS 'Curso' FROM htc3 INNER JOIN htc2 ON C3_DISCIPL = C2_COD " +
+				$"INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} LIKE '%{condicao}%' AND " +
+				$"htc3.D_E_L_E_T {deletados} ORDER BY C3_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		// AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  //
 		// AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  AVALIAÇÕES  //
 		private void pesquisaHistoricoEdit(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT D1_COD, D1_DATA, " +
-						"D1_QUESTAO, C2_NOME " +
-					"FROM htd1 " +
-						"INNER JOIN htc3 " +
-							"ON D1_MATERIA = C3_COD " +
-						//    "ON SUBSTRING(D1_MATERIA, 1, " + 
-						//    "LOCATE(',', D1_MATERIA) - 1) = C3_COD " + 
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' " +
-						"AND htd1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY D1_COD", ref respostaBanco))
-			{
-				atualizaCamposAvaliacao();
-			}
+			string query = $"SELECT D1_COD, D1_DATA, D1_QUESTAO, C2_NOME FROM htd1 INNER JOIN htc3 " +
+						   $"ON D1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = C2_COD INNER " +
+						   $"JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} LIKE '%{condicao}%' AND " +
+						   $"htd1.D_E_L_E_T {deletados} ORDER BY D1_COD";
+
+			DbDataReader dataReader = ConnectionManager.ExecuteReader(query);
+			atualizaCamposAvaliacao(ref dataReader);
+			dataReader.Dispose();
 		}
 
 		private void pesquisaHistoricoGrid(string campo, string condicao, string deletados)
 		{
-			if (banco.executeComando("SELECT D1_COD AS 'Codigo', D1_DATA " +
-						"AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS 'Inedita?', " +
-						"D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
-						"C2_NOME AS 'Disciplina', D1_MATERIA AS 'Codigos Materias'" +
-					"FROM htd1 " +
-						"INNER JOIN htc3 " +
-							"ON D1_MATERIA = C3_COD " +
-						"INNER JOIN htc2 " +
-							"ON C3_DISCIPL = C2_COD " +
-						"INNER JOIN htc1 " +
-							"ON C2_CURSO = C1_COD " +
-					"WHERE " + campo + " LIKE '%" + condicao + "%' " +
-						"AND htd1.D_E_L_E_T " + deletados + " " +
-					"ORDER BY D1_COD", ref adaptador))
-			{
-				atualizaGridGeral();
-			}
+			string query = $"SELECT D1_COD AS 'Codigo', D1_DATA AS 'Data', D1_TIPO AS 'Tipo', " +
+						   $"D1_INEDITA AS 'Inedita?', D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
+						   $"C2_NOME AS 'Disciplina', D1_MATERIA AS 'Codigos Materias' FROM htd1 " +
+						   $"INNER JOIN htc3 ON D1_MATERIA = C3_COD INNER JOIN htc2 ON C3_DISCIPL = " +
+						   $"C2_COD INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE {campo} LIKE '%{condicao}%' " +
+						   $"AND htd1.D_E_L_E_T {deletados} ORDER BY D1_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 
 		private void pesquisaHistoricoGrid(string campo, bool isNull, string deletados)
 		{
-			if (isNull)
-			{
-				if (banco.executeComando("SELECT D1_COD AS 'Codigo', D1_DATA " +
-							"AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS 'Inedita?', " +
-							"D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
-							"C2_NOME AS 'Disciplina', D1_MATERIA AS 'Codigos Materias'" +
-						"FROM htd1 " +
-							"INNER JOIN htc3 " +
-								"ON D1_MATERIA = C3_COD " +
-							"INNER JOIN htc2 " +
-								"ON C3_DISCIPL = C2_COD " +
-							"INNER JOIN htc1 " +
-								"ON C2_CURSO = C1_COD " +
-						"WHERE " + campo + " IS NULL AND " +
-							"htd1.D_E_L_E_T " + deletados + " " +
-						"ORDER BY D1_COD", ref adaptador))
-				{
-					atualizaGridGeral();
-				}
-			}
-			else
-			{
-				if (banco.executeComando("SELECT D1_COD AS 'Codigo', D1_DATA " +
-							"AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS 'Inedita?', " +
-							"D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', " +
-							"C2_NOME AS 'Disciplina', D1_MATERIA AS 'Codigos Materias'" +
-						"FROM htd1 " +
-							"INNER JOIN htc3 " +
-								"ON D1_MATERIA = C3_COD " +
-							"INNER JOIN htc2 " +
-								"ON C3_DISCIPL = C2_COD " +
-							"INNER JOIN htc1 " +
-								"ON C2_CURSO = C1_COD " +
-						"WHERE " + campo + " IS NOT NULL AND " +
-							"htd1.D_E_L_E_T " + deletados + " " +
-						"ORDER BY D1_COD", ref adaptador))
-				{
-					atualizaGridGeral();
-				}
-			}
+			string query = isNull
+				? $"SELECT D1_COD AS 'Codigo', D1_DATA AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS " +
+					  $"'Inedita?', D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', C2_NOME AS 'Disciplina', " +
+					  $"D1_MATERIA AS 'Codigos Materias' FROM htd1 INNER JOIN htc3 ON D1_MATERIA = C3_COD " +
+					  $"INNER JOIN htc2 ON C3_DISCIPL = C2_COD INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE " +
+					  $"{campo} IS NULL AND htd1.D_E_L_E_T {deletados} ORDER BY D1_COD"
+				: $"SELECT D1_COD AS 'Codigo', D1_DATA AS 'Data', D1_TIPO AS 'Tipo', D1_INEDITA AS " +
+					  $"'Inedita?', D1_QUESTAO AS 'Questoes', C1_NOME AS 'Curso', C2_NOME AS 'Disciplina', " +
+					  $"D1_MATERIA AS 'Codigos Materias' FROM htd1 INNER JOIN htc3 ON D1_MATERIA = C3_COD " +
+					  $"INNER JOIN htc2 ON C3_DISCIPL = C2_COD INNER JOIN htc1 ON C2_CURSO = C1_COD WHERE " +
+					  $"{campo} IS NOT NULL AND htd1.D_E_L_E_T {deletados} ORDER BY D1_COD";
+
+			DbDataAdapter dataAdapter = ConnectionManager.ExecuteAdapter(query);
+			atualizaGridGeral(ref dataAdapter);
+			dataAdapter.Dispose();
 		}
 	}
 }

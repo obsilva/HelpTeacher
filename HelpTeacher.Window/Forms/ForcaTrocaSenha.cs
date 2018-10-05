@@ -35,10 +35,10 @@ namespace HelpTeacher.Forms
 		{
 			if (txtNovaSenha.Text == txtConfirmacao.Text)
 			{
-				banco.executeComando("UPDATE hta1 " +
-						"SET A1_PWD = '" + MD5.gerarHash(txtNovaSenha.Text) +
-							"', A1_ALTPWD = 0 " +
-						"WHERE A1_COD = " + User.Instance.RecordID.ToString());
+				string query = $"UPDATE hta1 SET A1_PWD = '{MD5.gerarHash(txtNovaSenha.Text)}', " +
+							   $"A1_ALTPWD = 0 WHERE A1_COD = {User.Instance.RecordID}";
+
+				ConnectionManager.ExecuteQuery(query);
 				DialogResult = DialogResult.OK;
 			}
 			else
