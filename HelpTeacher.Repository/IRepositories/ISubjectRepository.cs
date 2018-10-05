@@ -1,4 +1,12 @@
-﻿using System.Linq;
+﻿// This Source Code Form is subject to the terms of the Mozilla 
+// Public License, v. 2.0. If a copy of the MPL was not distributed 
+// with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+
+// Since: 2018/09/20
+// Authors: 
+//		Otávio Bueno Silva <obsilva94@gmail.com>
+
+using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 
