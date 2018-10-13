@@ -14,7 +14,7 @@ namespace HelpTeacher.Domain.Entities
 	public class Subject : IEntityBase
 	{
 		#region Properties
-		/// <summary><see cref="Entities.Discipline"/>'s na qual o assunto está sendo lecionado.</summary>
+		/// <summary><see cref="Discipline"/>'s na qual o assunto está sendo lecionado.</summary>
 		public virtual ICollection<Discipline> Disciplines { get; set; }
 
 		/// <inheritdoc />

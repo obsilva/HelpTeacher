@@ -20,9 +20,6 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
-		/// <summary>Iniciais da disciplina (sigla).</summary>
-		public string Initials { get; set; }
-
 		/// <summary>Nome completo da disciplina.</summary>
 		public string Name { get; set; }
 
