@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using NUnit.Framework;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -34,3 +35,8 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+// Set the NUnit parallelism scope. Fixture is the highest level available for assemblies.
+// It's still worth to set the parallelism scope on the fixtures, to assure the tests of
+// that fixture run in parallel, not the fixtures only.
+[assembly: Parallelizable(ParallelScope.Fixtures)]

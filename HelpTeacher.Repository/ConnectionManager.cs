@@ -31,8 +31,19 @@ namespace HelpTeacher.Repository
 		/// <param name="command">Comando onde os parâmetros serão adicionados.</param>
 		/// <param name="parameterName">Nome do(s) parâmetro(s).</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s).</param>
+		/// <exception cref="ArgumentNullException">
+		/// Quando <see cref="command"/> for <see langword="null"/>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// Quando a quantidade de parâmetros informados for diferente da disponíveis na query.
+		/// </exception>
 		private static void AddCommandParameters(DbCommand command, string[] parameterName, string[] parameterValue)
 		{
+			if (command == null)
+			{
+				throw new ArgumentNullException(nameof(command), "Parâmetro obrigatório.");
+			}
+
 			if (parameterName.Length != parameterValue.Length)
 			{
 				throw new ArgumentException($"Número de parâmetros não são iguais: {parameterName.Length} na query" +
@@ -52,7 +63,7 @@ namespace HelpTeacher.Repository
 
 		/// <summary>Encerra a conexão.</summary>
 		/// <param name="connection">Conexão que deve ser fechada.</param>
-		public static void CloseConnection(DbConnection connection) => connection.Close();
+		public static void CloseConnection(DbConnection connection) => connection?.Close();
 
 		/// <summary>
 		/// Cria um <see cref="DbDataAdapter"/> com a query a conexão padrão, pronto para
@@ -72,10 +83,22 @@ namespace HelpTeacher.Repository
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
 		/// <returns>Dados retornados pela consulta em um <see cref="DbDataAdapter"/>.</returns>
+		/// <exception cref="ArgumentNullException">
+		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
+		/// </exception>
 		public static DbDataAdapter ExecuteAdapter(DbConnection connection, string query, params string[] parameterValue)
 		{
-			DbCommand command = connection.CreateCommand();
+			if (String.IsNullOrWhiteSpace(query))
+			{
+				throw new ArgumentNullException(nameof(query), "Parâmetro obrigatório.");
+			}
 
+			if (!IsConnectionOpen(connection))
+			{
+				OpenConnection(connection);
+			}
+
+			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
 
 			command.CommandText = query;
@@ -116,8 +139,21 @@ namespace HelpTeacher.Repository
 		/// <param name="connection">Conexão onde a query deve ser executada.</param>
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
+		/// <exception cref="ArgumentNullException">
+		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
+		/// </exception>
 		public static void ExecuteQuery(DbConnection connection, string query, params string[] parameterValue)
 		{
+			if (String.IsNullOrWhiteSpace(query))
+			{
+				throw new ArgumentNullException(nameof(query), "Parâmetro obrigatório.");
+			}
+
+			if (!IsConnectionOpen(connection))
+			{
+				OpenConnection(connection);
+			}
+
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
 
@@ -142,11 +178,9 @@ namespace HelpTeacher.Repository
 
 					Thread.Sleep(3000);
 				}
-				finally
-				{
-					connection.Close();
-				}
 			} while (attempts < MaxAttempts);
+
+			CloseConnection(connection);
 		}
 
 		/// <summary>
@@ -183,10 +217,22 @@ namespace HelpTeacher.Repository
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
 		/// <returns>Dados retornados pela consulta em um <see cref="DbDataReader"/>.</returns>
+		/// <exception cref="ArgumentNullException">
+		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
+		/// </exception>
 		public static DbDataReader ExecuteReader(DbConnection connection, string query, params string[] parameterValue)
 		{
-			DbCommand command = connection.CreateCommand();
+			if (String.IsNullOrWhiteSpace(query))
+			{
+				throw new ArgumentNullException(nameof(query), "Parâmetro obrigatório.");
+			}
 
+			if (!IsConnectionOpen(connection))
+			{
+				OpenConnection(connection);
+			}
+
+			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
 
 			command.CommandText = query;
@@ -225,7 +271,14 @@ namespace HelpTeacher.Repository
 		/// <param name="connectionString">String de conexão.</param>
 		/// <returns><see cref="DbConnection"/> com a conexão configurada mas não aberta.</returns>
 		public static DbConnection GetConnection(string connectionString)
-			=> new MySqlConnection(connectionString);
+		{
+			if (String.IsNullOrWhiteSpace(connectionString))
+			{
+				throw new ArgumentNullException(nameof(connectionString), "Parâmetro não pode ser null.");
+			}
+
+			return new MySqlConnection(connectionString);
+		}
 
 		/// <summary>
 		/// Obtém uma nova conexão aberta com a base de dados. Caso não seja possível abrir a conexão
@@ -242,38 +295,14 @@ namespace HelpTeacher.Repository
 
 		/// <summary>
 		/// Obtém uma nova conexão aberta com a base de dados utilizando uma string de conexão específica.
-		/// Caso não seja possível abrir a conexão e <see cref="MaxAttempts"/> foi atingido,
-		/// uma exceção é lançada.
-		///
-		/// <para>As tentativas possuem um intervalo de 3 segundos entre elas.</para>
 		/// </summary>
+		/// <param name="connectionString">String de conexão a ser usada.</param>
 		/// <returns><see cref="DbConnection"/> com a conexão aberta.</returns>
-		/// <exception cref="Exception">
-		/// Quando não for possível abrir a conexão e <see cref="MaxAttempts"/> foi atingido.
-		/// </exception>
 		public static DbConnection GetOpenConnection(string connectionString)
 		{
-			int attempts = 0;
 			DbConnection connection = GetConnection(connectionString);
 
-			do
-			{
-				try
-				{
-					connection.Open();
-					break;
-				}
-				catch (DbException)
-				{
-					if (++attempts >= MaxAttempts)
-					{
-						throw new Exception($"Número máximo de tentativas ({MaxAttempts}) de conexão atingido. " +
-											$"Tente novamente mais tarde ou contate o administrador do sistema.");
-					}
-
-					Thread.Sleep(3000);
-				}
-			} while (attempts < MaxAttempts);
+			OpenConnection(connection);
 
 			return connection;
 		}
@@ -312,7 +341,7 @@ namespace HelpTeacher.Repository
 		/// <summary>Determina se a conexão está aptar a ser usada.</summary>
 		/// <param name="connection">A conexão a ser testada.</param>
 		/// <returns>
-		/// <paramref name="true" /> caso a conexão esteja aberta, <paramref name="false" /> caso contrário.
+		/// <see langword="true" /> se a conexão estiver aberta, <see langword="false" /> em qualquer outro caso.
 		/// </returns>
 		public static bool IsConnectionOpen(DbConnection connection)
 		{
@@ -323,7 +352,49 @@ namespace HelpTeacher.Repository
 				ConnectionState.Open
 			};
 
-			return validStates.Contains(connection.State);
+			return (connection != null) && validStates.Contains(connection.State);
+		}
+
+		/// <summary>
+		/// Abre uma conexão. Caso não seja possível abrir a conexão e <see cref="MaxAttempts"/> foi atingido,
+		/// uma exceção é lançada.
+		///
+		/// <para>As tentativas possuem um intervalo de 3 segundos entre elas.</para>
+		/// </summary>
+		/// <param name="connection">Conexão que deve ser aberta.</param>
+		/// <exception cref="ArgumentNullException">
+		/// Quando <see cref="connection"/> for <see langword="null"/>.
+		/// </exception>
+		/// <exception cref="Exception">
+		/// Quando não for possível abrir a conexão e <see cref="MaxAttempts"/> foi atingido.
+		/// </exception>
+		public static void OpenConnection(DbConnection connection)
+		{
+			if (connection == null)
+			{
+				throw new ArgumentNullException(nameof(connection), "Parâmetro não pode ser null.");
+			}
+
+			int attempts = 0;
+
+			do
+			{
+				try
+				{
+					connection.Open();
+					break;
+				}
+				catch (DbException)
+				{
+					if (++attempts >= MaxAttempts)
+					{
+						throw new Exception($"Número máximo de tentativas ({MaxAttempts}) de conexão atingido. " +
+											$"Tente novamente mais tarde ou contate o administrador do sistema.");
+					}
+
+					Thread.Sleep(3000);
+				}
+			} while (attempts < MaxAttempts);
 		}
 		#endregion
 	}
