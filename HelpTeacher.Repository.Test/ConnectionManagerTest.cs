@@ -16,6 +16,7 @@ using NUnit.Framework;
 
 namespace HelpTeacher.Repository.Test
 {
+	/// <summary>Implementa testes de unidade da classe <seealso cref="ConnectionManager"/>.</summary>
 	[TestFixture]
 	[Parallelizable(ParallelScope.All)]
 	public class ConnectionManagerTest
@@ -297,7 +298,7 @@ namespace HelpTeacher.Repository.Test
 		}
 
 		[Test]
-		public void OpenConnection_OpenConnection_When_ConnectionValid()
+		public void OpenConnection_OpenConnection_When_ValidArguments()
 		{
 			DbConnection connection = Connection;
 

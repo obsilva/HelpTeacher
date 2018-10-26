@@ -37,17 +37,17 @@ namespace HelpTeacher.Repository
 		/// <exception cref="ArgumentException">
 		/// Quando a quantidade de parâmetros informados for diferente da disponíveis na query.
 		/// </exception>
-		private static void AddCommandParameters(DbCommand command, string[] parameterName, string[] parameterValue)
+		private static void AddCommandParameters(DbCommand command, string[] parameterName, object[] parameterValue, DbType[] parameterType)
 		{
 			if (command == null)
 			{
 				throw new ArgumentNullException(nameof(command), "Parâmetro obrigatório.");
 			}
 
-			if (parameterName.Length != parameterValue.Length)
+			if ((parameterName.Length != parameterValue.Length) || (parameterName.Length != parameterType.Length))
 			{
-				throw new ArgumentException($"Número de parâmetros não são iguais: {parameterName.Length} na query" +
-											$"e {parameterValue.Length} informados.");
+				throw new ArgumentException($"Número de parâmetros não são iguais: {parameterName.Length} na query," +
+											$" {parameterValue.Length} informados e {parameterType.Length} tipos.");
 			}
 
 			command.Parameters.Clear();
@@ -56,6 +56,7 @@ namespace HelpTeacher.Repository
 				DbParameter parameter = command.CreateParameter();
 				parameter.ParameterName = parameterName[i];
 				parameter.Value = parameterValue[i];
+				parameter.DbType = parameterType[i];
 
 				command.Parameters.Add(parameter);
 			}
@@ -72,7 +73,7 @@ namespace HelpTeacher.Repository
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
 		/// <returns>Dados retornados pela consulta em um <see cref="DbDataAdapter"/>.</returns>
-		public static DbDataAdapter ExecuteAdapter(string query, params string[] parameterValue)
+		public static DbDataAdapter ExecuteAdapter(string query, params object[] parameterValue)
 			=> ExecuteAdapter(GetOpenConnection(), query, parameterValue);
 
 		/// <summary>
@@ -86,7 +87,7 @@ namespace HelpTeacher.Repository
 		/// <exception cref="ArgumentNullException">
 		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
 		/// </exception>
-		public static DbDataAdapter ExecuteAdapter(DbConnection connection, string query, params string[] parameterValue)
+		public static DbDataAdapter ExecuteAdapter(DbConnection connection, string query, params object[] parameterValue)
 		{
 			if (String.IsNullOrWhiteSpace(query))
 			{
@@ -100,9 +101,10 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
+			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
+			AddCommandParameters(command, parameterName, parameterValue, parameterType);
 
 			return new MySqlDataAdapter(command as MySqlCommand);
 		}
@@ -121,7 +123,7 @@ namespace HelpTeacher.Repository
 		/// </example>
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
-		public static void ExecuteQuery(string query, params string[] parameterValue)
+		public static void ExecuteQuery(string query, params object[] parameterValue)
 			=> ExecuteQuery(GetOpenConnection(), query, parameterValue);
 
 		/// <summary>
@@ -142,7 +144,7 @@ namespace HelpTeacher.Repository
 		/// <exception cref="ArgumentNullException">
 		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
 		/// </exception>
-		public static void ExecuteQuery(DbConnection connection, string query, params string[] parameterValue)
+		public static void ExecuteQuery(DbConnection connection, string query, params object[] parameterValue)
 		{
 			if (String.IsNullOrWhiteSpace(query))
 			{
@@ -156,9 +158,10 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
+			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
+			AddCommandParameters(command, parameterName, parameterValue, parameterType);
 
 			int attempts = 0;
 			do
@@ -198,7 +201,7 @@ namespace HelpTeacher.Repository
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
 		/// <returns>Dados retornados pela consulta em um <see cref="DbDataReader"/>.</returns>
-		public static DbDataReader ExecuteReader(string query, params string[] parameterValue)
+		public static DbDataReader ExecuteReader(string query, params object[] parameterValue)
 			=> ExecuteReader(GetOpenConnection(), query, parameterValue);
 
 		/// <summary>
@@ -220,7 +223,7 @@ namespace HelpTeacher.Repository
 		/// <exception cref="ArgumentNullException">
 		/// Quando <see cref="query"/> for <see langword="null"/> ou estiver vazio.
 		/// </exception>
-		public static DbDataReader ExecuteReader(DbConnection connection, string query, params string[] parameterValue)
+		public static DbDataReader ExecuteReader(DbConnection connection, string query, params object[] parameterValue)
 		{
 			if (String.IsNullOrWhiteSpace(query))
 			{
@@ -234,9 +237,10 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
+			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
+			AddCommandParameters(command, parameterName, parameterValue, parameterType);
 
 			int attempts = 0;
 			do
@@ -324,7 +328,7 @@ namespace HelpTeacher.Repository
 			}
 
 			string[] queryWords = query
-				.Split(new char[] { ' ', ',', '(', ')', '=', ';' }, StringSplitOptions.RemoveEmptyEntries);
+				.Split(new char[] { ' ', ',', '.', '(', ')', '=', ';', '#' }, StringSplitOptions.RemoveEmptyEntries);
 
 			var parameters = new List<string>();
 			foreach (string word in queryWords)
@@ -337,6 +341,59 @@ namespace HelpTeacher.Repository
 
 			return parameters.ToArray();
 		}
+
+		/// <summary>
+		/// Recupera o tipo dos parâmetros de uma query. Cada parâmetro é identificado através do seu tipo,
+		/// podendo ser <see langword="bool"/>, <see langword="char"/>, <see cref="DateTime"/>,
+		/// <see langword="decimal"/>, <see langword="double"/>, <see langword="int"/>,
+		/// <see langword="long"/> ou <see langword="string"/>.
+		/// </summary>
+		/// <param name="parameterValue">Os paramâmetros com seus tipos específicos.</param>
+		/// <returns>Um array com o tipo de cada parâmetro informado.</returns>
+		private static DbType[] GetParameterType(object[] parameterValue)
+		{
+			if (parameterValue == null)
+			{ return new DbType[0]; }
+
+			var output = new DbType[parameterValue.Length];
+
+			for (int i = 0; i < parameterValue.Length; i++)
+			{
+				switch (parameterValue[i])
+				{
+					case bool _:
+						output[i] = DbType.Boolean;
+						break;
+					case char _:
+						output[i] = DbType.StringFixedLength;
+						break;
+					case DateTime _:
+						output[i] = DbType.DateTime2;
+						break;
+					case decimal _:
+						output[i] = DbType.Decimal;
+						break;
+					case double _:
+						output[i] = DbType.Double;
+						break;
+					case int _:
+						output[i] = DbType.Int32;
+						break;
+					case long _:
+						output[i] = DbType.Int64;
+						break;
+					case string _:
+						output[i] = DbType.String;
+						break;
+					default:
+						output[i] = DbType.String;
+						break;
+				}
+			}
+
+			return output;
+		}
+
 
 		/// <summary>Determina se a conexão está aptar a ser usada.</summary>
 		/// <param name="connection">A conexão a ser testada.</param>
