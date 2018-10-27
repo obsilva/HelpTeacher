@@ -2,7 +2,7 @@
 // Public License, v. 2.0. If a copy of the MPL was not distributed 
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 
-// Since: 2018/10/25
+// Since: 2018/09/26
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
@@ -20,20 +20,20 @@ using NUnit.Framework;
 
 namespace HelpTeacher.Repository.Test.Repositories
 {
-	/// <summary>Implementa testes de unidade da classe <seealso cref="CourseRepositoryTest"/>.</summary>
+	/// <summary>Implementa testes de unidade da classe <seealso cref="DisciplineRepositoryTest"/>.</summary>
 	[TestFixture]
 	[Parallelizable(ParallelScope.All)]
-	public class CourseRepositoryTest
+	public class DisciplineRepositoryTest
 	{
 		#region Properties
 		private DbConnection Connection => ConnectionManager.GetOpenConnection(ConfigurationManager.ConnectionStrings["MySQLTest"].ConnectionString);
 
-		private CourseRepository Repository => new CourseRepository(Connection);
+		private DisciplineRepository Repository => new DisciplineRepository(Connection);
 		#endregion
 
 
 		#region Constructors
-		public CourseRepositoryTest() { }
+		public DisciplineRepositoryTest() { }
 		#endregion
 
 
@@ -41,7 +41,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[OneTimeSetUp]
 		public void InitClass()
 		{
-			string query = "DELETE FROM helpteacher_test.htc1; ALTER TABLE helpteacher_test.htc1 AUTO_INCREMENT = 1;";
+			string query = "DELETE FROM helpteacher_test.htc2; ALTER TABLE helpteacher_test.htc2 AUTO_INCREMENT = 1;";
 
 			ConnectionManager.ExecuteQuery(Connection, query);
 		}
@@ -62,7 +62,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Add_ArgumentNullException_When_ObjectNull()
 		{
 			string paramName = "obj";
-			Course obj = null;
+			Discipline obj = null;
 
 			Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(paramName),
 				() => Repository.Add(obj));
@@ -72,17 +72,17 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[NonParallelizable]
 		public void Add_RecordAdded_When_ValidArguments()
 		{
-			IEnumerable<Course> collection = CourseTestData.GetList();
+			IEnumerable<Discipline> collection = DisciplineTestData.GetList();
 
 			Repository.Add(collection);
 
-			Assert.AreEqual(CourseTestData.Count, Repository.Get().Count());
+			Assert.AreEqual(DisciplineTestData.Count, Repository.Get().Count());
 		}
 
 		[Test]
 		public void First_DefaultObject_When_ThereIsNoRecord()
 		{
-			var obj = new Course("");
+			var obj = new Discipline(new List<Course>(), "");
 
 			Assert.AreEqual(obj, Repository.First());
 		}
@@ -90,7 +90,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void First_FirstRecord_When_ThereAreRecords()
-			=> Assert.AreEqual(CourseTestData.First, Repository.First());
+			=> Assert.AreEqual(DisciplineTestData.First, Repository.First());
 
 		[Test]
 		public void Get_EmptyList_When_ThereIsNoRecord()
@@ -99,14 +99,14 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_ThereAreRecords()
-			=> Assert.AreEqual(CourseTestData.Count, Repository.Get().Count());
+			=> Assert.AreEqual(DisciplineTestData.Count, Repository.Get().Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsCount()
 		{
-			int pageSize = CourseTestData.Count - 1;
-			var repository = new CourseRepository(Connection, pageSize);
+			int pageSize = DisciplineTestData.Count - 1;
+			var repository = new DisciplineRepository(Connection, pageSize);
 
 			Assert.GreaterOrEqual(pageSize, repository.Get().Count());
 		}
@@ -118,14 +118,14 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test, Order(40)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsActive()
-			=> Assert.AreEqual(CourseTestData.CountActiveRecords, Repository.Get(true).Count());
+			=> Assert.AreEqual(DisciplineTestData.CountActiveRecords, Repository.Get(true).Count());
 
 		[Test, Order(40)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsActiveCount()
 		{
-			int pageSize = CourseTestData.CountActiveRecords - 1;
-			var repository = new CourseRepository(Connection, pageSize);
+			int pageSize = DisciplineTestData.CountActiveRecords - 1;
+			var repository = new DisciplineRepository(Connection, pageSize);
 
 			Assert.GreaterOrEqual(pageSize, repository.Get(true).Count());
 		}
@@ -137,14 +137,14 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test, Order(40)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsNotActive()
-			=> Assert.AreEqual(CourseTestData.CountInactiveRecords, Repository.Get(false).Count());
+			=> Assert.AreEqual(DisciplineTestData.CountInactiveRecords, Repository.Get(false).Count());
 
 		[Test, Order(40)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsNotActiveCount()
 		{
-			int pageSize = CourseTestData.CountInactiveRecords - 1;
-			var repository = new CourseRepository(Connection, pageSize);
+			int pageSize = DisciplineTestData.CountInactiveRecords - 1;
+			var repository = new DisciplineRepository(Connection, pageSize);
 
 			Assert.GreaterOrEqual(pageSize, repository.Get(false).Count());
 		}
@@ -152,44 +152,67 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test]
 		public void Get_DefaultObject_When_ThereIsNoRecordWithSpecifiedId()
 		{
-			var obj = new Course("");
+			var obj = new Discipline(new List<Course>(), "");
 
-			Assert.AreEqual(obj, Repository.Get(CourseTestData.Count + 1));
+			Assert.AreEqual(obj, Repository.Get(DisciplineTestData.Count + 1));
 		}
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void Get_SpecifiedRecord_When_ThereIsRecordWithSpecifiedId()
-			=> Assert.AreEqual(CourseTestData.First, Repository.Get(Repository.First().RecordID));
+			=> Assert.AreEqual(DisciplineTestData.First, Repository.Get(Repository.First().RecordID));
+
+		[Test]
+		public void GetWhereCourse_EmptyList_When_ThereIsNoRecordWithSpecifiedId()
+		{
+			var obj = new Discipline(new List<Course>(), "");
+
+			Assert.AreEqual(obj, Repository.GetWhereCourse(DisciplineTestData.First.Courses.Last().RecordID + 1));
+		}
+
+		[Test, Order(20)]
+		[NonParallelizable]
+		public void GetWhereCourse_NotAllRecordsList_When_PageSizeLowerThanRecordsCount()
+		{
+			int pageSize = 0;
+			var repository = new DisciplineRepository(Connection, pageSize);
+
+			Assert.GreaterOrEqual(pageSize, repository.GetWhereCourse(DisciplineTestData.First.Courses.First().RecordID).Count());
+		}
+
+		[Test, Order(20)]
+		[NonParallelizable]
+		public void GetWhereCourse_RecordsList_When_ThereIsRecordWithSpecifiedId()
+			=> Assert.AreEqual(1, Repository.GetWhereCourse(DisciplineTestData.First.Courses.First().RecordID).Count());
 
 		[Test]
 		public void GetWhereNotID_DefaultObject_When_ThereIsNoRecordDifferentThanSpecifiedId()
 		{
-			var obj = new Course("");
+			var obj = new Discipline(new List<Course>(), "");
 
-			Assert.AreEqual(obj, Repository.Get(CourseTestData.Count + 1));
+			Assert.AreEqual(obj, Repository.Get(DisciplineTestData.Count + 1));
 		}
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void GetWhereNotID_RecordsList_When_ThereIsRecordDifferentThanSpecifiedId()
-			=> Assert.AreEqual(CourseTestData.Count - 1, Repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
+			=> Assert.AreEqual(DisciplineTestData.Count - 1, Repository.GetWhereNotID(DisciplineTestData.First.RecordID).Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void GetWhereNotID_NotAllRecordsList_When_PageSizeLowerThanRecordsCount()
 		{
-			int pageSize = CourseTestData.Count - 2;
-			var repository = new CourseRepository(Connection, pageSize);
+			int pageSize = DisciplineTestData.Count - 2;
+			var repository = new DisciplineRepository(Connection, pageSize);
 
-			Assert.GreaterOrEqual(pageSize, repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
+			Assert.GreaterOrEqual(pageSize, repository.GetWhereNotID(DisciplineTestData.First.RecordID).Count());
 		}
 
 		[Test]
 		public void Update_ArgumentNullException_When_ObjectNull()
 		{
 			string paramName = "obj";
-			Course obj = null;
+			Discipline obj = null;
 
 			Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(paramName),
 				() => Repository.Update(obj));
@@ -199,11 +222,11 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[NonParallelizable]
 		public void Update_RecordUpdated_When_ValidArguments()
 		{
-			IEnumerable<Course> collection = CourseTestData.GetList();
+			IEnumerable<Discipline> collection = DisciplineTestData.GetList();
 
 			Repository.Update(collection);
 
-			Assert.AreEqual(CourseTestData.CountInactiveRecords, Repository.Get(false).Count());
+			Assert.AreEqual(DisciplineTestData.CountInactiveRecords, Repository.Get(false).Count());
 		}
 		#endregion
 	}

@@ -28,7 +28,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelectFirst = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 LIMIT 1;";
 
-		private const string QuerySelectDifferentID = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE C1_COD <> @C1_COD AND D_E_L_E_T = 0  LIMIT @LIMIT OFFSET @OFFSET;;";
+		private const string QuerySelectDifferentID = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE C1_COD <> @C1_COD AND D_E_L_E_T = 0 LIMIT @LIMIT OFFSET @OFFSET;";
 
 		private const string QuerySelectID = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE C1_COD = @C1_COD;";
 
@@ -36,15 +36,15 @@ namespace HelpTeacher.Repository.Repositories
 		#endregion
 
 
-		#region Fields
-		private readonly DbConnection _connection;
-
-		private readonly int _pageSize;
-		#endregion
-
-
 		#region Properties
+		/// <summary>Conexão.</summary>
+		public DbConnection Connection { get; set; }
+
+		/// <summary>Valor de offset na recuperação de registros.</summary>
 		public int Offset { get; set; }
+
+		/// <summary>Tamanho da página de registros.</summary>
+		public int PageSize { get; set; }
 		#endregion
 
 
@@ -57,8 +57,6 @@ namespace HelpTeacher.Repository.Repositories
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
 		public CourseRepository(DbConnection connection = null, int pageSize = 50)
 		{
-			Offset = 0;
-
 			try
 			{
 				if (!ConnectionManager.IsConnectionOpen(connection))
@@ -71,17 +69,95 @@ namespace HelpTeacher.Repository.Repositories
 				connection = ConnectionManager.GetOpenConnection();
 			}
 
-			_connection = connection;
-			_pageSize = pageSize;
+			Connection = connection;
+			Offset = 0;
+			PageSize = pageSize;
 		}
 		#endregion
 
 
-		#region Class Methods
+		#region Methods
+		/// <inheritdoc />
+		public void Add(Course obj)
+		{
+			if (obj == null)
+			{
+				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
+			}
+
+			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name);
+		}
+
+		/// <inheritdoc />
+		public void Add(IEnumerable<Course> collection)
+		{
+			foreach (Course obj in collection)
+			{
+				Add(obj);
+			}
+		}
+
+		/// <inheritdoc />
+		public Course First()
+		{
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectFirst))
+			{
+				IQueryable<Course> records = ReadDataReader(dataReader);
+
+				return records.FirstOrDefault() ?? new Course("");
+			}
+		}
+
+		/// <inheritdoc />
+		public IQueryable<Course> Get()
+		{
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelect, PageSize, Offset))
+			{
+				return ReadDataReader(dataReader);
+			}
+		}
+
+		/// <inheritdoc />
+		public IQueryable<Course> Get(bool isRecordActive)
+		{
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectActive, isRecordActive, PageSize, Offset))
+			{
+				return ReadDataReader(dataReader);
+			}
+		}
+
+		/// <inheritdoc />
+		public Course Get(int id)
+		{
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectID, id))
+			{
+				IQueryable<Course> records = ReadDataReader(dataReader);
+
+				return records.FirstOrDefault() ?? new Course("");
+			}
+		}
+
+		/// <inheritdoc />
+		public IQueryable<Course> GetWhereNotID(Course obj)
+			=> GetWhereNotID(obj.RecordID);
+
+		/// <inheritdoc />
+		public IQueryable<Course> GetWhereNotID(int id)
+		{
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectDifferentID, id, PageSize, Offset))
+			{
+				return ReadDataReader(dataReader);
+			}
+		}
+
 		/// <summary>Faz a leitura do <see cref="DbDataReader"/>.</summary>
 		/// <param name="dataReader">Objeto para ler.</param>
 		/// <returns>Todos os objetos no <see cref="DbDataReader"/>.</returns>
-		private static IQueryable<Course> ReadDataReader(DbDataReader dataReader)
+		private IQueryable<Course> ReadDataReader(DbDataReader dataReader)
 		{
 			var output = new List<Course>();
 
@@ -100,86 +176,6 @@ namespace HelpTeacher.Repository.Repositories
 			dataReader.Close();
 			return output.AsQueryable();
 		}
-		#endregion
-
-
-		#region Instance Methods
-		/// <inheritdoc />
-		public void Add(Course obj)
-		{
-			if (obj == null)
-			{
-				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
-			}
-
-			ConnectionManager.ExecuteQuery(_connection, QueryInsert, obj.Name);
-		}
-
-		/// <inheritdoc />
-		public void Add(IEnumerable<Course> collection)
-		{
-			foreach (Course obj in collection)
-			{
-				Add(obj);
-			}
-		}
-
-		/// <inheritdoc />
-		public Course First()
-		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(_connection, QuerySelectFirst))
-			{
-				IQueryable<Course> records = ReadDataReader(dataReader);
-
-				return records.FirstOrDefault() ?? new Course("");
-			}
-		}
-
-		/// <inheritdoc />
-		public IQueryable<Course> Get()
-		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				_connection, QuerySelect, _pageSize, Offset))
-			{
-				return ReadDataReader(dataReader);
-			}
-		}
-
-		/// <inheritdoc />
-		public IQueryable<Course> Get(bool isRecordActive)
-		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				_connection, QuerySelectActive, isRecordActive, _pageSize, Offset))
-			{
-				return ReadDataReader(dataReader);
-			}
-		}
-
-		/// <inheritdoc />
-		public Course Get(int id)
-		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				_connection, QuerySelectID, id))
-			{
-				IQueryable<Course> records = ReadDataReader(dataReader);
-
-				return records.FirstOrDefault() ?? new Course("");
-			}
-		}
-
-		/// <inheritdoc />
-		public IQueryable<Course> GetWhereNotID(Course obj)
-			=> GetWhereNotID(obj.RecordID);
-
-		/// <inheritdoc />
-		public IQueryable<Course> GetWhereNotID(int id)
-		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				_connection, QuerySelectDifferentID, id, _pageSize, Offset))
-			{
-				return ReadDataReader(dataReader);
-			}
-		}
 
 		/// <inheritdoc />
 		public void Update(Course obj)
@@ -189,7 +185,7 @@ namespace HelpTeacher.Repository.Repositories
 				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
 			}
 
-			ConnectionManager.ExecuteQuery(_connection, QueryUpdate, obj.Name, obj.IsRecordActive, obj.RecordID);
+			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Name, obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />

@@ -13,10 +13,12 @@ using HelpTeacher.Domain.Entities;
 
 namespace HelpTeacher.Repository.Test.TestData
 {
-	/// <summary>Repositório de dados de teste.</summary>
-	internal static class CourseTestData
+	internal static class DisciplineTestData
 	{
 		#region Properties
+		/// <summary>Lista com <see cref="Course"/>s usados na geração das disciplinas de teste.</summary>
+		public static IEnumerable<Course> Courses { get; } = CourseTestData.GetList();
+
 		/// <summary>Recupera o número total de registros em <see cref="GetList"/>.</summary>
 		public static int Count => GetList().Count();
 
@@ -27,10 +29,10 @@ namespace HelpTeacher.Repository.Test.TestData
 		public static int CountInactiveRecords => GetList().Count(item => item.IsRecordActive == false);
 
 		/// <summary>Recupera o primeiro registro em <see cref="GetList"/>.</summary>
-		public static Course First => GetList().First();
+		public static Discipline First => GetList().First();
 
 		/// <summary>Recupera o último registro em <see cref="GetList"/>.</summary>
-		public static Course Last => GetList().Last();
+		public static Discipline Last => GetList().Last();
 		#endregion
 
 
@@ -44,15 +46,21 @@ namespace HelpTeacher.Repository.Test.TestData
 		/// </remarks>
 		/// </summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
-		public static IEnumerable<Course> GetList()
-			=> new List<Course>()
+		public static IEnumerable<Discipline> GetList()
+			=> new List<Discipline>()
 			{
-				new Course("Course 1") {RecordID = 1, IsRecordActive = true},
-				new Course("Course 2") {RecordID = 2, IsRecordActive = false},
-				new Course("Course 3") {RecordID = 3, IsRecordActive = true},
-				new Course("Course 4") {RecordID = 4, IsRecordActive = false},
-				new Course("Course 5") {RecordID = 5, IsRecordActive = true},
-				new Course("Course 6") {RecordID = 6, IsRecordActive = false}
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 1")
+					{ RecordID = 1, IsRecordActive = true },
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 2")
+					{ RecordID = 2, IsRecordActive = false },
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 3")
+					{ RecordID = 3, IsRecordActive = true },
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 4")
+					{ RecordID = 4, IsRecordActive = false },
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 5")
+					{ RecordID = 5, IsRecordActive = true },
+				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 6")
+					{ RecordID = 6, IsRecordActive = false }
 			};
 		#endregion
 	}

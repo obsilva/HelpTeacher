@@ -19,12 +19,12 @@ namespace HelpTeacher.Repository.IRepositories
 		/// <summary>Recupera todos os registros ativos e diferentes do objeto informado.</summary>
 		/// <param name="obj">Objeto que deve ser evitado.</param>
 		/// <returns>Todos os registros ativos, com exceção do objeto informado.</returns>
-		IQueryable<Discipline> GetWhereDifferentId(Discipline obj);
+		IQueryable<Discipline> GetWhereNotID(Discipline obj);
 
 		/// <summary>Recupera todos os registros ativos e que possuem ID diferente do informado.</summary>
 		/// <param name="id">Identificador que deve ser evitado.</param>
 		/// <returns>Todos os registros ativos, com exceção do registro com o ID informado.</returns>
-		IQueryable<Discipline> GetWhereDifferentId(int id);
+		IQueryable<Discipline> GetWhereNotID(int id);
 
 		/// <summary>
 		/// Recupera todos os registros que correspondem à informação especificada.

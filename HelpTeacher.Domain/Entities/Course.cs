@@ -57,7 +57,8 @@ namespace HelpTeacher.Domain.Entities
 		/// <see langword="true"/> se os valores em <paramref name="course1"/> forem diferentes que
 		/// em <paramref name="course2"/>; <see langword="false"/> caso contrário.
 		/// </returns>
-		public static bool operator !=(Course course1, Course course2) => !(course1 == course2);
+		public static bool operator !=(Course course1, Course course2)
+			=> !(course1 == course2);
 		#endregion
 
 
@@ -66,16 +67,24 @@ namespace HelpTeacher.Domain.Entities
 		public bool Equals(Course other)
 		{
 			if (other == null)
-			{ return false; }
+			{
+				return false;
+			}
 
 			if (RecordID != other.RecordID)
-			{ return false; }
+			{
+				return false;
+			}
 
 			if (IsRecordActive != other.IsRecordActive)
-			{ return false; }
+			{
+				return false;
+			}
 
 			if (Name != other.Name)
-			{ return false; }
+			{
+				return false;
+			}
 
 			return true;
 		}
@@ -84,7 +93,8 @@ namespace HelpTeacher.Domain.Entities
 
 		#region Overrides
 		/// <inheritdoc />
-		public override bool Equals(object obj) => Equals(obj as Course);
+		public override bool Equals(object obj)
+			=> Equals(obj as Course);
 
 		/// <inheritdoc />
 		public override int GetHashCode()

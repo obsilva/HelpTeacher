@@ -175,8 +175,9 @@ namespace HelpTeacher.Repository
 				{
 					if (++attempts >= MaxAttempts)
 					{
-						throw new Exception($"Número máximo de tentativas ({MaxAttempts}) de execução de query. " +
-											$"Tente novamente mais tarde ou contate o administrador do sistema.");
+						throw new Exception(
+							$"Número máximo de tentativas ({MaxAttempts}) de execução de query. " +
+							$"Tente novamente mais tarde ou contate o administrador do sistema.");
 					}
 
 					Thread.Sleep(3000);
