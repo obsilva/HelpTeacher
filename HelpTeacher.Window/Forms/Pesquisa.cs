@@ -752,8 +752,7 @@ namespace HelpTeacher.Forms
 
 		private void salvaDiscModificada()
 		{
-			var courses = new List<Course>() { (Course) cmbCursosDisciplina.SelectedItem };
-			var discipline = new Discipline(courses, textNomeDisciplina.Text)
+			var discipline = new Discipline((Course) cmbCursosDisciplina.SelectedItem, textNomeDisciplina.Text)
 			{
 				IsRecordActive = !chkDisciplinaDeletada.Checked,
 				RecordID = Convert.ToInt32(txtCodigoDisciplina.Text),
@@ -899,8 +898,7 @@ namespace HelpTeacher.Forms
 
 		private void salvaMateriaModificada()
 		{
-			var disciplines = new List<Discipline>() { (Discipline) cmbDisciplinaMateria.SelectedItem };
-			var subject = new Subject(disciplines, txtNomeMateria.Text)
+			var subject = new Subject((Discipline) cmbDisciplinaMateria.SelectedItem, txtNomeMateria.Text)
 			{
 				IsRecordActive = !chkMateriaDeletada.Checked,
 				RecordID = Convert.ToInt32(txtCodigoMateria.Text)
@@ -916,7 +914,7 @@ namespace HelpTeacher.Forms
 				Discipline discipline = new DisciplineRepository()
 					.Get(((Discipline) cmbDisciplinaMateria.SelectedItem).RecordID);
 
-				txtCursoMateria.Text = discipline.Courses.FirstOrDefault()?.Name;
+				txtCursoMateria.Text = discipline.Course?.Name;
 			}
 		}
 

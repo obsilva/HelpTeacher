@@ -49,18 +49,12 @@ namespace HelpTeacher.Repository.Test.TestData
 		public static IEnumerable<Discipline> GetList()
 			=> new List<Discipline>()
 			{
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 1")
-					{ RecordID = 1, IsRecordActive = true },
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 2")
-					{ RecordID = 2, IsRecordActive = false },
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 3")
-					{ RecordID = 3, IsRecordActive = true },
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 4")
-					{ RecordID = 4, IsRecordActive = false },
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 5")
-					{ RecordID = 5, IsRecordActive = true },
-				new Discipline(new List<Course>() {Courses.ElementAt(0)}, "Discipline 6")
-					{ RecordID = 6, IsRecordActive = false }
+				new Discipline(Courses.ElementAt(0), "Discipline 1") { RecordID = 1, IsRecordActive = true },
+				new Discipline(Courses.ElementAt(0), "Discipline 2") { RecordID = 2, IsRecordActive = false },
+				new Discipline(Courses.ElementAt(0), "Discipline 3") { RecordID = 3, IsRecordActive = true },
+				new Discipline(Courses.ElementAt(0), "Discipline 4") { RecordID = 4, IsRecordActive = false },
+				new Discipline(Courses.ElementAt(0), "Discipline 5") { RecordID = 5, IsRecordActive = true },
+				new Discipline(Courses.ElementAt(0), "Discipline 6") { RecordID = 6, IsRecordActive = false }
 			};
 		#endregion
 	}

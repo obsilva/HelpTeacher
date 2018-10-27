@@ -29,7 +29,7 @@ namespace HelpTeacher.Repository.Repositories
 		public void Add(Subject obj)
 		{
 			string query = $"INSERT INTO htc3 (C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T) VALUES (NULL, " +
-						   $"'{obj.Name}', {obj.Disciplines.FirstOrDefault()?.RecordID}, NULL)";
+						   $"'{obj.Name}', {obj.Discipline?.RecordID}, NULL)";
 			ConnectionManager.ExecuteQuery(query);
 		}
 
@@ -49,12 +49,12 @@ namespace HelpTeacher.Repository.Repositories
 
 			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
 			{
-				var output = new Subject(new List<Discipline>(), "");
+				var output = new Subject(null, "");
 				if (dataReader.HasRows)
 				{
 					dataReader.Read();
 
-					output.Disciplines.Add(new DisciplineRepository().Get(dataReader.GetInt32(2)));
+					output.Discipline = new DisciplineRepository().Get(dataReader.GetInt32(2));
 					output.Name = dataReader.GetString(1);
 					output.IsRecordActive = dataReader.IsDBNull(3);
 					output.RecordID = dataReader.GetInt32(0);
@@ -76,9 +76,7 @@ namespace HelpTeacher.Repository.Repositories
 				{
 					while (dataReader.Read())
 					{
-						var disciplines = new List<Discipline>()
-							{new DisciplineRepository().Get(dataReader.GetInt32(2))};
-						output.Add(new Subject(disciplines, dataReader.GetString(1))
+						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
 						{
 							IsRecordActive = dataReader.IsDBNull(3),
 							RecordID = dataReader.GetInt32(0)
@@ -103,9 +101,7 @@ namespace HelpTeacher.Repository.Repositories
 				{
 					while (dataReader.Read())
 					{
-						var disciplines = new List<Discipline>()
-							{new DisciplineRepository().Get(dataReader.GetInt32(2))};
-						output.Add(new Subject(disciplines, dataReader.GetString(1))
+						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
 						{
 							IsRecordActive = dataReader.IsDBNull(3),
 							RecordID = dataReader.GetInt32(0)
@@ -124,12 +120,12 @@ namespace HelpTeacher.Repository.Repositories
 
 			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
 			{
-				var output = new Subject(new List<Discipline>(), "");
+				var output = new Subject(null, "");
 				if (dataReader.HasRows)
 				{
 					dataReader.Read();
 
-					output.Disciplines.Add(new DisciplineRepository().Get(dataReader.GetInt32(2)));
+					output.Discipline = new DisciplineRepository().Get(dataReader.GetInt32(2));
 					output.Name = dataReader.GetString(1);
 					output.IsRecordActive = dataReader.IsDBNull(3);
 					output.RecordID = dataReader.GetInt32(0);
@@ -155,9 +151,7 @@ namespace HelpTeacher.Repository.Repositories
 				{
 					while (dataReader.Read())
 					{
-						var disciplines = new List<Discipline>()
-							{new DisciplineRepository().Get(dataReader.GetInt32(2))};
-						output.Add(new Subject(disciplines, dataReader.GetString(1))
+						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
 						{
 							IsRecordActive = dataReader.IsDBNull(3),
 							RecordID = dataReader.GetInt32(0)
@@ -186,9 +180,7 @@ namespace HelpTeacher.Repository.Repositories
 				{
 					while (dataReader.Read())
 					{
-						var disciplines = new List<Discipline>()
-							{new DisciplineRepository().Get(dataReader.GetInt32(2))};
-						output.Add(new Subject(disciplines, dataReader.GetString(1))
+						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
 						{
 							IsRecordActive = dataReader.IsDBNull(3),
 							RecordID = dataReader.GetInt32(0)
@@ -204,7 +196,7 @@ namespace HelpTeacher.Repository.Repositories
 		public void Update(Subject obj)
 		{
 			string query = $"UPDATE htc3 SET C3_NOME ='{obj.Name}', C3_DISCIPL = " +
-						   $"{obj.Disciplines.FirstOrDefault()?.RecordID}, D_E_L_E_T = " +
+						   $"{obj.Discipline?.RecordID}, D_E_L_E_T = " +
 						   $"{(obj.IsRecordActive ? "NULL" : "'*'")} WHERE C3_COD = {obj.RecordID}";
 			ConnectionManager.ExecuteQuery(query);
 		}

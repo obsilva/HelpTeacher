@@ -89,7 +89,7 @@ namespace HelpTeacher.Repository.Repositories
 				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
 			}
 
-			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name, obj.Courses.FirstOrDefault()?.RecordID);
+			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name, obj.Course?.RecordID);
 		}
 
 		/// <inheritdoc />
@@ -108,7 +108,7 @@ namespace HelpTeacher.Repository.Repositories
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
-				return records.FirstOrDefault() ?? new Discipline(new List<Course>(), "");
+				return records.FirstOrDefault() ?? new Discipline(null, "");
 			}
 		}
 
@@ -138,7 +138,7 @@ namespace HelpTeacher.Repository.Repositories
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
-				return records.FirstOrDefault() ?? new Discipline(new List<Course>(), "");
+				return records.FirstOrDefault() ?? new Discipline(null, "");
 			}
 		}
 
@@ -196,8 +196,7 @@ namespace HelpTeacher.Repository.Repositories
 				DbConnection connection = ConnectionManager.GetOpenConnection(Connection.ConnectionString);
 				while (dataReader.Read())
 				{
-					var courses = new List<Course>() { new CourseRepository(connection).Get(dataReader.GetInt32(2)) };
-					output.Add(new Discipline(courses, dataReader.GetString(1))
+					output.Add(new Discipline(new CourseRepository(connection).Get(dataReader.GetInt32(2)), dataReader.GetString(1))
 					{
 						IsRecordActive = (dataReader.GetInt16(3) == 0),
 						RecordID = dataReader.GetInt32(0)
@@ -217,7 +216,7 @@ namespace HelpTeacher.Repository.Repositories
 			}
 
 			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Name,
-				obj.Courses.First().RecordID, obj.IsRecordActive, obj.RecordID);
+				obj.Course.RecordID, obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />

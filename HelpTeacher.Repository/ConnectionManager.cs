@@ -26,6 +26,16 @@ namespace HelpTeacher.Repository
 		#endregion
 
 
+		#region Properties
+		public static Dictionary<Type, DbType> DbTypeMap { get; }
+		#endregion
+
+
+		#region Constructors
+		static ConnectionManager() => DbTypeMap = DbTypeDictionary();
+		#endregion
+
+
 		#region Methods
 		/// <summary>Adiciona os parâmetros ao commando.</summary>
 		/// <param name="command">Comando onde os parâmetros serão adicionados.</param>
@@ -37,26 +47,26 @@ namespace HelpTeacher.Repository
 		/// <exception cref="ArgumentException">
 		/// Quando a quantidade de parâmetros informados for diferente da disponíveis na query.
 		/// </exception>
-		private static void AddCommandParameters(DbCommand command, string[] parameterName, object[] parameterValue, DbType[] parameterType)
+		private static void AddCommandParameters(DbCommand command, string[] parameterName, object[] parameterValue)
 		{
 			if (command == null)
 			{
 				throw new ArgumentNullException(nameof(command), "Parâmetro obrigatório.");
 			}
 
-			if ((parameterName.Length != parameterValue.Length) || (parameterName.Length != parameterType.Length))
+			if (parameterName.Length != parameterValue.Length)
 			{
-				throw new ArgumentException($"Número de parâmetros não são iguais: {parameterName.Length} na query," +
-											$" {parameterValue.Length} informados e {parameterType.Length} tipos.");
+				throw new ArgumentException($"Número de parâmetros não são iguais: {parameterName.Length} na query" +
+											$" e {parameterValue.Length} informados.");
 			}
 
 			command.Parameters.Clear();
 			for (int i = 0; i < parameterName.Length; i++)
 			{
 				DbParameter parameter = command.CreateParameter();
+				parameter.DbType = DbTypeMap[parameterValue[i].GetType()];
 				parameter.ParameterName = parameterName[i];
 				parameter.Value = parameterValue[i];
-				parameter.DbType = parameterType[i];
 
 				command.Parameters.Add(parameter);
 			}
@@ -65,6 +75,50 @@ namespace HelpTeacher.Repository
 		/// <summary>Encerra a conexão.</summary>
 		/// <param name="connection">Conexão que deve ser fechada.</param>
 		public static void CloseConnection(DbConnection connection) => connection?.Close();
+
+		/// <summary>Mapeia os tipos do C# para os tipos em <see cref="DbType"/>.</summary>
+		private static Dictionary<Type, DbType> DbTypeDictionary()
+		{
+			var dictionary = new Dictionary<Type, DbType>
+			{
+				[typeof(byte)] = DbType.Byte,
+				[typeof(sbyte)] = DbType.SByte,
+				[typeof(short)] = DbType.Int16,
+				[typeof(ushort)] = DbType.UInt16,
+				[typeof(int)] = DbType.Int32,
+				[typeof(uint)] = DbType.UInt32,
+				[typeof(long)] = DbType.Int64,
+				[typeof(ulong)] = DbType.UInt64,
+				[typeof(float)] = DbType.Single,
+				[typeof(double)] = DbType.Double,
+				[typeof(decimal)] = DbType.Decimal,
+				[typeof(bool)] = DbType.Boolean,
+				[typeof(string)] = DbType.String,
+				[typeof(char)] = DbType.StringFixedLength,
+				[typeof(Guid)] = DbType.Guid,
+				[typeof(DateTime)] = DbType.DateTime2,
+				[typeof(DateTimeOffset)] = DbType.DateTimeOffset,
+				[typeof(byte[])] = DbType.Binary,
+				[typeof(byte?)] = DbType.Byte,
+				[typeof(sbyte?)] = DbType.SByte,
+				[typeof(short?)] = DbType.Int16,
+				[typeof(ushort?)] = DbType.UInt16,
+				[typeof(int?)] = DbType.Int32,
+				[typeof(uint?)] = DbType.UInt32,
+				[typeof(long?)] = DbType.Int64,
+				[typeof(ulong?)] = DbType.UInt64,
+				[typeof(float?)] = DbType.Single,
+				[typeof(double?)] = DbType.Double,
+				[typeof(decimal?)] = DbType.Decimal,
+				[typeof(bool?)] = DbType.Boolean,
+				[typeof(char?)] = DbType.StringFixedLength,
+				[typeof(Guid?)] = DbType.Guid,
+				[typeof(DateTime?)] = DbType.DateTime2,
+				[typeof(DateTimeOffset?)] = DbType.DateTimeOffset
+			};
+
+			return dictionary;
+		}
 
 		/// <summary>
 		/// Cria um <see cref="DbDataAdapter"/> com a query a conexão padrão, pronto para
@@ -101,10 +155,9 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
-			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue, parameterType);
+			AddCommandParameters(command, parameterName, parameterValue);
 
 			return new MySqlDataAdapter(command as MySqlCommand);
 		}
@@ -158,10 +211,9 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
-			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue, parameterType);
+			AddCommandParameters(command, parameterName, parameterValue);
 
 			int attempts = 0;
 			do
@@ -238,10 +290,9 @@ namespace HelpTeacher.Repository
 
 			DbCommand command = connection.CreateCommand();
 			string[] parameterName = GetParameterName(query);
-			DbType[] parameterType = GetParameterType(parameterValue);
 
 			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue, parameterType);
+			AddCommandParameters(command, parameterName, parameterValue);
 
 			int attempts = 0;
 			do
@@ -342,59 +393,6 @@ namespace HelpTeacher.Repository
 
 			return parameters.ToArray();
 		}
-
-		/// <summary>
-		/// Recupera o tipo dos parâmetros de uma query. Cada parâmetro é identificado através do seu tipo,
-		/// podendo ser <see langword="bool"/>, <see langword="char"/>, <see cref="DateTime"/>,
-		/// <see langword="decimal"/>, <see langword="double"/>, <see langword="int"/>,
-		/// <see langword="long"/> ou <see langword="string"/>.
-		/// </summary>
-		/// <param name="parameterValue">Os paramâmetros com seus tipos específicos.</param>
-		/// <returns>Um array com o tipo de cada parâmetro informado.</returns>
-		private static DbType[] GetParameterType(object[] parameterValue)
-		{
-			if (parameterValue == null)
-			{ return new DbType[0]; }
-
-			var output = new DbType[parameterValue.Length];
-
-			for (int i = 0; i < parameterValue.Length; i++)
-			{
-				switch (parameterValue[i])
-				{
-					case bool _:
-						output[i] = DbType.Boolean;
-						break;
-					case char _:
-						output[i] = DbType.StringFixedLength;
-						break;
-					case DateTime _:
-						output[i] = DbType.DateTime2;
-						break;
-					case decimal _:
-						output[i] = DbType.Decimal;
-						break;
-					case double _:
-						output[i] = DbType.Double;
-						break;
-					case int _:
-						output[i] = DbType.Int32;
-						break;
-					case long _:
-						output[i] = DbType.Int64;
-						break;
-					case string _:
-						output[i] = DbType.String;
-						break;
-					default:
-						output[i] = DbType.String;
-						break;
-				}
-			}
-
-			return output;
-		}
-
 
 		/// <summary>Determina se a conexão está aptar a ser usada.</summary>
 		/// <param name="connection">A conexão a ser testada.</param>

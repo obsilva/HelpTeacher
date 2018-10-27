@@ -8,7 +8,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HelpTeacher.Domain.Entities
 {
@@ -16,8 +15,8 @@ namespace HelpTeacher.Domain.Entities
 	public class Discipline : IEntityBase, IEquatable<Discipline>
 	{
 		#region Properties
-		/// <summary><see cref="Course"/>'s onde a disciplina é lecionada.</summary>
-		public virtual ICollection<Course> Courses { get; set; }
+		/// <summary><see cref="Course"/> onde a disciplina é lecionada.</summary>
+		public virtual Course Course { get; set; }
 
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
@@ -36,13 +35,13 @@ namespace HelpTeacher.Domain.Entities
 		#region Constructors
 		/// <summary>
 		/// Inicializa uma nova instância da clasee <see cref="Discipline"/> com o
-		/// <see cref="Courses"/> e nome especificados.
+		/// <see cref="Course"/> e nome especificados.
 		/// </summary>
-		/// <param name="courses">Cursos onde a disciplina é lecionada.</param>
+		/// <param name="course">Curso onde a disciplina é lecionada.</param>
 		/// <param name="name">Nome completo da disciplina.</param>
-		public Discipline(ICollection<Course> courses, string name)
+		public Discipline(Course course, string name)
 		{
-			Courses = courses;
+			Course = course;
 			Name = name;
 		}
 		#endregion
@@ -95,7 +94,7 @@ namespace HelpTeacher.Domain.Entities
 				return false;
 			}
 
-			if (!Courses.FirstOrDefault().Equals(other.Courses.FirstOrDefault()))
+			if (!Course.Equals(other.Course))
 			{
 				return false;
 			}
@@ -113,13 +112,15 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public override int GetHashCode()
 		{
-			int hashCode = -1040917842;
-			hashCode = (hashCode * -1521134295) + EqualityComparer<ICollection<Course>>.Default.GetHashCode(Courses);
+			int hashCode = -334468231;
+			hashCode = (hashCode * -1521134295) + EqualityComparer<Course>.Default.GetHashCode(Course);
 			hashCode = (hashCode * -1521134295) + IsRecordActive.GetHashCode();
 			hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Name);
 			hashCode = (hashCode * -1521134295) + RecordID.GetHashCode();
 			return hashCode;
 		}
+
+
 		#endregion
 	}
 }

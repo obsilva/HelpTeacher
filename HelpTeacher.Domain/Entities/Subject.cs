@@ -14,8 +14,8 @@ namespace HelpTeacher.Domain.Entities
 	public class Subject : IEntityBase
 	{
 		#region Properties
-		/// <summary><see cref="Discipline"/>'s na qual o assunto está sendo lecionado.</summary>
-		public virtual ICollection<Discipline> Disciplines { get; set; }
+		/// <summary><see cref="Entities.Discipline"/> na qual o assunto está sendo lecionado.</summary>
+		public virtual Discipline Discipline { get; set; }
 
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
@@ -33,14 +33,14 @@ namespace HelpTeacher.Domain.Entities
 
 		#region Constructors
 		/// <summary>
-		/// Inicializa uma nova instância da classe <see cref="Subject"/> com as
-		/// <see cref="Discipline"/>s e nome especificados.
+		/// Inicializa uma nova instância da classe <see cref="Subject"/> com a
+		/// <see cref="Discipline"/> e nome especificados.
 		/// </summary>
-		/// <param name="disciplines">Disciplina onde o assunto é lecionado.</param>
+		/// <param name="discipline">Disciplina onde o assunto é lecionado.</param>
 		/// <param name="name">Nome completo do assunto.</param>
-		public Subject(ICollection<Discipline> disciplines, string name)
+		public Subject(Discipline discipline, string name)
 		{
-			Disciplines = disciplines;
+			Discipline = discipline;
 			Name = name;
 		}
 		#endregion

@@ -6,7 +6,6 @@
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
 using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Windows.Forms;
@@ -111,8 +110,7 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarDisc_Click(object sender, EventArgs e)
 		{
-			ICollection<Course> courses = new List<Course>() { (Course) cmbCurso.SelectedItem };
-			var discipline = new Discipline(courses, txtNomeDisciplina.Text);
+			var discipline = new Discipline((Course) cmbCurso.SelectedItem, txtNomeDisciplina.Text);
 
 			cadastraDisciplina(discipline);
 			limparForm();
@@ -185,8 +183,7 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
-			ICollection<Discipline> disciplines = new List<Discipline>() { (Discipline) cmbDisciplina.SelectedItem };
-			var subject = new Subject(disciplines, txtNomeMateria.Text);
+			var subject = new Subject((Discipline) cmbDisciplina.SelectedItem, txtNomeMateria.Text);
 
 			cadastraMateria(subject);
 			limparForm();
@@ -211,7 +208,7 @@ namespace HelpTeacher.Forms
 		private void buscaCurso()
 		{
 			var discipline = (Discipline) cmbDisciplina.SelectedItem;
-			txtCurso.Text = discipline?.Courses?.FirstOrDefault()?.Name;
+			txtCurso.Text = discipline?.Course?.Name;
 		}
 
 		private void cadastraMateria(Subject value)

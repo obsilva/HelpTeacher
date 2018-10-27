@@ -82,7 +82,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test]
 		public void First_DefaultObject_When_ThereIsNoRecord()
 		{
-			var obj = new Discipline(new List<Course>(), "");
+			var obj = new Discipline(null, "");
 
 			Assert.AreEqual(obj, Repository.First());
 		}
@@ -152,7 +152,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test]
 		public void Get_DefaultObject_When_ThereIsNoRecordWithSpecifiedId()
 		{
-			var obj = new Discipline(new List<Course>(), "");
+			var obj = new Discipline(null, "");
 
 			Assert.AreEqual(obj, Repository.Get(DisciplineTestData.Count + 1));
 		}
@@ -165,9 +165,9 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[Test]
 		public void GetWhereCourse_EmptyList_When_ThereIsNoRecordWithSpecifiedId()
 		{
-			var obj = new Discipline(new List<Course>(), "");
+			var obj = new Discipline(null, "");
 
-			Assert.AreEqual(obj, Repository.GetWhereCourse(DisciplineTestData.First.Courses.Last().RecordID + 1));
+			Assert.AreEqual(obj, Repository.GetWhereCourse(DisciplineTestData.First.Course.RecordID + 1));
 		}
 
 		[Test, Order(20)]
@@ -177,18 +177,18 @@ namespace HelpTeacher.Repository.Test.Repositories
 			int pageSize = 0;
 			var repository = new DisciplineRepository(Connection, pageSize);
 
-			Assert.GreaterOrEqual(pageSize, repository.GetWhereCourse(DisciplineTestData.First.Courses.First().RecordID).Count());
+			Assert.GreaterOrEqual(pageSize, repository.GetWhereCourse(DisciplineTestData.First.Course.RecordID).Count());
 		}
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void GetWhereCourse_RecordsList_When_ThereIsRecordWithSpecifiedId()
-			=> Assert.AreEqual(1, Repository.GetWhereCourse(DisciplineTestData.First.Courses.First().RecordID).Count());
+			=> Assert.AreEqual(1, Repository.GetWhereCourse(DisciplineTestData.First.Course.RecordID).Count());
 
 		[Test]
 		public void GetWhereNotID_DefaultObject_When_ThereIsNoRecordDifferentThanSpecifiedId()
 		{
-			var obj = new Discipline(new List<Course>(), "");
+			var obj = new Discipline(null, "");
 
 			Assert.AreEqual(obj, Repository.Get(DisciplineTestData.Count + 1));
 		}
