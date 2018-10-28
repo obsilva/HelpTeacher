@@ -117,12 +117,19 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarDisc_Click(object sender, EventArgs e)
 		{
-			var discipline = new Discipline((Course) cmbCurso.SelectedItem, txtNomeDisciplina.Text);
+			try
+			{
+				var discipline = new Discipline(cmbCurso.SelectedItem as Course, txtNomeDisciplina.Text);
 
-			cadastraDisciplina(discipline);
-			limparForm();
-			atualizaCodigoDisciplina();
-			Mensagem.cadastradoEfetuado();
+				cadastraDisciplina(discipline);
+				limparForm();
+				atualizaCodigoDisciplina();
+				Mensagem.cadastradoEfetuado();
+			}
+			catch (ArgumentNullException)
+			{
+				Mensagem.campoEmBranco();
+			}
 		}
 
 		private void btnCancelarDisc_Click(object sender, EventArgs e) => Close();
@@ -275,24 +282,10 @@ namespace HelpTeacher.Forms
 			}
 			else if (tabControlConteudo.SelectedTab == tabDisciplinas)
 			{
-				/* Sem nome */
-				if (String.IsNullOrWhiteSpace(txtNomeDisciplina.Text))
-				{
-					Mensagem.campoEmBranco();
-					txtNomeDisciplina.Focus();
-					return false;
-				}
 				/* Disciplina já existe */
 				if (collection.Contains(txtNomeDisciplina.Text))
 				{
 					Mensagem.disciplinaExistente();
-					return false;
-				}
-				/* Nenhum curso selecionado */
-				if (cmbCurso.SelectedIndex == -1)
-				{
-					Mensagem.campoEmBranco();
-					cmbCurso.Focus();
 					return false;
 				}
 			}

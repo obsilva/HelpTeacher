@@ -61,7 +61,7 @@ namespace HelpTeacher.Util
 			StringLength(str, paramName, maxLength, 0, message);
 		}
 
-		// <summary>Checa se <see cref="String.Length"/> está entre o mínimo e máximo permitidos.</summary>
+		/// <summary>Checa se <see cref="String.Length"/> está entre o mínimo e máximo permitidos.</summary>
 		/// <param name="str">Valor a ser verificado.</param>
 		/// <param name="paramName">Nome do parâmetro de onde o valor veio.</param>
 		/// <param name="maxLength">Comprimento máximo permitido.</param>

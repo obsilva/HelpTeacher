@@ -52,6 +52,17 @@ namespace HelpTeacher.Domain.Test.Entities
 
 
 		#region Tests
+		[Test]
+		public void IsNull_True_When_NullInstance()
+			=> Assert.IsTrue(CourseNull.IsNull);
+
+		[Test]
+		public void IsNull_False_When_IsNotNullInstance()
+		{
+			var obj = new Course(Name);
+
+			Assert.IsFalse(obj.IsNull);
+		}
 
 		[Test]
 		public void Name_ArgumentNullException_When_Empty([Values(null, "", " ")] string value)
@@ -63,7 +74,7 @@ namespace HelpTeacher.Domain.Test.Entities
 		{
 			string value = Name;
 
-			while (value.Length < Course.NAME_MAX_LENGTH)
+			while (value.Length < Course.NAME_MAX_LENGTH + 1)
 			{
 				value += value;
 			}
