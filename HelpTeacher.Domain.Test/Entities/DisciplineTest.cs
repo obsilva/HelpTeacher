@@ -12,7 +12,7 @@ using HelpTeacher.Domain.Entities;
 
 using NUnit.Framework;
 
-namespace HelpTeacher.Domain.Test.Entites
+namespace HelpTeacher.Domain.Test.Entities
 {
 	/// <summary>Implementa testes de unidade da classe <seealso cref="DisciplineTest"/>.</summary>
 	[TestFixture]
@@ -88,7 +88,7 @@ namespace HelpTeacher.Domain.Test.Entites
 		{
 			string value = Name;
 
-			while (value.Length < Discipline.NAME_MAX_LENGTH + 1)
+			while (value.Length < Discipline.NameMaxLength + 1)
 			{
 				value += value;
 			}

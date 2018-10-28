@@ -24,7 +24,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelect = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 LIMIT @LIMIT OFFSET @OFFSET;";
 
-		private const string QuerySelectActive = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE D_E_L_E_T = @IS_ACTIVE LIMIT @LIMIT OFFSET @OFFSET;";
+		private const string QuerySelectActive = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
 
 		private const string QuerySelectFirst = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 LIMIT 1;";
 
@@ -32,7 +32,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelectID = "SELECT C1_COD, C1_NOME, D_E_L_E_T FROM htc1 WHERE C1_COD = @C1_COD;";
 
-		private const string QueryUpdate = "UPDATE htc1 SET C1_NOME = @C1_NOME, D_E_L_E_T = @IS_ACTIVE WHERE C1_COD = @C1_COD";
+		private const string QueryUpdate = "UPDATE htc1 SET C1_NOME = @C1_NOME, D_E_L_E_T = @IS_DELETED WHERE C1_COD = @C1_COD";
 		#endregion
 
 

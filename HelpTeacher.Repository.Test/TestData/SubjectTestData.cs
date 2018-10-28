@@ -2,7 +2,7 @@
 // Public License, v. 2.0. If a copy of the MPL was not distributed 
 // with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 
-// Since: 2018/10/25
+// Since: 2018/10/28
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
@@ -14,11 +14,11 @@ using HelpTeacher.Domain.Entities;
 namespace HelpTeacher.Repository.Test.TestData
 {
 	/// <summary>Repositório de dados de teste.</summary>
-	internal static class DisciplineTestData
+	public static class SubjectTestData
 	{
 		#region Properties
-		/// <summary>Lista com <see cref="Course"/>s usados na geração das disciplinas de teste.</summary>
-		public static IEnumerable<Course> Courses { get; } = CourseTestData.GetList();
+		/// <summary>Lista com <see cref="Discipline"/>s usados na geração dos assuntos de teste.</summary>
+		public static IEnumerable<Discipline> Disciplines { get; } = DisciplineTestData.GetList();
 
 		/// <summary>Recupera o número total de registros em <see cref="GetList"/>.</summary>
 		public static int Count => GetList().Count();
@@ -30,10 +30,10 @@ namespace HelpTeacher.Repository.Test.TestData
 		public static int CountInactiveRecords => GetList().Count(item => item.IsRecordActive == false);
 
 		/// <summary>Recupera o primeiro registro em <see cref="GetList"/>.</summary>
-		public static Discipline First => GetList().First();
+		public static Subject First => GetList().First();
 
 		/// <summary>Recupera o último registro em <see cref="GetList"/>.</summary>
-		public static Discipline Last => GetList().Last();
+		public static Subject Last => GetList().Last();
 		#endregion
 
 
@@ -47,15 +47,15 @@ namespace HelpTeacher.Repository.Test.TestData
 		/// </remarks>
 		/// </summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
-		public static IEnumerable<Discipline> GetList()
-			=> new List<Discipline>()
+		public static IEnumerable<Subject> GetList()
+			=> new List<Subject>()
 			{
-				new Discipline(Courses.ElementAt(0), "Discipline 1") { RecordID = 1, IsRecordActive = true },
-				new Discipline(Courses.ElementAt(1), "Discipline 2") { RecordID = 2, IsRecordActive = false },
-				new Discipline(Courses.ElementAt(2), "Discipline 3") { RecordID = 3, IsRecordActive = true },
-				new Discipline(Courses.ElementAt(3), "Discipline 4") { RecordID = 4, IsRecordActive = false },
-				new Discipline(Courses.ElementAt(4), "Discipline 5") { RecordID = 5, IsRecordActive = true },
-				new Discipline(Courses.ElementAt(5), "Discipline 6") { RecordID = 6, IsRecordActive = false }
+				new Subject(Disciplines.ElementAt(0), "Subject 1") { RecordID = 1, IsRecordActive = true },
+				new Subject(Disciplines.ElementAt(1), "Subject 2") { RecordID = 2, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(2), "Subject 3") { RecordID = 3, IsRecordActive = true },
+				new Subject(Disciplines.ElementAt(3), "Subject 4") { RecordID = 4, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(4), "Subject 5") { RecordID = 5, IsRecordActive = true },
+				new Subject(Disciplines.ElementAt(5), "Subject 6") { RecordID = 6, IsRecordActive = false }
 			};
 		#endregion
 	}

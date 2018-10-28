@@ -74,7 +74,7 @@ namespace HelpTeacher.Domain.Test.Entities
 		{
 			string value = Name;
 
-			while (value.Length < Course.NAME_MAX_LENGTH + 1)
+			while (value.Length < Course.NameMaxLength + 1)
 			{
 				value += value;
 			}

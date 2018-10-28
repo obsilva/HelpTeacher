@@ -18,7 +18,7 @@ namespace HelpTeacher.Domain.Entities
 	{
 		#region Constants
 		/// <summary>Representa o comprimento máximo do <see cref="Name"/>.</summary>
-		public const int NAME_MAX_LENGTH = 40;
+		public const int NameMaxLength = 40;
 		#endregion
 
 
@@ -28,9 +28,6 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Properties
-		/// <summary><see cref="Discipline"/> oferecidas pelo curso.</summary>
-		public virtual ICollection<Discipline> Disciplines { get; set; }
-
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
@@ -43,8 +40,8 @@ namespace HelpTeacher.Domain.Entities
 			get => _name;
 			set
 			{
-				Checker.NullOrEmpty(value, nameof(Name));
-				Checker.StringLength(value, nameof(Name), NAME_MAX_LENGTH);
+				Checker.NullOrEmptyString(value, nameof(Name));
+				Checker.StringLength(value, nameof(Name), NameMaxLength);
 
 				_name = value;
 			}
@@ -57,7 +54,6 @@ namespace HelpTeacher.Domain.Entities
 		{
 			_name = String.Empty,
 
-			Disciplines = new List<Discipline>(),
 			IsRecordActive = false,
 			RecordID = -1
 		};
@@ -79,7 +75,7 @@ namespace HelpTeacher.Domain.Entities
 		#endregion
 
 
-		#region Class Methods
+		#region Methods
 		/// <summary>Determina se os dois cursos especificados possuem valores iguais.</summary>
 		/// <param name="course1">O primeiro curso para comparar, ou <see langword="null"/>.</param>
 		/// <param name="course2">O segundo curso para comparar, ou <see langword="null"/>.</param>
@@ -99,10 +95,7 @@ namespace HelpTeacher.Domain.Entities
 		/// </returns>
 		public static bool operator !=(Course course1, Course course2)
 			=> !(course1 == course2);
-		#endregion
 
-
-		#region Instance Methods
 		/// <inheritdoc />
 		public bool Equals(Course other)
 		{

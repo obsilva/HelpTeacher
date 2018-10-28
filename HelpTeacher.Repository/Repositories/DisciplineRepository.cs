@@ -24,11 +24,11 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelect = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 LIMIT @LIMIT OFFSET @OFFSET;";
 
-		private const string QuerySelectActive = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE D_E_L_E_T = @IS_ACTIVE LIMIT @LIMIT OFFSET @OFFSET;";
+		private const string QuerySelectActive = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
 
 		private const string QuerySelectCourse = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE C2_CURSO = @C2_CURSO LIMIT @LIMIT OFFSET @OFFSET;";
 
-		private const string QuerySelectCourseAndActive = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE C2_CURSO = @C2_CURSO AND D_E_L_E_T = @IS_ACTIVE LIMIT @LIMIT OFFSET @OFFSET;";
+		private const string QuerySelectCourseAndActive = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE C2_CURSO = @C2_CURSO AND D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
 
 		private const string QuerySelectFirst = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 LIMIT 1;";
 
@@ -36,7 +36,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelectID = "SELECT C2_COD, C2_NOME, C2_CURSO, D_E_L_E_T FROM htc2 WHERE C2_COD = @C2_COD;";
 
-		private const string QueryUpdate = "UPDATE htc2 SET C2_NOME = @C2_NOME, C2_CURSO = @C2_CURSO, D_E_L_E_T = @IS_ACTIVE WHERE C2_COD = @C2_COD";
+		private const string QueryUpdate = "UPDATE htc2 SET C2_NOME = @C2_NOME, C2_CURSO = @C2_CURSO, D_E_L_E_T = @IS_DELETED WHERE C2_COD = @C2_COD";
 		#endregion
 
 

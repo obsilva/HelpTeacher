@@ -43,8 +43,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entites\CourseTest.cs" />
-    <Compile Include="Entites\DisciplineTest.cs" />
+    <Compile Include="Entities\CourseTest.cs" />
+    <Compile Include="Entities\DisciplineTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

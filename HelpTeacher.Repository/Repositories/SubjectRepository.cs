@@ -12,14 +12,61 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository.IRepositories;
+using HelpTeacher.Util;
 
 namespace HelpTeacher.Repository.Repositories
 {
 	/// <inheritdoc />
 	public class SubjectRepository : ISubjectRepository
 	{
+		#region Constants
+		private const string QueryInsert = "INSERT INTO htc3 (C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T) VALUES (NULL, @C3_NOME, @C3_DISCIPL, 0);";
+
+		private const string QuerySelect = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectActive = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectDiscipline = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_DISCIPL = @C3_DISCIPL LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectDisciplineAndActive = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_DISCIPL = @C3_DISCIPL AND D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectFirst = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 LIMIT 1;";
+
+		private const string QuerySelectID = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_COD = @C3_COD;";
+
+		private const string QueryUpdate = "UPDATE htc3 SET C3_NOME = @C3_NOME, C3_DISCIPL = @C3_DISCIPL, D_E_L_E_T = @IS_DELETED WHERE C3_COD = @C3_COD";
+		#endregion
+
+
+		#region Properties
+		/// <summary>Conexão.</summary>
+		public DbConnection Connection { get; set; }
+
+		/// <summary>Valor de offset na recuperação de registros.</summary>
+		public int Offset { get; set; }
+
+		/// <summary>Tamanho da página de registros.</summary>
+		public int PageSize { get; set; }
+		#endregion
+
+
 		#region Constructors
-		public SubjectRepository() { }
+		public SubjectRepository(DbConnection connection = null, int pageSize = 50)
+		{
+			if (connection == null)
+			{
+				connection = ConnectionManager.GetOpenConnection();
+			}
+
+			if (!ConnectionManager.IsConnectionOpen(connection))
+			{
+				ConnectionManager.OpenConnection(connection);
+			}
+
+			Connection = connection;
+			Offset = 0;
+			PageSize = pageSize;
+		}
 		#endregion
 
 
@@ -28,14 +75,16 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public void Add(Subject obj)
 		{
-			string query = $"INSERT INTO htc3 (C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T) VALUES (NULL, " +
-						   $"'{obj.Name}', {obj.Discipline?.RecordID}, NULL)";
-			ConnectionManager.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name, obj.Discipline?.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Add(IEnumerable<Subject> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Subject obj in collection)
 			{
 				Add(obj);
@@ -45,165 +94,109 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Subject First()
 		{
-			string query = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 LIMIT 1";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectFirst))
 			{
-				var output = new Subject(null, "");
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Subject> records = ReadDataReader(dataReader);
 
-					output.Discipline = new DisciplineRepository().Get(dataReader.GetInt32(2));
-					output.Name = dataReader.GetString(1);
-					output.IsRecordActive = dataReader.IsDBNull(3);
-					output.RecordID = dataReader.GetInt32(0);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? Subject.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Subject> Get()
 		{
-			string query = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelect, PageSize, Offset))
 			{
-				var output = new List<Subject>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
-						{
-							IsRecordActive = dataReader.IsDBNull(3),
-							RecordID = dataReader.GetInt32(0)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Subject> Get(bool isRecordActive)
 		{
-			string query = $"SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 " +
-						   $"WHERE D_E_L_E_T { (isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection,
+				QuerySelectActive, !isRecordActive, PageSize, Offset))
 			{
-				var output = new List<Subject>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
-						{
-							IsRecordActive = dataReader.IsDBNull(3),
-							RecordID = dataReader.GetInt32(0)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public Subject Get(int id)
 		{
-			string query = $"SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_COD = {id}";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectID, id))
 			{
-				var output = new Subject(null, "");
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Subject> records = ReadDataReader(dataReader);
 
-					output.Discipline = new DisciplineRepository().Get(dataReader.GetInt32(2));
-					output.Name = dataReader.GetString(1);
-					output.IsRecordActive = dataReader.IsDBNull(3);
-					output.RecordID = dataReader.GetInt32(0);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? Subject.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Subject> GetWhereDiscipline(Discipline obj)
-			=> GetWhereDiscipline(obj.RecordID);
+			=> (obj == null) ? new List<Subject>().AsQueryable() : GetWhereDiscipline(obj.RecordID);
 
 		/// <inheritdoc />
 		public IQueryable<Subject> GetWhereDiscipline(int id)
 		{
-			string query = $"SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_DISCIPL = {id}";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection,
+				QuerySelectDiscipline, id, PageSize, Offset))
 			{
-				var output = new List<Subject>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
-						{
-							IsRecordActive = dataReader.IsDBNull(3),
-							RecordID = dataReader.GetInt32(0)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Subject> GetWhereDiscipline(Discipline obj, bool isRecordActive)
-			=> GetWhereDiscipline(obj.RecordID, isRecordActive);
+			=> (obj == null) ? new List<Subject>().AsQueryable() : GetWhereDiscipline(obj.RecordID, isRecordActive);
 
 		/// <inheritdoc />
 		public IQueryable<Subject> GetWhereDiscipline(int id, bool isRecordActive)
 		{
-			string query = $"SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_DISCIPL = {id} " +
-						   $"AND D_E_L_E_T { (isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection,
+				QuerySelectDisciplineAndActive, id, !isRecordActive, PageSize, Offset))
 			{
-				var output = new List<Subject>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new Subject(new DisciplineRepository().Get(dataReader.GetInt32(2)), dataReader.GetString(1))
-						{
-							IsRecordActive = dataReader.IsDBNull(3),
-							RecordID = dataReader.GetInt32(0)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
+		}
+
+		/// <summary>Faz a leitura do <see cref="DbDataReader"/>.</summary>
+		/// <param name="dataReader">Objeto para ler.</param>
+		/// <returns>Todos os objetos no <see cref="DbDataReader"/>.</returns>
+		private IQueryable<Subject> ReadDataReader(DbDataReader dataReader)
+		{
+			var output = new List<Subject>();
+			if (dataReader.HasRows)
+			{
+				DbConnection connection = ConnectionManager.GetOpenConnection(Connection.ConnectionString);
+				while (dataReader.Read())
+				{
+					Discipline discipline = new DisciplineRepository(connection).Get(dataReader.GetInt32(2));
+					output.Add(new Subject(discipline, dataReader.GetString(1))
+					{
+						IsRecordActive = (dataReader.GetInt32(3) == 0),
+						RecordID = dataReader.GetInt32(0)
+					});
+				}
+			}
+
+			return output.AsQueryable();
 		}
 
 		/// <inheritdoc />
 		public void Update(Subject obj)
 		{
-			string query = $"UPDATE htc3 SET C3_NOME ='{obj.Name}', C3_DISCIPL = " +
-						   $"{obj.Discipline?.RecordID}, D_E_L_E_T = " +
-						   $"{(obj.IsRecordActive ? "NULL" : "'*'")} WHERE C3_COD = {obj.RecordID}";
-			ConnectionManager.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Name, obj.Discipline.RecordID,
+				!obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Update(IEnumerable<Subject> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Subject obj in collection)
 			{
 				Update(obj);

@@ -20,7 +20,7 @@ using NUnit.Framework;
 
 namespace HelpTeacher.Repository.Test.Repositories
 {
-	/// <summary>Implementa testes de unidade da classe <seealso cref="CourseRepositoryTest"/>.</summary>
+	/// <summary>Implementa testes de unidade da classe <seealso cref="CourseRepository"/>.</summary>
 	[TestFixture]
 	[Parallelizable(ParallelScope.All)]
 	public class CourseRepositoryTest
@@ -41,7 +41,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[OneTimeSetUp]
 		public void InitClass()
 		{
-			string query = "DELETE FROM helpteacher_test.htc1; ALTER TABLE helpteacher_test.htc1 AUTO_INCREMENT = 1;";
+			string query = "DELETE FROM htc1; ALTER TABLE htc1 AUTO_INCREMENT = 1;";
 
 			ConnectionManager.ExecuteQuery(Connection, query);
 		}
@@ -170,12 +170,12 @@ namespace HelpTeacher.Repository.Test.Repositories
 
 		[Test]
 		public void GetWhereNotID_EmptyList_When_ThereIsNoRecordDifferentThanSpecifiedId()
-			=> Assert.AreEqual(0, Repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
+			=> Assert.AreEqual(0, Repository.GetWhereNotID(CourseTestData.First).Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
 		public void GetWhereNotID_RecordsList_When_ThereIsRecordDifferentThanSpecifiedId()
-			=> Assert.AreEqual(CourseTestData.Count - 1, Repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
+			=> Assert.AreEqual(CourseTestData.Count - 1, Repository.GetWhereNotID(CourseTestData.First).Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
@@ -184,7 +184,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 			int pageSize = CourseTestData.Count - 2;
 			var repository = new CourseRepository(Connection, pageSize);
 
-			Assert.GreaterOrEqual(pageSize, repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
+			Assert.GreaterOrEqual(pageSize, repository.GetWhereNotID(CourseTestData.First).Count());
 		}
 
 		[Test]

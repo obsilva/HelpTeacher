@@ -18,7 +18,7 @@ namespace HelpTeacher.Domain.Entities
 	{
 		#region Constants
 		/// <summary>Representa o comprimento máximo do <see cref="Name"/>.</summary>
-		public const int NAME_MAX_LENGTH = 80;
+		public const int NameMaxLength = 80;
 		#endregion
 
 
@@ -54,8 +54,8 @@ namespace HelpTeacher.Domain.Entities
 			get => _name;
 			set
 			{
-				Checker.NullOrEmpty(value, nameof(Name));
-				Checker.StringLength(value, nameof(Name), NAME_MAX_LENGTH);
+				Checker.NullOrEmptyString(value, nameof(Name));
+				Checker.StringLength(value, nameof(Name), NameMaxLength);
 
 				_name = value;
 			}
@@ -70,15 +70,11 @@ namespace HelpTeacher.Domain.Entities
 
 			Course = Course.Null,
 			IsRecordActive = false,
-			RecordID = -1,
-			Subjects = new List<Subject>()
+			RecordID = -1
 		};
 
 		/// <inheritdoc />
 		public int RecordID { get; set; }
-
-		/// <summary><see cref="Subject"/> lecionados na disciplina.</summary>
-		public virtual ICollection<Subject> Subjects { get; set; }
 		#endregion
 
 
@@ -99,7 +95,7 @@ namespace HelpTeacher.Domain.Entities
 		#endregion
 
 
-		#region Class Methods
+		#region Methods
 		/// <summary>Determina se as duas disciplinas especificadas possuem valores iguais.</summary>
 		/// <param name="discipline1">A primeira disciplina para comparar, ou <see langword="null"/>.</param>
 		/// <param name="discipline2">A segunda disciplina para comparar, ou <see langword="null"/>.</param>
@@ -119,10 +115,7 @@ namespace HelpTeacher.Domain.Entities
 		/// </returns>
 		public static bool operator !=(Discipline discipline1, Discipline discipline2)
 			=> !(discipline1 == discipline2);
-		#endregion
 
-
-		#region Instance Methods
 		/// <inheritdoc />
 		public bool Equals(Discipline other)
 		{
@@ -171,8 +164,6 @@ namespace HelpTeacher.Domain.Entities
 			hashCode = (hashCode * -1521134295) + RecordID.GetHashCode();
 			return hashCode;
 		}
-
-
 		#endregion
 	}
 }

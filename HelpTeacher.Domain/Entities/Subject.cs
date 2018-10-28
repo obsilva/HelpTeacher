@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade assunto.</summary>
-	public class Subject : IEntityBase
+	public class Subject : IEntityBase, IEquatable<Subject>
 	{
 		#region Properties
 		/// <summary><see cref="Entities.Discipline"/> na qual o assunto está sendo lecionado.</summary>
@@ -35,12 +35,8 @@ namespace HelpTeacher.Domain.Entities
 			Discipline = Discipline.Null,
 			IsRecordActive = false,
 			Name = String.Empty,
-			Questions = new List<Question>(),
 			RecordID = -1
 		};
-
-		/// <summary><see cref="Question"/>'s disponíveis no assunto.</summary>
-		public virtual ICollection<Question> Questions { get; set; }
 
 		/// <inheritdoc />
 		public int RecordID { get; set; }
@@ -60,6 +56,77 @@ namespace HelpTeacher.Domain.Entities
 		{
 			Discipline = discipline;
 			Name = name;
+		}
+		#endregion
+
+
+		#region Methods
+		/// <summary>Determina se os dois assuntos especificados possuem valores iguais.</summary>
+		/// <param name="subject1">O primeiro assunto para comparar, ou <see langword="null"/>.</param>
+		/// <param name="subject2">O segundoa assunto para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="subject1"/> forem iguais que
+		/// em <paramref name="subject2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator ==(Subject subject1, Subject subject2)
+			=> EqualityComparer<Subject>.Default.Equals(subject1, subject2);
+
+		/// <summary>Determina se os dois assuntos especificados possuem valores diferentes.</summary>
+		/// <param name="subject1">O primeiro assuntos para comparar, ou <see langword="null"/>.</param>
+		/// <param name="subject2">O segundo assuntos para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="subject1"/> forem diferentes que
+		/// em <paramref name="subject2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator !=(Subject subject1, Subject subject2)
+			=> !(subject1 == subject2);
+
+		/// <inheritdoc />
+		public bool Equals(Subject other)
+		{
+			if (other == null)
+			{
+				return false;
+			}
+
+			if (RecordID != other.RecordID)
+			{
+				return false;
+			}
+
+			if (IsRecordActive != other.IsRecordActive)
+			{
+				return false;
+			}
+
+			if (Name != other.Name)
+			{
+				return false;
+			}
+
+			if (!Discipline.Equals(other.Discipline))
+			{
+				return false;
+			}
+
+			return true;
+		}
+		#endregion
+
+
+		#region Overrides
+		/// <inheritdoc />
+		public override bool Equals(object obj) => Equals(obj as Subject);
+
+		/// <inheritdoc />
+		public override int GetHashCode()
+		{
+			int hashCode = -1526528328;
+			hashCode = (hashCode * -1521134295) + EqualityComparer<Discipline>.Default.GetHashCode(Discipline);
+			hashCode = (hashCode * -1521134295) + IsRecordActive.GetHashCode();
+			hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Name);
+			hashCode = (hashCode * -1521134295) + RecordID.GetHashCode();
+			return hashCode;
 		}
 		#endregion
 	}

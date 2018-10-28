@@ -39,7 +39,7 @@ namespace HelpTeacher.Util
 		/// <exception cref="ArgumentNullException">
 		/// Lançada quando for <see langword="null"/> ou <see cref="String.Empty"/>.
 		/// </exception>
-		public static void NullOrEmpty(string str, string paramName)
+		public static void NullOrEmptyString(string str, string paramName)
 		{
 			if (String.IsNullOrWhiteSpace(str))
 			{

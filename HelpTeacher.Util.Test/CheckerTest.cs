@@ -65,11 +65,11 @@ namespace HelpTeacher.Util.Test
 		[Test]
 		public void NullOrEmpty_ArgumentNullException_When_ValueEmpty([Values(null, "", " ")] string value)
 			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(ParamName),
-					() => Checker.NullOrEmpty(value, ParamName));
+					() => Checker.NullOrEmptyString(value, ParamName));
 
 		[Test]
 		public void NullOrEmpty_Void_When_ValidArguments()
-			=> Assert.DoesNotThrow(() => Checker.NullOrEmpty(StringNotEmpty, ParamName));
+			=> Assert.DoesNotThrow(() => Checker.NullOrEmptyString(StringNotEmpty, ParamName));
 
 		[Test]
 		public void StringLength_ArgumentOutOfRangeException_When_StringLenghtGreaterThanAllowed()
