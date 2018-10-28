@@ -58,11 +58,18 @@ namespace HelpTeacher.Forms
 
 		private void btnSalvarCurso_Click(object sender, EventArgs e)
 		{
-			var course = new Course(txtNomeCurso.Text);
-			cadastraCurso(course);
-			limparForm();
-			atualizaCodigoCurso();
-			Mensagem.cadastradoEfetuado();
+			try
+			{
+				var course = new Course(txtNomeCurso.Text);
+				cadastraCurso(course);
+				limparForm();
+				atualizaCodigoCurso();
+				Mensagem.cadastradoEfetuado();
+			}
+			catch (ArgumentNullException)
+			{
+				Mensagem.campoEmBranco();
+			}
 		}
 
 		private void btnCancelarCurso_Click(object sender, EventArgs e) => Close();
@@ -259,12 +266,6 @@ namespace HelpTeacher.Forms
 		{
 			if (tabControlConteudo.SelectedTab == tabCursos)
 			{
-				/* Sem nome */
-				if (String.IsNullOrWhiteSpace(txtNomeCurso.Text))
-				{
-					Mensagem.campoEmBranco();
-					return false;
-				}
 				/* Curso já existe */
 				if (collection.Contains(txtNomeCurso.Text))
 				{

@@ -9,11 +9,24 @@
 using System;
 using System.Collections.Generic;
 
+using HelpTeacher.Util;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade curso.</summary>
 	public class Course : IEntityBase, IEquatable<Course>
 	{
+		#region Constants
+		/// <summary>Representa o comprimento máximo do <see cref="Name"/>.</summary>
+		public const int NAME_MAX_LENGTH = 40;
+		#endregion
+
+
+		#region Fields
+		private string _name;
+		#endregion
+
+
 		#region Properties
 		/// <summary><see cref="Discipline"/> oferecidas pelo curso.</summary>
 		public virtual ICollection<Discipline> Disciplines { get; set; }
@@ -25,16 +38,27 @@ namespace HelpTeacher.Domain.Entities
 		public bool IsNull => Equals(Null);
 
 		/// <summary>Nome completo do curso.</summary>
-		public string Name { get; set; }
+		public string Name
+		{
+			get => _name;
+			set
+			{
+				Checker.NullOrEmpty(value, nameof(Name));
+				Checker.StringLength(value, nameof(Name), NAME_MAX_LENGTH);
+
+				_name = value;
+			}
+		}
 
 		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
 		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
 		/// <returns>Nova instância vazia.</returns>
 		public static Course Null => new Course()
 		{
+			_name = String.Empty,
+
 			Disciplines = new List<Discipline>(),
 			IsRecordActive = false,
-			Name = String.Empty,
 			RecordID = -1
 		};
 
