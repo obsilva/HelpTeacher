@@ -21,8 +21,22 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
+		/// <inheritdoc />
+		public bool IsNull => Equals(Null);
+
 		/// <summary>Nome completo do curso.</summary>
 		public string Name { get; set; }
+
+		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
+		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
+		/// <returns>Nova instância vazia.</returns>
+		public static Course Null => new Course()
+		{
+			Disciplines = new List<Discipline>(),
+			IsRecordActive = false,
+			Name = String.Empty,
+			RecordID = -1
+		};
 
 		/// <inheritdoc />
 		public int RecordID { get; set; }
@@ -30,6 +44,8 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
+		private Course() { }
+
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Course"/> com o
 		/// nome especificado.

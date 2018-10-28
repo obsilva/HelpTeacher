@@ -11,10 +11,15 @@ namespace HelpTeacher.Domain.Entities
 	/// <summary>Define as informações básicas de uma entidade.</summary>
 	public interface IEntityBase
 	{
+		#region Properties
+		/// <summary>Determina sae a instância é <see langword="null"/>.</summary>
+		bool IsNull { get; }
+
 		/// <summary>Determina se o registro está ativo.</summary>
 		bool IsRecordActive { get; set; }
 
 		/// <summary>Identificador único do registro.</summary>
 		int RecordID { get; set; }
+		#endregion
 	}
 }

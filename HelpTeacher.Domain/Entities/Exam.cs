@@ -26,6 +26,23 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
+		/// <inheritdoc />
+		public bool IsNull => Equals(Null);
+
+		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
+		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
+		/// <returns>Nova instância vazia.</returns>
+		public static Exam Null => new Exam()
+		{
+			GeneratedDate = DateTime.MinValue,
+			HasOnlyUnusedQuestion = false,
+			IsRecordActive = false,
+			Questions = new List<Question>(),
+			RecordID = -1,
+			Subjects = new List<Subject>(),
+			Type = 'D'
+		};
+
 		/// <summary><see cref="Question"/>'s utilizadas na geração da avaliação.</summary>
 		public ICollection<Question> Questions { get; set; }
 
@@ -37,13 +54,15 @@ namespace HelpTeacher.Domain.Entities
 
 		/// <summary>
 		/// Tipo da avaliação.
-		/// <para>Pode ser: Mista, Objetivaoou Dissertativa</para>
+		/// <para>Pode ser: Mista, Objetiva ou Dissertativa</para>
 		/// </summary>
 		public char Type { get; set; }
 		#endregion
 
 
 		#region Constructors
+		private Exam() { }
+
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Exam"/> com as
 		/// <see cref="Question"/> e <see cref="Subject"/> específicados.

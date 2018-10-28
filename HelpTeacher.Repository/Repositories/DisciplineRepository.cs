@@ -6,13 +6,13 @@
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
-using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository.IRepositories;
+using HelpTeacher.Util;
 
 namespace HelpTeacher.Repository.Repositories
 {
@@ -61,16 +61,14 @@ namespace HelpTeacher.Repository.Repositories
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
 		public DisciplineRepository(DbConnection connection = null, int pageSize = 50)
 		{
-			try
-			{
-				if (!ConnectionManager.IsConnectionOpen(connection))
-				{
-					ConnectionManager.OpenConnection(connection);
-				}
-			}
-			catch (ArgumentNullException)
+			if (connection == null)
 			{
 				connection = ConnectionManager.GetOpenConnection();
+			}
+
+			if (!ConnectionManager.IsConnectionOpen(connection))
+			{
+				ConnectionManager.OpenConnection(connection);
 			}
 
 			Connection = connection;
@@ -84,10 +82,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public void Add(Discipline obj)
 		{
-			if (obj == null)
-			{
-				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
-			}
+			Checker.NullObject(obj, nameof(obj));
 
 			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name, obj.Course?.RecordID);
 		}
@@ -95,6 +90,8 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public void Add(IEnumerable<Discipline> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Discipline obj in collection)
 			{
 				Add(obj);
@@ -108,7 +105,7 @@ namespace HelpTeacher.Repository.Repositories
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
-				return records.FirstOrDefault() ?? new Discipline(null, "");
+				return records.FirstOrDefault() ?? Discipline.Null;
 			}
 		}
 
@@ -125,7 +122,7 @@ namespace HelpTeacher.Repository.Repositories
 		public IQueryable<Discipline> Get(bool isRecordActive)
 		{
 			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectActive, isRecordActive, PageSize, Offset))
+				Connection, QuerySelectActive, !isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -138,13 +135,13 @@ namespace HelpTeacher.Repository.Repositories
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
-				return records.FirstOrDefault() ?? new Discipline(null, "");
+				return records.FirstOrDefault() ?? Discipline.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(Course obj)
-			=> GetWhereCourse(obj.RecordID);
+			=> (obj == null) ? new List<Discipline>().AsQueryable() : GetWhereCourse(obj.RecordID);
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(int id)
@@ -158,13 +155,13 @@ namespace HelpTeacher.Repository.Repositories
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(Course obj, bool isRecordActive)
-			=> GetWhereCourse(obj.RecordID, isRecordActive);
+			=> (obj == null) ? new List<Discipline>().AsQueryable() : GetWhereCourse(obj.RecordID, !isRecordActive);
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(int id, bool isRecordActive)
 		{
 			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectCourseAndActive, id, isRecordActive, PageSize, Offset))
+				Connection, QuerySelectCourseAndActive, id, !isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -172,7 +169,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereNotID(Discipline obj)
-			=> GetWhereNotID(obj.RecordID);
+			=> (obj == null) ? new List<Discipline>().AsQueryable() : GetWhereNotID(obj.RecordID);
 
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereNotID(int id)
@@ -196,7 +193,8 @@ namespace HelpTeacher.Repository.Repositories
 				DbConnection connection = ConnectionManager.GetOpenConnection(Connection.ConnectionString);
 				while (dataReader.Read())
 				{
-					output.Add(new Discipline(new CourseRepository(connection).Get(dataReader.GetInt32(2)), dataReader.GetString(1))
+					Course course = new CourseRepository(connection).Get(dataReader.GetInt32(2));
+					output.Add(new Discipline(course, dataReader.GetString(1))
 					{
 						IsRecordActive = (dataReader.GetInt16(3) == 0),
 						RecordID = dataReader.GetInt32(0)
@@ -210,18 +208,17 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public void Update(Discipline obj)
 		{
-			if (obj == null)
-			{
-				throw new ArgumentNullException(nameof(obj), "Parâmetro obrigatório.");
-			}
+			Checker.NullObject(obj, nameof(obj));
 
 			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Name,
-				obj.Course.RecordID, obj.IsRecordActive, obj.RecordID);
+				obj.Course.RecordID, !obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Update(IEnumerable<Discipline> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Discipline obj in collection)
 			{
 				Update(obj);

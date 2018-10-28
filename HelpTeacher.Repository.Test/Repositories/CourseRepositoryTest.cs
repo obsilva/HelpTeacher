@@ -68,6 +68,16 @@ namespace HelpTeacher.Repository.Test.Repositories
 				() => Repository.Add(obj));
 		}
 
+		[Test]
+		public void Add_ArgumentNullException_When_CollectionNull()
+		{
+			string paramName = "collection";
+			IEnumerable<Course> collection = null;
+
+			Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(paramName),
+				() => Repository.Add(collection));
+		}
+
 		[Test, Order(10)]
 		[NonParallelizable]
 		public void Add_RecordAdded_When_ValidArguments()
@@ -81,11 +91,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 
 		[Test]
 		public void First_DefaultObject_When_ThereIsNoRecord()
-		{
-			var obj = new Course("");
-
-			Assert.AreEqual(obj, Repository.First());
-		}
+			=> Assert.AreEqual(Course.Null, Repository.First());
 
 		[Test, Order(20)]
 		[NonParallelizable]
@@ -151,11 +157,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 
 		[Test]
 		public void Get_DefaultObject_When_ThereIsNoRecordWithSpecifiedId()
-		{
-			var obj = new Course("");
-
-			Assert.AreEqual(obj, Repository.Get(CourseTestData.Count + 1));
-		}
+			=> Assert.AreEqual(Course.Null, Repository.Get(CourseTestData.Count + 1));
 
 		[Test, Order(20)]
 		[NonParallelizable]
@@ -163,12 +165,12 @@ namespace HelpTeacher.Repository.Test.Repositories
 			=> Assert.AreEqual(CourseTestData.First, Repository.Get(Repository.First().RecordID));
 
 		[Test]
-		public void GetWhereNotID_DefaultObject_When_ThereIsNoRecordDifferentThanSpecifiedId()
-		{
-			var obj = new Course("");
+		public void GetWhereNotID_EmptyList_When_ObjectNull()
+			=> Assert.AreEqual(0, Repository.GetWhereNotID(null).Count());
 
-			Assert.AreEqual(obj, Repository.Get(CourseTestData.Count + 1));
-		}
+		[Test]
+		public void GetWhereNotID_EmptyList_When_ThereIsNoRecordDifferentThanSpecifiedId()
+			=> Assert.AreEqual(0, Repository.GetWhereNotID(CourseTestData.First.RecordID).Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
@@ -193,6 +195,16 @@ namespace HelpTeacher.Repository.Test.Repositories
 
 			Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(paramName),
 				() => Repository.Update(obj));
+		}
+
+		[Test]
+		public void Update_ArgumentNullException_When_CollectionNull()
+		{
+			string paramName = "collection";
+			IEnumerable<Course> collection = null;
+
+			Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(paramName),
+				() => Repository.Update(collection));
 		}
 
 		[Test, Order(30)]

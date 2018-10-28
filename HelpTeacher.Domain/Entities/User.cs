@@ -6,6 +6,8 @@
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
+using System;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade usuário.</summary>
@@ -18,8 +20,23 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
+		/// <inheritdoc />
+		public bool IsNull => Equals(Null);
+
 		/// <summary>Determina se o usuário deve alterar a senha.</summary>
 		public bool MustChangePassword { get; set; }
+
+		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
+		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
+		/// <returns>Nova instância vazia.</returns>
+		public static User Null => new User()
+		{
+			IsRecordActive = false,
+			MustChangePassword = false,
+			Password = String.Empty,
+			RecordID = -1,
+			Username = String.Empty
+		};
 
 		/// <summary>Senha utilizada para ter acesso ao sistema.</summary>
 		/// <remarks>A senha é armazenada criptografada.</remarks>

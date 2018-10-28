@@ -6,6 +6,7 @@
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
+using System;
 using System.Collections.Generic;
 
 namespace HelpTeacher.Domain.Entities
@@ -33,6 +34,25 @@ namespace HelpTeacher.Domain.Entities
 		public bool IsRecordActive { get; set; }
 
 		/// <inheritdoc />
+		public bool IsNull => Equals(Null);
+
+		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
+		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
+		/// <returns>Nova instância vazia.</returns>
+		public static Question Null => new Question()
+		{
+			FirstAttachment = String.Empty,
+			IsDefault = false,
+			IsObjective = false,
+			IsRecordActive = false,
+			RecordID = -1,
+			SecondAttachment = String.Empty,
+			Statement = String.Empty,
+			Subjects = new List<Subject>(),
+			WasUsed = true
+		};
+
+		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary>Caminho completo para o segundo anexo.</summary>
@@ -50,6 +70,8 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
+		private Question() { }
+
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Question"/> com os 
 		/// <see cref = "Subjects" /> e enunciado específicados.

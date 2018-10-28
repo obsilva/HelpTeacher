@@ -27,6 +27,7 @@ namespace HelpTeacher.Repository
 
 
 		#region Properties
+		/// <summary>Mapeia os tipos do C# para os tipos em <see cref="DbType"/>.</summary>
 		public static Dictionary<Type, DbType> DbTypeMap { get; }
 		#endregion
 

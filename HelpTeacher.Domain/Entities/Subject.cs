@@ -6,6 +6,7 @@
 // Authors: 
 //		Otávio Bueno Silva <obsilva94@gmail.com>
 
+using System;
 using System.Collections.Generic;
 
 namespace HelpTeacher.Domain.Entities
@@ -20,8 +21,23 @@ namespace HelpTeacher.Domain.Entities
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
 
+		/// <inheritdoc />
+		public bool IsNull => Equals(Null);
+
 		/// <summary>Nome completo do assunto.</summary>
 		public string Name { get; set; }
+
+		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
+		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
+		/// <returns>Nova instância vazia.</returns>
+		public static Subject Null => new Subject()
+		{
+			Discipline = Discipline.Null,
+			IsRecordActive = false,
+			Name = String.Empty,
+			Questions = new List<Question>(),
+			RecordID = -1
+		};
 
 		/// <summary><see cref="Question"/>'s disponíveis no assunto.</summary>
 		public virtual ICollection<Question> Questions { get; set; }
@@ -32,6 +48,8 @@ namespace HelpTeacher.Domain.Entities
 
 
 		#region Constructors
+		private Subject() { }
+
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Subject"/> com a
 		/// <see cref="Discipline"/> e nome especificados.
