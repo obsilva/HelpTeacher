@@ -14,17 +14,17 @@ using NUnit.Framework;
 
 namespace HelpTeacher.Domain.Test.Entities
 {
-	/// <summary>Implementa testes de unidade da classe <seealso cref="Discipline"/>.</summary>
+	/// <summary>Implementa testes de unidade da classe <seealso cref="Subject"/>.</summary>
 	[TestFixture]
 	[Parallelizable(ParallelScope.All)]
-	public class DisciplineTest
+	public class SubjectTest
 	{
 		#region Properties
-		private Course CourseNull { get; } = Course.Null;
-
 		private Discipline DisciplineNull { get; } = Discipline.Null;
 
 		private readonly string Name = "Discipline";
+
+		private Subject SubjectNull { get; } = Subject.Null;
 		#endregion
 
 
@@ -34,7 +34,7 @@ namespace HelpTeacher.Domain.Test.Entities
 
 
 		#region Constructors
-		public DisciplineTest() { }
+		public SubjectTest() { }
 		#endregion
 
 
@@ -55,53 +55,53 @@ namespace HelpTeacher.Domain.Test.Entities
 
 		#region Tests
 		[Test]
-		public void Course_ArgumentNullException_When_Null()
-			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(nameof(Discipline.Course)),
-				() => DisciplineNull.Course = null);
+		public void Discipline_ArgumentNullException_When_Null()
+			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(nameof(Subject.Discipline)),
+				() => SubjectNull.Discipline = null);
 
 		[Test]
-		public void Course_Void_When_ValidValue()
+		public void Discipline_Void_When_ValidValue()
 		{
-			Assert.DoesNotThrow(() => DisciplineNull.Course = CourseNull);
-			Assert.AreEqual(CourseNull, DisciplineNull.Course);
+			Assert.DoesNotThrow(() => SubjectNull.Discipline = DisciplineNull);
+			Assert.AreEqual(DisciplineNull, SubjectNull.Discipline);
 		}
 
 		[Test]
 		public void IsNull_True_When_NullInstance()
-			=> Assert.IsTrue(DisciplineNull.IsNull);
+			=> Assert.IsTrue(SubjectNull.IsNull);
 
 		[Test]
 		public void IsNull_False_When_IsNotNullInstance()
 		{
-			var obj = new Discipline(CourseNull, Name);
+			var obj = new Subject(DisciplineNull, Name);
 
 			Assert.IsFalse(obj.IsNull);
 		}
 
 		[Test]
 		public void Name_ArgumentNullException_When_Empty([Values(null, "", " ")] string value)
-			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(nameof(Discipline.Name)),
-				() => DisciplineNull.Name = value);
+			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(nameof(Subject.Name)),
+				() => SubjectNull.Name = value);
 
 		[Test]
 		public void Name_ArgumentOutOfRangeException_When_LenghtGreaterThanAllowed()
 		{
 			string value = Name;
 
-			while (value.Length < Discipline.NameMaxLength + 1)
+			while (value.Length < Subject.NameMaxLength + 1)
 			{
 				value += value;
 			}
 
-			Assert.Throws(Is.TypeOf<ArgumentOutOfRangeException>().And.Property("ParamName").EqualTo(nameof(Discipline.Name)),
-				() => DisciplineNull.Name = value);
+			Assert.Throws(Is.TypeOf<ArgumentOutOfRangeException>().And.Property("ParamName").EqualTo(nameof(Subject.Name)),
+				() => SubjectNull.Name = value);
 		}
 
 		[Test]
 		public void Name_Void_When_ValidValue()
 		{
-			Assert.DoesNotThrow(() => DisciplineNull.Name = Name);
-			Assert.AreEqual(Name, DisciplineNull.Name);
+			Assert.DoesNotThrow(() => SubjectNull.Name = Name);
+			Assert.AreEqual(Name, SubjectNull.Name);
 		}
 		#endregion
 	}

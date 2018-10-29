@@ -197,12 +197,19 @@ namespace HelpTeacher.Forms
 
 		private void bntSalvarMateria_Click(object sender, EventArgs e)
 		{
-			var subject = new Subject((Discipline) cmbDisciplina.SelectedItem, txtNomeMateria.Text);
+			try
+			{
+				var subject = new Subject(cmbDisciplina.SelectedItem as Discipline, txtNomeMateria.Text);
 
-			cadastraMateria(subject);
-			limparForm();
-			atualizaCodigoMateria();
-			Mensagem.cadastradoEfetuado();
+				cadastraMateria(subject);
+				limparForm();
+				atualizaCodigoMateria();
+				Mensagem.cadastradoEfetuado();
+			}
+			catch (ArgumentNullException)
+			{
+				Mensagem.campoEmBranco();
+			}
 		}
 
 		private void btnCancelarMateria_Click(object sender, EventArgs e) => Close();
@@ -291,24 +298,10 @@ namespace HelpTeacher.Forms
 			}
 			else
 			{
-				/* Sem nome */
-				if (String.IsNullOrWhiteSpace(txtNomeMateria.Text))
-				{
-					Mensagem.campoEmBranco();
-					txtNomeMateria.Focus();
-					return false;
-				}
 				/* Matéria já existe */
 				if (collection.Contains(txtNomeMateria.Text))
 				{
 					Mensagem.materiaExistente();
-					return false;
-				}
-				/* Nenhuma disciplina selecionada */
-				if (cmbDisciplina.SelectedIndex == -1)
-				{
-					Mensagem.campoEmBranco();
-					cmbDisciplina.Focus();
 					return false;
 				}
 			}

@@ -9,14 +9,37 @@
 using System;
 using System.Collections.Generic;
 
+using HelpTeacher.Util;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade assunto.</summary>
 	public class Subject : IEntityBase, IEquatable<Subject>
 	{
+		#region Constants
+		/// <summary>Representa o comprimento máximo do <see cref="Name"/>.</summary>
+		public const int NameMaxLength = 120;
+		#endregion
+
+
+		#region Fields
+		private Discipline _discipline;
+		private string _name;
+		#endregion
+
+
 		#region Properties
 		/// <summary><see cref="Entities.Discipline"/> na qual o assunto está sendo lecionado.</summary>
-		public virtual Discipline Discipline { get; set; }
+		public virtual Discipline Discipline
+		{
+			get => _discipline;
+			set
+			{
+				Checker.NullObject(value, nameof(Discipline));
+
+				_discipline = value;
+			}
+		}
 
 		/// <inheritdoc />
 		public bool IsRecordActive { get; set; }
@@ -25,16 +48,27 @@ namespace HelpTeacher.Domain.Entities
 		public bool IsNull => Equals(Null);
 
 		/// <summary>Nome completo do assunto.</summary>
-		public string Name { get; set; }
+		public string Name
+		{
+			get => _name;
+			set
+			{
+				Checker.NullOrEmptyString(value, nameof(Name));
+				Checker.StringLength(value, nameof(Name), NameMaxLength);
+
+				_name = value;
+			}
+		}
 
 		/// <summary>Recupera uma nova instância vazia, considerada <see langword="null"/>.</summary>
 		/// <remarks>A instância vazia pode ser considerada um objeto padrão.</remarks>
 		/// <returns>Nova instância vazia.</returns>
 		public static Subject Null => new Subject()
 		{
+			_name = String.Empty,
+
 			Discipline = Discipline.Null,
 			IsRecordActive = false,
-			Name = String.Empty,
 			RecordID = -1
 		};
 

@@ -14,7 +14,7 @@ using NUnit.Framework;
 
 namespace HelpTeacher.Domain.Test.Entities
 {
-	/// <summary>Implementa testes de unidade da classe <seealso cref="CourseTest"/>.</summary>
+	/// <summary>Implementa testes de unidade da classe <seealso cref="Course"/>.</summary>
 	[TestFixture]
 	[Parallelizable(ParallelScope.All)]
 	public class CourseTest

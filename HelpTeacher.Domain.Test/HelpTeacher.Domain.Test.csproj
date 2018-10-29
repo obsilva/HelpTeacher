@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Entities\CourseTest.cs" />
     <Compile Include="Entities\DisciplineTest.cs" />
+    <Compile Include="Entities\SubjectTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -898,7 +898,7 @@ namespace HelpTeacher.Forms
 
 		private void salvaMateriaModificada()
 		{
-			var subject = new Subject((Discipline) cmbDisciplinaMateria.SelectedItem, txtNomeMateria.Text)
+			var subject = new Subject(cmbDisciplinaMateria.SelectedItem as Discipline, txtNomeMateria.Text)
 			{
 				IsRecordActive = !chkMateriaDeletada.Checked,
 				RecordID = Convert.ToInt32(txtCodigoMateria.Text)
