@@ -182,34 +182,38 @@ namespace HelpTeacher.Forms
 		*/
 		private void cadastrarQuestao()
 		{
-			if (podeCadastrar())
+			if (chkMaterias.CheckedItems.Count == 0)
 			{
-				foreach (Subject subject in chkMaterias.CheckedItems)
+				Mensagem.selecionarMateria();
+				chkMaterias.Focus();
+				return;
+			}
+
+			foreach (Subject subject in chkMaterias.CheckedItems)
+			{
+				var question = new Question(subject, txtQuestao.Text)
 				{
-					var question = new Question(subject, txtQuestao.Text)
-					{
-						FirstAttachment = txtArquivo1.Text,
-						IsObjective = !radDissertativa.Checked,
-						SecondAttachment = txtArquivo2.Text
-					};
+					FirstAttachment = txtArquivo1.Text,
+					IsObjective = !radDissertativa.Checked,
+					SecondAttachment = txtArquivo2.Text
+				};
 
-					if (!String.IsNullOrWhiteSpace(txtAlternativaA.Text))
-					{
-						question.Statement += new StringBuilder(txtQuestao.Text)
-							.Append(Environment.NewLine)
-							.Append("a) ").Append(txtAlternativaA.Text)
-							.Append(Environment.NewLine)
-							.Append("b) ").Append(txtAlternativaB.Text)
-							.Append(Environment.NewLine)
-							.Append("c) ").Append(txtAlternativaC.Text)
-							.Append(Environment.NewLine)
-							.Append("d) ").Append(txtAlternativaD.Text)
-							.Append(Environment.NewLine)
-							.Append("e) ").Append(txtAlternativaE.Text);
-					}
-
-					new QuestionRepository().Add(question);
+				if (!String.IsNullOrWhiteSpace(txtAlternativaA.Text))
+				{
+					question.Statement += new StringBuilder(txtQuestao.Text)
+						.Append(Environment.NewLine)
+						.Append("a) ").Append(txtAlternativaA.Text)
+						.Append(Environment.NewLine)
+						.Append("b) ").Append(txtAlternativaB.Text)
+						.Append(Environment.NewLine)
+						.Append("c) ").Append(txtAlternativaC.Text)
+						.Append(Environment.NewLine)
+						.Append("d) ").Append(txtAlternativaD.Text)
+						.Append(Environment.NewLine)
+						.Append("e) ").Append(txtAlternativaE.Text);
 				}
+
+				new QuestionRepository().Add(question);
 			}
 		}
 
@@ -246,53 +250,6 @@ namespace HelpTeacher.Forms
 					File.Copy(txtArquivo2.Text, segundoArquivo, true);
 				}
 			}
-		}
-
-		private bool podeCadastrar()
-		{
-			if (chkMaterias.CheckedItems.Count == 0)
-			{
-				Mensagem.selecionarMateria();
-				chkMaterias.Focus();
-				return false;
-			}
-
-			if (String.IsNullOrWhiteSpace(txtAlternativaA.Text))
-			{
-				Mensagem.alternativasEmBranco();
-				txtAlternativaA.Focus();
-				return false;
-			}
-
-			if (String.IsNullOrWhiteSpace(txtAlternativaB.Text))
-			{
-				Mensagem.alternativasEmBranco();
-				txtAlternativaB.Focus();
-				return false;
-			}
-
-			if (String.IsNullOrWhiteSpace(txtAlternativaC.Text))
-			{
-				Mensagem.alternativasEmBranco();
-				txtAlternativaC.Focus();
-				return false;
-			}
-
-			if (String.IsNullOrWhiteSpace(txtAlternativaD.Text))
-			{
-				Mensagem.alternativasEmBranco();
-				txtAlternativaD.Focus();
-				return false;
-			}
-
-			if (String.IsNullOrWhiteSpace(txtAlternativaE.Text))
-			{
-				Mensagem.alternativasEmBranco();
-				txtAlternativaE.Focus();
-				return false;
-			}
-
-			return true;
 		}
 
 		/* limpaForm

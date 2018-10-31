@@ -9,14 +9,42 @@
 using System;
 using System.Collections.Generic;
 
+using HelpTeacher.Util;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade questão.</summary>
 	public class Question : IEntityBase, IEquatable<Question>
 	{
+		#region Constants
+		/// <summary>Representa o comprimento máximo de <see cref="FirstAttachment"/> e <see cref="SecondAttachment"/>.</summary>
+		public const int AttachmentMaxLength = 260;
+
+		/// <summary>Representa o comprimento máximo do <see cref="Statement"/>.</summary>
+		public const int StatementMaxLength = UInt16.MaxValue;
+		#endregion
+
+
+		#region Fields
+		private string _firstAttachment;
+		private string _secondAttachment;
+		private string _statement;
+		private Subject _subject;
+		#endregion
+
+
 		#region Properties
 		/// <summary>Caminho completo para o primeiro anexo.</summary>
-		public string FirstAttachment { get; set; }
+		public string FirstAttachment
+		{
+			get => _firstAttachment;
+			set
+			{
+				Checker.StringLength(value, nameof(FirstAttachment), AttachmentMaxLength);
+
+				_firstAttachment = value;
+			}
+		}
 
 		/// <summary>
 		/// Define se a questão é padrão.
@@ -41,14 +69,15 @@ namespace HelpTeacher.Domain.Entities
 		/// <returns>Nova instância vazia.</returns>
 		public static Question Null => new Question()
 		{
-			FirstAttachment = String.Empty,
+			_firstAttachment = String.Empty,
+			_secondAttachment = String.Empty,
+			_statement = String.Empty,
+			_subject = Subject.Null,
+
 			IsDefault = false,
 			IsObjective = false,
 			IsRecordActive = false,
 			RecordID = -1,
-			SecondAttachment = String.Empty,
-			Statement = String.Empty,
-			Subject = Subject.Null,
 			WasUsed = true
 		};
 
@@ -56,13 +85,42 @@ namespace HelpTeacher.Domain.Entities
 		public int RecordID { get; set; }
 
 		/// <summary>Caminho completo para o segundo anexo.</summary>
-		public string SecondAttachment { get; set; }
+		public string SecondAttachment
+		{
+			get => _secondAttachment;
+			set
+			{
+				Checker.StringLength(value, nameof(SecondAttachment), AttachmentMaxLength);
+
+				_secondAttachment = value;
+			}
+		}
 
 		/// <summary>Enunciado da questão.</summary>
-		public string Statement { get; set; }
+		public string Statement
+		{
+			get => _statement;
+			set
+			{
+				Checker.NullOrEmptyString(value, nameof(Statement));
+				Checker.StringLength(value, nameof(Statement), AttachmentMaxLength);
+
+				_statement = value;
+			}
+
+		}
 
 		/// <summary><see cref="Entities.Subject"/> onde a questão pode ser usada.</summary>
-		public virtual Subject Subject { get; set; }
+		public virtual Subject Subject
+		{
+			get => _subject;
+			set
+			{
+				Checker.NullObject(value, nameof(Subject));
+
+				_subject = value;
+			}
+		}
 
 		/// <summary>Define se a questão já foi usada alguma vez.</summary>
 		public bool WasUsed { get; set; }
