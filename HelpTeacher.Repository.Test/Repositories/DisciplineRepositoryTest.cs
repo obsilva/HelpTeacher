@@ -93,7 +93,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void First_DefaultObject_When_ThereIsNoRecord()
 			=> Assert.AreEqual(Discipline.Null, Repository.First());
 
-		[Test, Order(20)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void First_FirstRecord_When_ThereAreRecords()
 			=> Assert.AreEqual(DisciplineTestData.First, Repository.First());
@@ -121,7 +121,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_EmptyList_When_ThereIsNoActiveRecord()
 			=> Assert.AreEqual(0, Repository.Get(true).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsActiveCount()
 		{
@@ -131,7 +131,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 			Assert.GreaterOrEqual(pageSize, repository.Get(true).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsActive()
 			=> Assert.AreEqual(DisciplineTestData.CountActiveRecords, Repository.Get(true).Count());
@@ -140,7 +140,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_EmptyList_When_ThereIsNoInactiveRecord()
 			=> Assert.AreEqual(0, Repository.Get(false).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsNotActiveCount()
 		{
@@ -150,7 +150,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 			Assert.GreaterOrEqual(pageSize, repository.Get(false).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsNotActive()
 			=> Assert.AreEqual(DisciplineTestData.CountInactiveRecords, Repository.Get(false).Count());
@@ -159,7 +159,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_DefaultObject_When_ThereIsNoRecordWithSpecifiedId()
 			=> Assert.AreEqual(Discipline.Null, Repository.Get(DisciplineTestData.Count + 1));
 
-		[Test, Order(20)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_SpecifiedRecord_When_ThereIsRecordWithSpecifiedId()
 			=> Assert.AreEqual(DisciplineTestData.First, Repository.Get(Repository.First().RecordID));
@@ -196,13 +196,13 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void GetWhereCourseActive_EmptyList_When_ThereIsNoRecordWithSpecifiedId()
 			=> Assert.AreEqual(0, Repository.GetWhereCourse(DisciplineTestData.Last.Course.RecordID + 1, true).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereCourseActive_EmptyList_When_ThereIsNoActiveRecordWithSpecifiedId()
 			=> Assert.AreEqual(0, Repository.GetWhereCourse(DisciplineTestData.Last.Course.RecordID,
 				!DisciplineTestData.Last.IsRecordActive).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereCourseActive__NotAllRecordsList_When_PageSizeLowerThanRecordsCount()
 		{
@@ -213,7 +213,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 				DisciplineTestData.First.IsRecordActive).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereCourseActive_RecordsList_When_ThereIsActiveRecordWithSpecifiedId()
 			=> Assert.AreEqual(1, Repository.GetWhereCourse(DisciplineTestData.First.Course.RecordID,
@@ -227,10 +227,10 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void GetWhereNotID_EmptyList_When_ThereIsNoRecordDifferentThanSpecifiedId()
 			=> Assert.AreEqual(0, Repository.GetWhereNotID(DisciplineTestData.First).Count());
 
-		[Test, Order(20)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereNotID_RecordsList_When_ThereIsRecordDifferentThanSpecifiedId()
-			=> Assert.AreEqual(DisciplineTestData.Count - 1, Repository.GetWhereNotID(DisciplineTestData.First).Count());
+			=> Assert.AreEqual(DisciplineTestData.CountActiveRecords - 1, Repository.GetWhereNotID(DisciplineTestData.First).Count());
 
 		[Test, Order(20)]
 		[NonParallelizable]
@@ -262,7 +262,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 				() => Repository.Update(collection));
 		}
 
-		[Test, Order(30)]
+		[Test, Order(20)]
 		[NonParallelizable]
 		public void Update_RecordUpdated_When_ValidArguments()
 		{

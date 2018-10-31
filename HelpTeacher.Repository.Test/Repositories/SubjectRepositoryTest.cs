@@ -42,7 +42,6 @@ namespace HelpTeacher.Repository.Test.Repositories
 
 
 		#region Init and Cleanup
-
 		[OneTimeSetUp]
 		public void InitClass()
 		{
@@ -98,7 +97,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void First_DefaultObject_When_ThereIsNoRecord()
 			=> Assert.AreEqual(Subject.Null, Repository.First());
 
-		[Test, Order(20)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void First_FirstRecord_When_ThereAreRecords()
 			=> Assert.AreEqual(SubjectTestData.First, Repository.First());
@@ -126,7 +125,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_EmptyList_When_ThereIsNoActiveRecord()
 			=> Assert.AreEqual(0, Repository.Get(true).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsActiveCount()
 		{
@@ -136,7 +135,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 			Assert.GreaterOrEqual(pageSize, repository.Get(true).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsActive()
 			=> Assert.AreEqual(SubjectTestData.CountActiveRecords, Repository.Get(true).Count());
@@ -145,7 +144,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_EmptyList_When_ThereIsNoInactiveRecord()
 			=> Assert.AreEqual(0, Repository.Get(false).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_NotAllRecordsList_When_PageSizeLowerThanRecordsNotActiveCount()
 		{
@@ -155,7 +154,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 			Assert.GreaterOrEqual(pageSize, repository.Get(false).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_RecordsList_When_RecordsNotActive()
 			=> Assert.AreEqual(SubjectTestData.CountInactiveRecords, Repository.Get(false).Count());
@@ -164,7 +163,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void Get_DefaultObject_When_ThereIsNoRecordWithSpecifiedId()
 			=> Assert.AreEqual(Subject.Null, Repository.Get(SubjectTestData.Count + 1));
 
-		[Test, Order(20)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void Get_SpecifiedRecord_When_ThereIsRecordWithSpecifiedId()
 			=> Assert.AreEqual(SubjectTestData.First, Repository.Get(Repository.First().RecordID));
@@ -201,13 +200,13 @@ namespace HelpTeacher.Repository.Test.Repositories
 		public void GetWhereDisciplineActive_EmptyList_When_ThereIsNoRecordWithSpecifiedId()
 			=> Assert.AreEqual(0, Repository.GetWhereDiscipline(SubjectTestData.Last.Discipline.RecordID + 1, true).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereDisciplineActive_EmptyList_When_ThereIsNoActiveRecordWithSpecifiedId()
 			=> Assert.AreEqual(0, Repository.GetWhereDiscipline(SubjectTestData.Last.Discipline,
 				!SubjectTestData.Last.IsRecordActive).Count());
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereDisciplineActive__NotAllRecordsList_When_PageSizeLowerThanRecordsCount()
 		{
@@ -218,7 +217,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 				SubjectTestData.First.IsRecordActive).Count());
 		}
 
-		[Test, Order(40)]
+		[Test, Order(30)]
 		[NonParallelizable]
 		public void GetWhereDisciplineActive_RecordsList_When_ThereIsActiveRecordWithSpecifiedId()
 			=> Assert.AreEqual(1, Repository.GetWhereDiscipline(SubjectTestData.First.Discipline,
@@ -244,7 +243,7 @@ namespace HelpTeacher.Repository.Test.Repositories
 				() => Repository.Update(collection));
 		}
 
-		[Test, Order(30)]
+		[Test, Order(20)]
 		[NonParallelizable]
 		public void Update_RecordUpdated_When_ValidArguments()
 		{

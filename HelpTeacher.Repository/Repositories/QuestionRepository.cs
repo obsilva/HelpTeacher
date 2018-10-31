@@ -13,32 +13,83 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository.IRepositories;
+using HelpTeacher.Util;
 
 namespace HelpTeacher.Repository.Repositories
 {
 	/// <inheritdoc />
 	public class QuestionRepository : IQuestionRepository
 	{
-		#region Constructors
-		public QuestionRepository() { }
+		#region Constants
+		private const string QueryInsert = "INSERT INTO htb1 (B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T) VALUES (NULL, @B1_QUEST, @B1_OBJETIV, @B1_ARQUIVO, 0, @B1_MATERIA, @B1_PADRAO, 0);";
+
+		private const string QuerySelect = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectActive = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (D_E_L_E_T = @IS_DELETED) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectSubject = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (B1_MATERIA = @B1_MATERIA) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectSubjectAndActive = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (B1_MATERIA = @B1_MATERIA) AND (D_E_L_E_T = @IS_DELETED) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectSubjectAndObjective = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (B1_MATERIA = @B1_MATERIA) AND (D_E_L_E_T = @IS_DELETED) AND (B1_OBJETIV = @B1_OBJETIV) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectSubjectAndUsed = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (B1_MATERIA = @B1_MATERIA) AND (D_E_L_E_T = @IS_DELETED) AND (B1_OBJETIV = @B1_OBJETIV) AND (B1_USADA = @B1_USADA) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectID = "SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, D_E_L_E_T FROM htb1 WHERE (B1_COD = @B1_COD);";
+
+		private const string QueryUpdate = "UPDATE htb1 SET B1_QUEST = @B1_QUEST, B1_OBJETIV = @B1_OBJETIV, B1_ARQUIVO = @B1_ARQUIVO, B1_USADA = @B1_USADA, B1_MATERIA = @B1_MATERIA, B1_PADRAO = @B1_PADRAO, D_E_L_E_T = @IS_DELETED WHERE (B1_COD = @B1_COD);";
 		#endregion
 
+
+		#region Properties
+		/// <summary>Conexão.</summary>
+		public DbConnection Connection { get; set; }
+
+		/// <summary>Valor de offset na recuperação de registros.</summary>
+		public int Offset { get; set; }
+
+		/// <summary>Tamanho da página de registros.</summary>
+		public int PageSize { get; set; }
+		#endregion
+
+
+		#region Constructors
+		public QuestionRepository(DbConnection connection = null, int pageSize = 50)
+		{
+			if (connection == null)
+			{
+				connection = ConnectionManager.GetOpenConnection();
+			}
+
+			if (!ConnectionManager.IsConnectionOpen(connection))
+			{
+				ConnectionManager.OpenConnection(connection);
+			}
+
+			Connection = connection;
+			Offset = 0;
+			PageSize = pageSize;
+		}
+		#endregion
 
 
 		#region Methods
 		/// <inheritdoc />
 		public void Add(Question obj)
 		{
-			string query = $"INSERT INTO htb1 (B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, " +
-						   $"B1_MATERIA, B1_PADRAO, D_E_L_E_T) VALUES (NULL, '{obj.Statement}', " +
-						   $"{(obj.IsObjective ? "*" : "NULL")}, '{obj.FirstAttachment}, {obj.SecondAttachment}', " +
-						   $"NULL, {obj.Subjects.FirstOrDefault()?.RecordID}, {(obj.IsDefault ? "*" : "NULL")}, NULL)";
-			ConnectionManager.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			string attachments = $"{obj.FirstAttachment},{obj.SecondAttachment}";
+
+			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Statement, obj.IsObjective,
+				attachments, obj.Subject.RecordID, obj.IsDefault);
 		}
 
 		/// <inheritdoc />
 		public void Add(IEnumerable<Question> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Question obj in collection)
 			{
 				Add(obj);
@@ -48,324 +99,149 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Question First()
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1 LIMIT 1";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelect, 1, 0))
 			{
-				var output = new Question(new List<Subject>(), "");
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Question> records = ReadDataReader(dataReader);
 
-					string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-
-					output.FirstAttachment = attachments[0];
-					output.IsDefault = dataReader.IsDBNull(6);
-					output.IsObjective = dataReader.IsDBNull(2);
-					output.IsRecordActive = dataReader.IsDBNull(7);
-					output.RecordID = dataReader.GetInt32(0);
-					output.SecondAttachment =
-						(attachments.Length > 1) ? attachments[1] : attachments[0];
-					output.Statement = dataReader.GetString(1);
-					output.Subjects.Add(new SubjectRepository().Get(dataReader.GetInt32(5)));
-					output.WasUsed = dataReader.IsDBNull(4);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? Question.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> Get()
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelect, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> Get(bool isRecordActive)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, " +
-						   $"D_E_L_E_T FROM htb1 WHERE D_E_L_E_T {(isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectActive, !isRecordActive, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public Question Get(int id)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1 WHERE B1_COD = {id}";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectID, id))
 			{
-				var output = new Question(new List<Subject>(), "");
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Question> records = ReadDataReader(dataReader);
 
-					string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-
-					output.FirstAttachment = attachments[0];
-					output.IsDefault = dataReader.IsDBNull(6);
-					output.IsObjective = dataReader.IsDBNull(2);
-					output.IsRecordActive = dataReader.IsDBNull(7);
-					output.RecordID = dataReader.GetInt32(0);
-					output.SecondAttachment =
-						(attachments.Length > 1) ? attachments[1] : attachments[0];
-					output.Statement = dataReader.GetString(1);
-					output.Subjects.Add(new SubjectRepository().Get(dataReader.GetInt32(5)));
-					output.WasUsed = dataReader.IsDBNull(4);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? Question.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(Subject obj)
-			=> GetWhereSubject(obj.RecordID);
+			=> (obj == null) ? new List<Question>().AsQueryable() : GetWhereSubject(obj.RecordID);
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, B1_PADRAO, " +
-						   $"D_E_L_E_T FROM htb1 WHERE B1_MATERIA = {id}";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectSubject, id, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(Subject obj, bool isRecordActive)
-			=> GetWhereSubject(obj.RecordID, isRecordActive);
+			=> (obj == null) ? new List<Question>().AsQueryable() : GetWhereSubject(obj.RecordID, isRecordActive);
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1 WHERE B1_MATERIA = {id} AND D_E_L_E_T " +
-						   $"{(isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectSubjectAndActive, id, !isRecordActive, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(Subject obj, bool isRecordActive, bool isObjective)
-			=> GetWhereSubject(obj.RecordID, isRecordActive, isObjective);
+			=> (obj == null) ? new List<Question>().AsQueryable() : GetWhereSubject(obj.RecordID, isRecordActive, isObjective);
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive, bool isObjective)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1 WHERE B1_MATERIA = {id} AND B1_OBJETIV " +
-						   $"{(isObjective ? "IS" : "IS NOT")} NULL AND D_E_L_E_T " +
-						   $"{(isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectSubjectAndObjective, id, !isRecordActive, isObjective, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(Subject obj, bool isRecordActive, bool isObjective, bool wasUsed)
-			=> GetWhereSubject(obj.RecordID, isRecordActive, isObjective, wasUsed);
+			=> (obj == null) ? new List<Question>().AsQueryable() : GetWhereSubject(obj.RecordID, isRecordActive, isObjective, wasUsed);
 
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive, bool isObjective, bool wasUsed)
 		{
-			string query = $"SELECT B1_COD, B1_QUEST, B1_OBJETIV, B1_ARQUIVO, B1_USADA, B1_MATERIA, " +
-						   $"B1_PADRAO, D_E_L_E_T FROM htb1 WHERE B1_MATERIA = {id} AND B1_OBJETIV " +
-						   $"{(isObjective ? "IS" : "IS NOT")} NULL AND B1_USADA {(wasUsed ? "IS" : "IS NOT")} " +
-						   $"NULL AND D_E_L_E_T {(isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
+				Connection, QuerySelectSubjectAndUsed, id, !isRecordActive, isObjective, wasUsed, PageSize, Offset))
 			{
-				var output = new List<Question>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var subjects = new List<Subject>()
-							{new SubjectRepository().Get(dataReader.GetInt32(5))};
-						string[] attachments = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-
-						output.Add(new Question(subjects, dataReader.GetString(1))
-						{
-							FirstAttachment = attachments[0],
-							IsDefault = dataReader.IsDBNull(6),
-							IsObjective = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(7),
-							RecordID = dataReader.GetInt32(0),
-							SecondAttachment = (attachments.Length > 1)
-								? attachments[1]
-								: attachments[0],
-							WasUsed = dataReader.IsDBNull(4)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
+		}
+
+		/// <summary>Faz a leitura do <see cref="DbDataReader"/>.</summary>
+		/// <param name="dataReader">Objeto para ler.</param>
+		/// <returns>Todos os objetos no <see cref="DbDataReader"/>.</returns>
+		private IQueryable<Question> ReadDataReader(DbDataReader dataReader)
+		{
+			var output = new List<Question>();
+
+			if (dataReader.HasRows)
+			{
+				DbConnection connection = ConnectionManager.GetOpenConnection(Connection.ConnectionString);
+				while (dataReader.Read())
+				{
+					Subject subject = new SubjectRepository(connection).Get(dataReader.GetInt32(5));
+					string[] attachments = dataReader.GetString(3).Split(new[] { ',' },
+						StringSplitOptions.RemoveEmptyEntries);
+					output.Add(new Question(subject, dataReader.GetString(1))
+					{
+						FirstAttachment = (attachments.Length > 0) ? attachments[0] : String.Empty,
+						IsDefault = (dataReader.GetInt32(6) == 1),
+						IsObjective = (dataReader.GetInt32(2) == 1),
+						IsRecordActive = (dataReader.GetInt32(7) == 0),
+						RecordID = dataReader.GetInt32(0),
+						SecondAttachment = (attachments.Length > 1) ? attachments[1] : String.Empty,
+						WasUsed = (dataReader.GetInt32(4) == 1)
+					});
+				}
+			}
+
+			dataReader.Close();
+			return output.AsQueryable();
 		}
 
 		/// <inheritdoc />
 		public void Update(Question obj)
 		{
-			string query = $"UPDATE htb1 SET B1_QUEST = '{obj.Statement}', B1_OBJETIV = {(obj.IsObjective ? "*" : "NULL")}, " +
-						   $"B1_ARQUIVO = '{obj.FirstAttachment}, {obj.SecondAttachment}', B1_USADA = " +
-						   $"{(obj.WasUsed ? "*" : "NULL")}, B1_MATERIA = {obj.Subjects.FirstOrDefault()?.RecordID}," +
-						   $"B1_PADRAO = {(obj.IsDefault ? "*" : "NULL")}, D_E_L_E_T = " +
-						   $"{(obj.IsRecordActive ? "*" : "NULL")} WHERE B1_COD = {obj.RecordID}";
-			ConnectionManager.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			string attachments = $"{obj.FirstAttachment},{obj.SecondAttachment}";
+
+			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Statement, obj.IsObjective,
+				attachments, obj.WasUsed, obj.Subject.RecordID, obj.IsDefault, !obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Update(IEnumerable<Question> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Question obj in collection)
 			{
 				Update(obj);

@@ -48,11 +48,15 @@ namespace HelpTeacher.Repository.Test.TestData
 			=> new List<Course>()
 			{
 				new Course("Course 1") {RecordID = 1, IsRecordActive = true},
-				new Course("Course 2") {RecordID = 2, IsRecordActive = false},
+				new Course("Course 2") {RecordID = 2, IsRecordActive = true},
 				new Course("Course 3") {RecordID = 3, IsRecordActive = true},
-				new Course("Course 4") {RecordID = 4, IsRecordActive = false},
+				new Course("Course 4") {RecordID = 4, IsRecordActive = true},
 				new Course("Course 5") {RecordID = 5, IsRecordActive = true},
-				new Course("Course 6") {RecordID = 6, IsRecordActive = false}
+				new Course("Course 6") {RecordID = 6, IsRecordActive = false},
+				new Course("Course 7") {RecordID = 7, IsRecordActive = false},
+				new Course("Course 8") {RecordID = 8, IsRecordActive = false},
+				new Course("Course 9") {RecordID = 9, IsRecordActive = false},
+				new Course("Course 10") {RecordID = 10, IsRecordActive = false}
 			};
 		#endregion
 	}

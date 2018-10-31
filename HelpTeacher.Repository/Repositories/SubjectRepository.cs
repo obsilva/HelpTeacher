@@ -30,8 +30,6 @@ namespace HelpTeacher.Repository.Repositories
 
 		private const string QuerySelectDisciplineAndActive = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_DISCIPL = @C3_DISCIPL AND D_E_L_E_T = @IS_DELETED LIMIT @LIMIT OFFSET @OFFSET;";
 
-		private const string QuerySelectFirst = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 LIMIT 1;";
-
 		private const string QuerySelectID = "SELECT C3_COD, C3_NOME, C3_DISCIPL, D_E_L_E_T FROM htc3 WHERE C3_COD = @C3_COD;";
 
 		private const string QueryUpdate = "UPDATE htc3 SET C3_NOME = @C3_NOME, C3_DISCIPL = @C3_DISCIPL, D_E_L_E_T = @IS_DELETED WHERE C3_COD = @C3_COD";
@@ -94,7 +92,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Subject First()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectFirst))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelect, 1, 0))
 			{
 				IQueryable<Subject> records = ReadDataReader(dataReader);
 
@@ -180,6 +178,7 @@ namespace HelpTeacher.Repository.Repositories
 				}
 			}
 
+			dataReader.Close();
 			return output.AsQueryable();
 		}
 

@@ -90,6 +90,9 @@ namespace HelpTeacher.Domain.Entities
 		{
 			Discipline = discipline;
 			Name = name;
+
+			IsRecordActive = true;
+			RecordID = 0;
 		}
 		#endregion
 

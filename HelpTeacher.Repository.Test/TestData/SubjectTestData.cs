@@ -51,11 +51,15 @@ namespace HelpTeacher.Repository.Test.TestData
 			=> new List<Subject>()
 			{
 				new Subject(Disciplines.ElementAt(0), "Subject 1") { RecordID = 1, IsRecordActive = true },
-				new Subject(Disciplines.ElementAt(1), "Subject 2") { RecordID = 2, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(1), "Subject 2") { RecordID = 2, IsRecordActive = true },
 				new Subject(Disciplines.ElementAt(2), "Subject 3") { RecordID = 3, IsRecordActive = true },
-				new Subject(Disciplines.ElementAt(3), "Subject 4") { RecordID = 4, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(3), "Subject 4") { RecordID = 4, IsRecordActive = true },
 				new Subject(Disciplines.ElementAt(4), "Subject 5") { RecordID = 5, IsRecordActive = true },
-				new Subject(Disciplines.ElementAt(5), "Subject 6") { RecordID = 6, IsRecordActive = false }
+				new Subject(Disciplines.ElementAt(5), "Subject 6") { RecordID = 6, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(6), "Subject 7") { RecordID = 7, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(7), "Subject 8") { RecordID = 8, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(8), "Subject 9") { RecordID = 9, IsRecordActive = false },
+				new Subject(Disciplines.ElementAt(9), "Subject 10") { RecordID = 10, IsRecordActive = false }
 			};
 		#endregion
 	}

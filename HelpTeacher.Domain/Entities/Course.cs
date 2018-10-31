@@ -71,7 +71,13 @@ namespace HelpTeacher.Domain.Entities
 		/// nome especificado.
 		/// </summary>
 		/// <param name="name">Nome completo do curso.</param>
-		public Course(string name) => Name = name;
+		public Course(string name)
+		{
+			Name = name;
+
+			IsRecordActive = true;
+			RecordID = 0;
+		}
 		#endregion
 
 

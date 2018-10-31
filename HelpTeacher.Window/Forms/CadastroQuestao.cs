@@ -186,8 +186,7 @@ namespace HelpTeacher.Forms
 			{
 				foreach (Subject subject in chkMaterias.CheckedItems)
 				{
-					var subjects = new List<Subject>() { subject };
-					var question = new Question(subjects, txtQuestao.Text)
+					var question = new Question(subject, txtQuestao.Text)
 					{
 						FirstAttachment = txtArquivo1.Text,
 						IsObjective = !radDissertativa.Checked,

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade questão.</summary>
-	public class Question : IEntityBase
+	public class Question : IEntityBase, IEquatable<Question>
 	{
 		#region Properties
 		/// <summary>Caminho completo para o primeiro anexo.</summary>
@@ -48,7 +48,7 @@ namespace HelpTeacher.Domain.Entities
 			RecordID = -1,
 			SecondAttachment = String.Empty,
 			Statement = String.Empty,
-			Subjects = new List<Subject>(),
+			Subject = Subject.Null,
 			WasUsed = true
 		};
 
@@ -61,8 +61,8 @@ namespace HelpTeacher.Domain.Entities
 		/// <summary>Enunciado da questão.</summary>
 		public string Statement { get; set; }
 
-		/// <summary><see cref="Subject"/>'s onde a questão pode ser usada.</summary>
-		public virtual ICollection<Subject> Subjects { get; set; }
+		/// <summary><see cref="Entities.Subject"/> onde a questão pode ser usada.</summary>
+		public virtual Subject Subject { get; set; }
 
 		/// <summary>Define se a questão já foi usada alguma vez.</summary>
 		public bool WasUsed { get; set; }
@@ -74,14 +74,123 @@ namespace HelpTeacher.Domain.Entities
 
 		/// <summary>
 		/// Inicializa uma nova instância da classe <see cref="Question"/> com os 
-		/// <see cref = "Subjects" /> e enunciado específicados.
+		/// <see cref = "Subject" /> e enunciado específicados.
 		/// </summary>
-		/// <param name="subjects">Assuntos onde a nova questão pode ser usada.</param>
+		/// <param name="subject">Assunto onde a nova questão pode ser usada.</param>
 		/// <param name="statement">Enunciado</param>
-		public Question(ICollection<Subject> subjects, string statement)
+		public Question(Subject subject, string statement)
 		{
-			Subjects = subjects;
+			Subject = subject;
 			Statement = statement;
+
+
+			FirstAttachment = String.Empty;
+			IsDefault = false;
+			IsObjective = false;
+			IsRecordActive = true;
+			RecordID = 0;
+			SecondAttachment = String.Empty;
+			WasUsed = false;
+		}
+		#endregion
+
+
+		#region Methods
+		/// <summary>Determina se as duas questões especificadas possuem valores iguais.</summary>
+		/// <param name="question1">A primeira questão para comparar, ou <see langword="null"/>.</param>
+		/// <param name="question2">A segunda questão para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="question1"/> forem iguais que
+		/// em <paramref name="question2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator ==(Question question1, Question question2) => EqualityComparer<Question>.Default.Equals(question1, question2);
+
+		/// <summary>Determina se as duas questões especificadas possuem valores diferentes.</summary>
+		/// <param name="question1">A primeiro questão para comparar, ou <see langword="null"/>.</param>
+		/// <param name="question2">A segunda questão para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="question1"/> forem diferentes que
+		/// em <paramref name="question2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator !=(Question question1, Question question2) => !(question1 == question2);
+
+		/// <inheritdoc />
+		public bool Equals(Question other)
+		{
+			if (other == null)
+			{
+				return false;
+			}
+
+			if (RecordID != other.RecordID)
+			{
+				return false;
+			}
+
+			if (IsDefault != other.IsDefault)
+			{
+				return false;
+			}
+
+			if (IsObjective != other.IsObjective)
+			{
+				return false;
+			}
+
+			if (FirstAttachment != other.FirstAttachment)
+			{
+				return false;
+			}
+
+			if (SecondAttachment != other.SecondAttachment)
+			{
+				return false;
+			}
+
+			if (IsRecordActive != other.IsRecordActive)
+			{
+				return false;
+			}
+
+			if (WasUsed != other.WasUsed)
+			{
+				return false;
+			}
+
+			if (Statement != other.Statement)
+			{
+				return false;
+			}
+
+			if (!Subject.Equals(other.Subject))
+			{
+				return false;
+			}
+
+			return true;
+		}
+		#endregion
+
+
+		#region Overrides
+		/// <inheritdoc />
+		public override bool Equals(object obj)
+			=> Equals(obj as Question);
+
+		/// <inheritdoc />
+		public override int GetHashCode()
+		{
+			int hashCode = -1551942074;
+			hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(FirstAttachment);
+			hashCode = (hashCode * -1521134295) + IsDefault.GetHashCode();
+			hashCode = (hashCode * -1521134295) + IsObjective.GetHashCode();
+			hashCode = (hashCode * -1521134295) + IsRecordActive.GetHashCode();
+			hashCode = (hashCode * -1521134295) + RecordID.GetHashCode();
+			hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(SecondAttachment);
+			hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Statement);
+			hashCode = (hashCode * -1521134295) + EqualityComparer<Subject>.Default.GetHashCode(Subject);
+			hashCode = (hashCode * -1521134295) + WasUsed.GetHashCode();
+			return hashCode;
 		}
 		#endregion
 	}
