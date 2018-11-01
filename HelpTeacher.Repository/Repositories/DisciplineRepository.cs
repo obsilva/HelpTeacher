@@ -39,8 +39,8 @@ namespace HelpTeacher.Repository.Repositories
 
 
 		#region Properties
-		/// <summary>Conexão.</summary>
-		public DbConnection Connection { get; set; }
+		/// <summary>Gerenciador de conexão.</summary>
+		public ConnectionManager ConnectionManager { get; set; }
 
 		/// <summary>Valor de offset na recuperação de registros.</summary>
 		public int Offset { get; set; }
@@ -52,24 +52,19 @@ namespace HelpTeacher.Repository.Repositories
 
 		#region Constructors
 		/// <summary>
-		/// Inicializa uma nova instância de <see cref="DisciplineRepository"/>. É possível definir a conexão
-		/// a ser usada e/ou o tamanho da página de registros.
+		/// Inicializa uma nova instância de <see cref="DisciplineRepository"/>. É possível definir o
+		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
 		/// </summary>
-		/// <param name="connection">Conexão a ser usada.</param>
+		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
-		public DisciplineRepository(DbConnection connection = null, int pageSize = 50)
+		public DisciplineRepository(ConnectionManager connection = null, int pageSize = 50)
 		{
 			if (connection == null)
 			{
-				connection = ConnectionManager.GetOpenConnection();
+				connection = new ConnectionManager();
 			}
 
-			if (!ConnectionManager.IsConnectionOpen(connection))
-			{
-				ConnectionManager.OpenConnection(connection);
-			}
-
-			Connection = connection;
+			ConnectionManager = connection;
 			Offset = 0;
 			PageSize = pageSize;
 		}
@@ -82,7 +77,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			Checker.NullObject(obj, nameof(obj));
 
-			ConnectionManager.ExecuteQuery(Connection, QueryInsert, obj.Name, obj.Course?.RecordID);
+			ConnectionManager.ExecuteQuery(QueryInsert, obj.Name, obj.Course?.RecordID);
 		}
 
 		/// <inheritdoc />
@@ -99,7 +94,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Discipline First()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelect, 1, 0))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, 1, 0))
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
@@ -110,7 +105,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Discipline> Get()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelect, PageSize, Offset))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -119,8 +114,8 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Discipline> Get(bool isRecordActive)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectActive, !isRecordActive, PageSize, Offset))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectActive,
+				!isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -129,7 +124,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Discipline Get(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(Connection, QuerySelectID, id))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectID, id))
 			{
 				IQueryable<Discipline> records = ReadDataReader(dataReader);
 
@@ -144,8 +139,8 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectCourse, id, PageSize, Offset))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectCourse,
+				id, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -158,8 +153,8 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereCourse(int id, bool isRecordActive)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectCourseAndActive, id, !isRecordActive, PageSize, Offset))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectCourseAndActive,
+				id, !isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -172,8 +167,8 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Discipline> GetWhereNotID(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(
-				Connection, QuerySelectDifferentID, id, PageSize, Offset))
+			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectDifferentID,
+				id, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -188,10 +183,9 @@ namespace HelpTeacher.Repository.Repositories
 
 			if (dataReader.HasRows)
 			{
-				DbConnection connection = ConnectionManager.GetOpenConnection(Connection.ConnectionString);
 				while (dataReader.Read())
 				{
-					Course course = new CourseRepository(connection).Get(dataReader.GetInt32(2));
+					Course course = new CourseRepository(ConnectionManager).Get(dataReader.GetInt32(2));
 					output.Add(new Discipline(course, dataReader.GetString(1))
 					{
 						IsRecordActive = (dataReader.GetInt16(3) == 0),
@@ -209,8 +203,8 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			Checker.NullObject(obj, nameof(obj));
 
-			ConnectionManager.ExecuteQuery(Connection, QueryUpdate, obj.Name,
-				obj.Course.RecordID, !obj.IsRecordActive, obj.RecordID);
+			ConnectionManager.ExecuteQuery(QueryUpdate, obj.Name, obj.Course.RecordID,
+				!obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />

@@ -17,7 +17,18 @@ namespace HelpTeacher.Forms
 {
 	public partial class Configuracoes : Form
 	{
-		public Configuracoes() => InitializeComponent();
+
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
+
+		public Configuracoes()
+		{
+			ConnectionManager = new ConnectionManager();
+
+			InitializeComponent();
+		}
 
 		private void Configuracoes_Load(object sender, EventArgs e) => txtLogin.Text = User.Instance.Username;
 

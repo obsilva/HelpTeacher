@@ -26,8 +26,16 @@ namespace HelpTeacher.Forms
 		private BindingSource disciplineBindingSource = new BindingSource();
 		private BindingSource subjectBindingSource = new BindingSource();
 
+
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
+
 		public CadastroQuestao()
 		{
+			ConnectionManager = new ConnectionManager();
+
 			InitializeComponent();
 
 			atualizaCodigoQuestao();

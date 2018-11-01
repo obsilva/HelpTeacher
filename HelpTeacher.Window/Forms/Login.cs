@@ -17,12 +17,20 @@ namespace HelpTeacher.Forms
 {
 	public partial class Login : Form
 	{
-		public Login() => InitializeComponent();
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
 
-		private void Login_Load(object sender, EventArgs e)
+
+		public Login()
 		{
+			try
+			{
+				ConnectionManager = new ConnectionManager();
 
-			if (ConnectionManager.IsConnectionOpen(ConnectionManager.GetOpenConnection()) == false)
+				InitializeComponent();
+			}
+			catch (Exception)
 			{
 				Application.Exit();
 			}

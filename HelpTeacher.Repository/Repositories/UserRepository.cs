@@ -18,8 +18,28 @@ namespace HelpTeacher.Repository.Repositories
 	/// <inheritdoc />
 	public class UserRepository : IUserRepository
 	{
+		#region Properties
+		/// <summary>Gerenciador de conexão.</summary>
+		public ConnectionManager ConnectionManager { get; set; }
+		#endregion
+
+
 		#region Constructors
-		public UserRepository() { }
+		/// <summary>
+		/// Inicializa uma nova instância de <see cref="UserRepository"/>. É possível definir o
+		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
+		/// </summary>
+		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
+		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
+		public UserRepository(ConnectionManager connectionManager = null)
+		{
+			if (connectionManager == null)
+			{
+				connectionManager = new ConnectionManager();
+			}
+
+			ConnectionManager = connectionManager;
+		}
 		#endregion
 
 

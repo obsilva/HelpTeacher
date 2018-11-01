@@ -30,8 +30,16 @@ namespace HelpTeacher.Forms
 		private DataSet ds;
 		private string deletados;
 
+
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
+
 		public Pesquisa(int origem)
 		{
+			ConnectionManager = new ConnectionManager();
+
 			InitializeComponent();
 
 			inicializa(origem);

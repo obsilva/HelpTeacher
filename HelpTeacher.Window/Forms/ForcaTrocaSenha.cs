@@ -16,7 +16,10 @@ namespace HelpTeacher.Forms
 {
 	public partial class ForcaTrocaSenha : Form
 	{
-		private ConnectionManager banco = new ConnectionManager();
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
 
 		public ForcaTrocaSenha() => InitializeComponent();
 

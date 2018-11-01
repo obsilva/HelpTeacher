@@ -26,9 +26,17 @@ namespace HelpTeacher.Forms
 		#endregion
 
 
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
+
 		#region Constructors
 		public CadastroConteudo(int pag)
 		{
+			ConnectionManager = new ConnectionManager();
+
+
 			InitializeComponent();
 
 			if (pag == 1)

@@ -37,8 +37,15 @@ namespace HelpTeacher.Forms
 		private int countGlob = 0;
 
 
+		#region Properties
+		private ConnectionManager ConnectionManager { get; }
+		#endregion
+
+
 		public GerarAvaliacao()
 		{
+			ConnectionManager = new ConnectionManager();
+
 			InitializeComponent();
 
 			preencheComboCursos();

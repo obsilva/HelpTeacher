@@ -9,7 +9,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.Common;
 using System.Linq;
 
 using HelpTeacher.Domain.Entities;
@@ -22,11 +21,11 @@ namespace HelpTeacher.Repository.Test.Repositories
 {
 	/// <summary>Implementa testes de unidade da classe <seealso cref="DisciplineRepository"/>.</summary>
 	[TestFixture]
-	[Parallelizable(ParallelScope.All)]
+	[Parallelizable(ParallelScope.None)]
 	public class DisciplineRepositoryTest
 	{
 		#region Properties
-		private DbConnection Connection => ConnectionManager.GetOpenConnection(ConfigurationManager.ConnectionStrings["MySQLTest"].ConnectionString);
+		private ConnectionManager Connection => new ConnectionManager(ConfigurationManager.ConnectionStrings["MySQLTest"].ConnectionString);
 
 		private DisciplineRepository Repository => new DisciplineRepository(Connection);
 		#endregion
@@ -41,9 +40,16 @@ namespace HelpTeacher.Repository.Test.Repositories
 		[OneTimeSetUp]
 		public void InitClass()
 		{
-			string query = "DELETE FROM htc2; ALTER TABLE htc2 AUTO_INCREMENT = 1;";
+			// Cleanup records
+			Connection.ExecuteQuery("DELETE FROM htd1; ALTER TABLE htd1 AUTO_INCREMENT = 1;");
+			Connection.ExecuteQuery("DELETE FROM htb1; ALTER TABLE htb1 AUTO_INCREMENT = 1;");
+			Connection.ExecuteQuery("DELETE FROM htc3; ALTER TABLE htc3 AUTO_INCREMENT = 1;");
+			Connection.ExecuteQuery("DELETE FROM htc2; ALTER TABLE htc2 AUTO_INCREMENT = 1;");
+			Connection.ExecuteQuery("DELETE FROM htc1; ALTER TABLE htc1 AUTO_INCREMENT = 1;");
 
-			ConnectionManager.ExecuteQuery(Connection, query);
+			// Initialize required data
+			new CourseRepository(Connection).Add(CourseTestData.GetList());
+			new CourseRepository(Connection).Update(CourseTestData.GetList());
 		}
 
 		[SetUp]
