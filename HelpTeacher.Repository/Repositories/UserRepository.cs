@@ -20,7 +20,7 @@ namespace HelpTeacher.Repository.Repositories
 	{
 		#region Properties
 		/// <summary>Gerenciador de conexão.</summary>
-		public ConnectionManager ConnectionManager { get; set; }
+		public ConnectionManager Connection { get; set; }
 		#endregion
 
 
@@ -29,16 +29,16 @@ namespace HelpTeacher.Repository.Repositories
 		/// Inicializa uma nova instância de <see cref="UserRepository"/>. É possível definir o
 		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
 		/// </summary>
-		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
+		/// <param name="connection">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
-		public UserRepository(ConnectionManager connectionManager = null)
+		public UserRepository(ConnectionManager connection = null)
 		{
-			if (connectionManager == null)
+			if (connection == null)
 			{
-				connectionManager = new ConnectionManager();
+				connection = new ConnectionManager();
 			}
 
-			ConnectionManager = connectionManager;
+			Connection = connection;
 		}
 		#endregion
 
@@ -50,7 +50,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"INSERT INTO hta1 (A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD, A1_STOPBD) VALUES " +
 						   $"(NULL, '{obj.Username}', '{obj.Password}', {(obj.MustChangePassword ? "'*'" : "NULL")}, NULL)";
-			ConnectionManager.ExecuteQuery(query);
+			Connection.ExecuteQuery(query);
 		}
 
 		/// <inheritdoc />
@@ -67,7 +67,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 LIMIT 1";
 
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(query))
 			{
 				var output = new User();
 				if (dataReader.HasRows)
@@ -90,7 +90,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1";
 
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(query))
 			{
 				var output = new List<User>();
 				if (dataReader.HasRows)
@@ -117,7 +117,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1";
 
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(query))
 			{
 				var output = new List<User>();
 				if (dataReader.HasRows)
@@ -144,7 +144,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 WHERE A1_COD = {id}";
 
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(query))
 			{
 				var output = new User();
 				if (dataReader.HasRows)
@@ -167,7 +167,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			string query = $"UPDATE hta1 SET A1_LOGIN = '{obj.Username}', A1_PWD = '{obj.Password}', " +
 						   $"A1_ALTPWD = {(obj.MustChangePassword ? "'*'" : "NULL")} WHERE A1_COD = {obj.RecordID}";
-			ConnectionManager.ExecuteQuery(query);
+			Connection.ExecuteQuery(query);
 		}
 
 		/// <inheritdoc />

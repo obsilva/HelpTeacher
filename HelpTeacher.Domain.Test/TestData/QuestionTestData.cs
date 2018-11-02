@@ -30,14 +30,7 @@ namespace HelpTeacher.Domain.Test.TestData
 
 
 		#region Methods
-		/// <summary>
-		/// Recupera uma enumeração contendo objetos para teste.
-		/// <remarks>
-		/// <para> 
-		/// * Registros com RecordID impar estão ativos, enquanto aqueles com RecordID par estão inativos.
-		/// </para>
-		/// </remarks>
-		/// </summary>
+		/// <summary>Recupera uma enumeração contendo objetos para teste.</summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
 		public static List<Question> GetList()
 			=> new List<Question>()

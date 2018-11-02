@@ -43,7 +43,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		#region Properties
 		/// <summary>Gerenciador de conexão.</summary>
-		public ConnectionManager ConnectionManager { get; set; }
+		public ConnectionManager Connection { get; set; }
 
 		/// <summary>Valor de offset na recuperação de registros.</summary>
 		public int Offset { get; set; }
@@ -58,7 +58,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// Inicializa uma nova instância de <see cref="QuestionRepository"/>. É possível definir o
 		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
 		/// </summary>
-		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
+		/// <param name="connection">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
 		public QuestionRepository(ConnectionManager connection = null, int pageSize = 50)
 		{
@@ -67,7 +67,7 @@ namespace HelpTeacher.Repository.Repositories
 				connection = new ConnectionManager();
 			}
 
-			ConnectionManager = connection;
+			Connection = connection;
 			Offset = 0;
 			PageSize = pageSize;
 		}
@@ -82,7 +82,7 @@ namespace HelpTeacher.Repository.Repositories
 
 			string attachments = $"{obj.FirstAttachment},{obj.SecondAttachment}";
 
-			ConnectionManager.ExecuteQuery(QueryInsert, obj.Statement, obj.IsObjective,
+			Connection.ExecuteQuery(QueryInsert, obj.Statement, obj.IsObjective,
 				attachments, obj.Subject.RecordID, obj.IsDefault);
 		}
 
@@ -100,7 +100,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Question First()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, 1, 0))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, 1, 0))
 			{
 				IQueryable<Question> records = ReadDataReader(dataReader);
 
@@ -111,7 +111,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> Get()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, PageSize, Offset))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -120,7 +120,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> Get(bool isRecordActive)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectActive,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectActive,
 				!isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -130,7 +130,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Question Get(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectID, id))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectID, id))
 			{
 				IQueryable<Question> records = ReadDataReader(dataReader);
 
@@ -145,7 +145,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectSubject, id, PageSize, Offset))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectSubject, id, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -158,7 +158,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectSubjectAndActive,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectSubjectAndActive,
 				id, !isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -172,7 +172,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive, bool isObjective)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectSubjectAndObjective,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectSubjectAndObjective,
 				id, !isRecordActive, isObjective, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -186,7 +186,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Question> GetWhereSubject(int id, bool isRecordActive, bool isObjective, bool wasUsed)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectSubjectAndUsed,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectSubjectAndUsed,
 				id, !isRecordActive, isObjective, wasUsed, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -204,7 +204,7 @@ namespace HelpTeacher.Repository.Repositories
 			{
 				while (dataReader.Read())
 				{
-					Subject subject = new SubjectRepository(ConnectionManager).Get(dataReader.GetInt32(5));
+					Subject subject = new SubjectRepository(Connection).Get(dataReader.GetInt32(5));
 					string[] attachments = dataReader.GetString(3).Split(new[] { ',' },
 						StringSplitOptions.RemoveEmptyEntries);
 					output.Add(new Question(subject, dataReader.GetString(1))
@@ -231,7 +231,7 @@ namespace HelpTeacher.Repository.Repositories
 
 			string attachments = $"{obj.FirstAttachment},{obj.SecondAttachment}";
 
-			ConnectionManager.ExecuteQuery(QueryUpdate, obj.Statement, obj.IsObjective, attachments,
+			Connection.ExecuteQuery(QueryUpdate, obj.Statement, obj.IsObjective, attachments,
 				obj.WasUsed, obj.Subject.RecordID, obj.IsDefault, !obj.IsRecordActive, obj.RecordID);
 		}
 

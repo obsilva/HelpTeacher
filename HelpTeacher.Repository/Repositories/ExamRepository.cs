@@ -14,15 +14,35 @@ using System.Text;
 
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository.IRepositories;
+using HelpTeacher.Util;
 
 namespace HelpTeacher.Repository.Repositories
 {
 	/// <inheritdoc />
 	public class ExamRepository : IExamRepository
 	{
+		#region Constants
+		private const string QueryInsert = "INSERT INTO htd1 (D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T) VALUES (NULL, @D1_TIPO, @D1_INEDITA, @D1_QUESTAO, '', @D1_DATA, 0);";
+
+		private const string QuerySelect = "SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T FROM htd1 LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectActive = "SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T FROM htd1 WHERE (D_E_L_E_T = @IS_DELETED) LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectID = "SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T FROM htd1 WHERE (D1_COD = @D1_COD);";
+
+		private const string QueryUpdate = "UPDATE htd1 SET D1_TIPO = @D1_TIPO, D1_INEDITA = @D1_INEDITA, D1_QUESTAO = @D1_QUESTAO, D1_MATERIA = '', D1_DATA = @D1_DATA, D_E_L_E_T = @D_E_L_E_T WHERE D1_COD = @D1_COD;";
+		#endregion
+
+
 		#region Properties
 		/// <summary>Gerenciador de conexão.</summary>
-		public ConnectionManager ConnectionManager { get; set; }
+		public ConnectionManager Connection { get; set; }
+
+		/// <summary>Valor de offset na recuperação de registros.</summary>
+		public int Offset { get; set; }
+
+		/// <summary>Tamanho da página de registros.</summary>
+		public int PageSize { get; set; }
 		#endregion
 
 
@@ -31,16 +51,18 @@ namespace HelpTeacher.Repository.Repositories
 		/// Inicializa uma nova instância de <see cref="ExamRepository"/>. É possível definir o
 		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
 		/// </summary>
-		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
+		/// <param name="connection">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
-		public ExamRepository(ConnectionManager connectionManager = null)
+		public ExamRepository(ConnectionManager connection = null, int pageSize = 50)
 		{
-			if (connectionManager == null)
+			if (connection == null)
 			{
-				connectionManager = new ConnectionManager();
+				connection = new ConnectionManager();
 			}
 
-			ConnectionManager = connectionManager;
+			Connection = connection;
+			Offset = 0;
+			PageSize = pageSize;
 		}
 		#endregion
 
@@ -49,29 +71,24 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public void Add(Exam obj)
 		{
-			var questions = new StringBuilder();
-			var subjects = new StringBuilder();
+			Checker.NullObject(obj, nameof(obj));
 
-			foreach (Question question in obj.Questions)
+			var questions = new StringBuilder(obj.Questions.First().RecordID.ToString());
+
+			for (int i = 1; i < obj.Questions.Count; i++)
 			{
-				questions.Append(question.RecordID).Append(", ");
+				questions.Append($",{obj.Questions.ElementAt(i).RecordID}");
 			}
 
-			foreach (Subject subject in obj.Subjects)
-			{
-				subjects.Append(subject.RecordID).Append(", ");
-			}
-
-			string query = $"INSERT INTO htd1 (D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, " +
-						   $"D1_DATA, D_E_L_E_T) VALUES (NULL, {obj.Type}, " +
-						   $"{(obj.HasOnlyUnusedQuestion ? "*" : "NULL")}, '{questions}', '{subjects}', " +
-						   $"{obj.GeneratedDate}, NULL)";
-			ConnectionManager.ExecuteQuery(query);
+			Connection.ExecuteQuery(QueryInsert, obj.Type, obj.HasOnlyUnusedQuestion, questions.ToString(),
+				obj.GeneratedDate.ToShortDateString());
 		}
 
 		/// <inheritdoc />
 		public void Add(IEnumerable<Exam> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Exam obj in collection)
 			{
 				Add(obj);
@@ -81,205 +98,102 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Exam First()
 		{
-			string query = $"SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T" +
-						   $"FROM htd1 LIMIT 1";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, 1, 0))
 			{
-				var output = new Exam(new List<Question>(), new List<Subject>());
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Exam> records = ReadDataReader(dataReader);
 
-					var questions = new List<Question>();
-					var subjects = new List<Subject>();
-
-					string[] ids = dataReader.GetString(3).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-					foreach (string id in ids)
-					{
-						questions.Add(new QuestionRepository().Get(Convert.ToInt32(id)));
-					}
-
-					ids = dataReader.GetString(4).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-					foreach (string id in ids)
-					{
-						subjects.Add(new SubjectRepository().Get(Convert.ToInt32(id)));
-					}
-
-					output.GeneratedDate = dataReader.GetDateTime(5);
-					output.HasOnlyUnusedQuestion = dataReader.IsDBNull(2);
-					output.IsRecordActive = dataReader.IsDBNull(6);
-					output.Questions = questions;
-					output.RecordID = dataReader.GetInt32(0);
-					output.Subjects = subjects;
-					output.Type = dataReader.GetChar(1);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? Exam.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Exam> Get()
 		{
-			string query = $"SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T" +
-						   $"FROM htd1";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, PageSize, Offset))
 			{
-				var output = new List<Exam>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var questions = new List<Question>();
-						var subjects = new List<Subject>();
-
-						string[] ids = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-						foreach (string id in ids)
-						{
-							questions.Add(new QuestionRepository().Get(Convert.ToInt32(id)));
-						}
-
-						ids = dataReader.GetString(4).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-						foreach (string id in ids)
-						{
-							subjects.Add(new SubjectRepository().Get(Convert.ToInt32(id)));
-						}
-
-						output.Add(new Exam(questions, subjects)
-						{
-							GeneratedDate = dataReader.GetDateTime(5),
-							HasOnlyUnusedQuestion = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(6),
-							RecordID = dataReader.GetInt32(0),
-							Type = dataReader.GetChar(1)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<Exam> Get(bool isRecordActive)
 		{
-			string query = $"SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T" +
-						   $"FROM htd1 WHERE D_E_L_E_T {(isRecordActive ? "IS" : "IS NOT")} NULL";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectActive,
+				!isRecordActive, PageSize, Offset))
 			{
-				var output = new List<Exam>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						var questions = new List<Question>();
-						var subjects = new List<Subject>();
-
-						string[] ids = dataReader.GetString(3).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-						foreach (string id in ids)
-						{
-							questions.Add(new QuestionRepository().Get(Convert.ToInt32(id)));
-						}
-
-						ids = dataReader.GetString(4).Split(new char[] { ',' },
-							StringSplitOptions.RemoveEmptyEntries);
-						foreach (string id in ids)
-						{
-							subjects.Add(new SubjectRepository().Get(Convert.ToInt32(id)));
-						}
-
-						output.Add(new Exam(questions, subjects)
-						{
-							GeneratedDate = dataReader.GetDateTime(5),
-							HasOnlyUnusedQuestion = dataReader.IsDBNull(2),
-							IsRecordActive = dataReader.IsDBNull(6),
-							RecordID = dataReader.GetInt32(0),
-							Type = dataReader.GetChar(1)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public Exam Get(int id)
 		{
-			string query = $"SELECT D1_COD, D1_TIPO, D1_INEDITA, D1_QUESTAO, D1_MATERIA, D1_DATA, D_E_L_E_T" +
-						   $"FROM htd1 WHERE D1_COD = {id}";
-
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectID, id))
 			{
-				var output = new Exam(new List<Question>(), new List<Subject>());
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<Exam> records = ReadDataReader(dataReader);
 
+				return records.FirstOrDefault() ?? Exam.Null;
+			}
+		}
+
+		/// <summary>Faz a leitura do <see cref="DbDataReader"/>.</summary>
+		/// <param name="dataReader">Objeto para ler.</param>
+		/// <returns>Todos os objetos no <see cref="DbDataReader"/>.</returns>
+		private IQueryable<Exam> ReadDataReader(DbDataReader dataReader)
+		{
+			var output = new List<Exam>();
+
+			if (dataReader.HasRows)
+			{
+				while (dataReader.Read())
+				{
 					var questions = new List<Question>();
 					var subjects = new List<Subject>();
 
-					string[] ids = dataReader.GetString(3).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-					foreach (string itemId in ids)
+					string[] ids = dataReader.GetString(3).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+					foreach (string id in ids)
 					{
-						questions.Add(new QuestionRepository().Get(Convert.ToInt32(itemId)));
+						questions.Add(new QuestionRepository(Connection).Get(Convert.ToInt32(id)));
 					}
 
-					ids = dataReader.GetString(4).Split(new char[] { ',' },
-						StringSplitOptions.RemoveEmptyEntries);
-					foreach (string itemId in ids)
-					{
-						subjects.Add(new SubjectRepository().Get(Convert.ToInt32(itemId)));
-					}
+					subjects = questions.Select(item => item.Subject).Distinct().ToList();
 
-					output.GeneratedDate = dataReader.GetDateTime(5);
-					output.HasOnlyUnusedQuestion = dataReader.IsDBNull(2);
-					output.IsRecordActive = dataReader.IsDBNull(6);
-					output.Questions = questions;
-					output.RecordID = dataReader.GetInt32(0);
-					output.Subjects = subjects;
-					output.Type = dataReader.GetChar(1);
+					output.Add(new Exam(questions, subjects)
+					{
+						GeneratedDate = Convert.ToDateTime(dataReader.GetString(5)),
+						HasOnlyUnusedQuestion = (dataReader.GetInt32(2) == 1),
+						IsRecordActive = (dataReader.GetInt32(6) == 0),
+						RecordID = dataReader.GetInt32(0),
+						Type = dataReader.GetChar(1)
+					});
 				}
-
-				return output;
 			}
+
+			dataReader.Close();
+			return output.AsQueryable();
 		}
 
 		/// <inheritdoc />
 		public void Update(Exam obj)
 		{
-			var questions = new StringBuilder();
-			var subjects = new StringBuilder();
+			Checker.NullObject(obj, nameof(obj));
 
-			foreach (Question question in obj.Questions)
+			var questions = new StringBuilder(obj.Questions.First().RecordID.ToString());
+
+			for (int i = 1; i < obj.Questions.Count; i++)
 			{
-				questions.Append(question.RecordID).Append(", ");
+				questions.Append($",{obj.Questions.ElementAt(i).RecordID}");
 			}
 
-			foreach (Subject subject in obj.Subjects)
-			{
-				subjects.Append(subject.RecordID).Append(", ");
-			}
-
-			string query = $"UPDATE htd1 SET D1_TIPO = {obj.Type}, D1_INEDITA = " +
-						   $"{(obj.HasOnlyUnusedQuestion ? "*" : "NULL")}, D1_QUESTAO = '{questions}', " +
-						   $"D1_MATERIA = '{subjects}', D1_DATA = {obj.GeneratedDate}, D_E_L_E_T = " +
-						   $"{(obj.IsRecordActive ? "*" : "NULL")} WHERE D1_COD = {obj.RecordID}";
-			ConnectionManager.ExecuteQuery(query);
+			Connection.ExecuteQuery(QueryUpdate, obj.Type, obj.HasOnlyUnusedQuestion, questions.ToString(),
+				obj.GeneratedDate.ToShortDateString(), !obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Update(IEnumerable<Exam> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (Exam obj in collection)
 			{
 				Update(obj);

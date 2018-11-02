@@ -36,7 +36,7 @@ namespace HelpTeacher.Repository.Repositories
 
 		#region Properties
 		/// <summary>Gerenciador de conexão.</summary>
-		public ConnectionManager ConnectionManager { get; set; }
+		public ConnectionManager Connection { get; set; }
 
 		/// <summary>Valor de offset na recuperação de registros.</summary>
 		public int Offset { get; set; }
@@ -51,16 +51,16 @@ namespace HelpTeacher.Repository.Repositories
 		/// Inicializa uma nova instância de <see cref="CourseRepository"/>. É possível definir o
 		/// gerenciador conexão a ser usado e/ou o tamanho da página de registros.
 		/// </summary>
-		/// <param name="connectionManager">Gerenciador de conexão a ser usado.</param>
+		/// <param name="connection">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
-		public CourseRepository(ConnectionManager connectionManager = null, int pageSize = 50)
+		public CourseRepository(ConnectionManager connection = null, int pageSize = 50)
 		{
-			if (connectionManager == null)
+			if (connection == null)
 			{
-				connectionManager = new ConnectionManager();
+				connection = new ConnectionManager();
 			}
 
-			ConnectionManager = connectionManager;
+			Connection = connection;
 			Offset = 0;
 			PageSize = pageSize;
 		}
@@ -73,7 +73,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			Checker.NullObject(obj, nameof(obj));
 
-			ConnectionManager.ExecuteQuery(QueryInsert, obj.Name);
+			Connection.ExecuteQuery(QueryInsert, obj.Name);
 		}
 
 		/// <inheritdoc />
@@ -90,7 +90,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Course First()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, 1, 0))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, 1, 0))
 			{
 				IQueryable<Course> records = ReadDataReader(dataReader);
 
@@ -101,7 +101,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Course> Get()
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelect, PageSize, Offset))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
 			}
@@ -110,7 +110,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Course> Get(bool isRecordActive)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectActive,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectActive,
 				!isRecordActive, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -120,7 +120,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public Course Get(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectID, id))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectID, id))
 			{
 				IQueryable<Course> records = ReadDataReader(dataReader);
 
@@ -135,7 +135,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public IQueryable<Course> GetWhereNotID(int id)
 		{
-			using (DbDataReader dataReader = ConnectionManager.ExecuteReader(QuerySelectDifferentID,
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectDifferentID,
 				id, PageSize, Offset))
 			{
 				return ReadDataReader(dataReader);
@@ -170,7 +170,7 @@ namespace HelpTeacher.Repository.Repositories
 		{
 			Checker.NullObject(obj, nameof(obj));
 
-			ConnectionManager.ExecuteQuery(QueryUpdate, obj.Name, !obj.IsRecordActive, obj.RecordID);
+			Connection.ExecuteQuery(QueryUpdate, obj.Name, !obj.IsRecordActive, obj.RecordID);
 		}
 
 		/// <inheritdoc />

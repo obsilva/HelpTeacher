@@ -8,6 +8,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using HelpTeacher.Util;
 
@@ -161,16 +162,15 @@ namespace HelpTeacher.Domain.Entities
 				return false;
 			}
 
-			if (!EqualityComparer<ICollection<Question>>.Default.Equals(Questions, other.Questions))
+			if ((Questions.Count != other.Questions.Count) || !Questions.All(other.Questions.Contains))
 			{
 				return false;
 			}
 
-			if (!EqualityComparer<ICollection<Subject>>.Default.Equals(Subjects, other.Subjects))
+			if ((Subjects.Count != other.Subjects.Count) || !Subjects.All(other.Subjects.Contains))
 			{
 				return false;
 			}
-
 
 			return true;
 		}

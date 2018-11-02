@@ -25,9 +25,11 @@ namespace HelpTeacher.Repository.Test.Repositories
 	public class QuestionRepositoryTest
 	{
 		#region Properties
-		private ConnectionManager Connection => new ConnectionManager(ConfigurationManager.ConnectionStrings["MySQLTest"].ConnectionString);
+		private ConnectionManager Connection
+			=> new ConnectionManager(ConfigurationManager.ConnectionStrings["MySQLTest"].ConnectionString);
 
-		private QuestionRepository Repository => new QuestionRepository(Connection);
+		private QuestionRepository Repository
+			=> new QuestionRepository(Connection);
 		#endregion
 
 
