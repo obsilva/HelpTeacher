@@ -12,8 +12,8 @@ using System.Configuration;
 using System.Linq;
 
 using HelpTeacher.Domain.Entities;
+using HelpTeacher.Domain.Test.TestData;
 using HelpTeacher.Repository.Repositories;
-using HelpTeacher.Repository.Test.TestData;
 
 using NUnit.Framework;
 

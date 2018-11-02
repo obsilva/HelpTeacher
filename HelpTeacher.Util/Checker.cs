@@ -95,5 +95,36 @@ namespace HelpTeacher.Util
 				throw new ArgumentOutOfRangeException(paramName, str.Length, errorMessage);
 			}
 		}
+
+		public static void Value(int value, string paramName, int minValue)
+		{
+			string message = $"Valor mínimo exigido: {minValue}.";
+
+			Value(value, paramName, minValue, Int32.MaxValue, message);
+		}
+
+		public static void Value(int value, string paramName, int minValue, int maxValue)
+		{
+			string message = $"Valor mínimo exigido: {minValue}. Valor máximo permitido: {maxValue}.";
+
+			Value(value, paramName, minValue, maxValue, message);
+		}
+
+		/// <summary>Checa se um valor está entre o mínimo e o máximo permitidos.</summary>
+		/// <param name="value">Valor a ser verificado.</param>
+		/// <param name="paramName">Nome do parâmetro de onde o valor veio.</param>
+		/// <param name="minValue">Valor mínimo exigido.</param>
+		/// <param name="maxValue">Valor máximo permitido.</param>
+		/// <param name="errorMessage">Mensagem de erro que deve ser exibida caso a exceção seja lançada.</param>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Lançada quando <paramref name="value"/> for menor ou maior que o permitido.
+		/// </exception>
+		public static void Value(int value, string paramName, int minValue, int maxValue, string errorMessage)
+		{
+			if ((value < minValue) || (value > maxValue))
+			{
+				throw new ArgumentOutOfRangeException(paramName, value, errorMessage);
+			}
+		}
 	}
 }

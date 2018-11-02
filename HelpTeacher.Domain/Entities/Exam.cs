@@ -9,11 +9,20 @@
 using System;
 using System.Collections.Generic;
 
+using HelpTeacher.Util;
+
 namespace HelpTeacher.Domain.Entities
 {
 	/// <summary>Define a entidade avaliação.</summary>
-	public class Exam : IEntityBase
+	public class Exam : IEntityBase, IEquatable<Exam>
 	{
+		#region Fields
+		private ICollection<Question> _questions;
+
+		private ICollection<Subject> _subjects;
+		#endregion
+
+
 		#region Properties
 		/// <summary>Data de geração da avaliação.</summary>
 		public DateTime GeneratedDate { get; set; }
@@ -34,23 +43,44 @@ namespace HelpTeacher.Domain.Entities
 		/// <returns>Nova instância vazia.</returns>
 		public static Exam Null => new Exam()
 		{
+			_questions = new List<Question>(),
+			_subjects = new List<Subject>(),
+
 			GeneratedDate = DateTime.MinValue,
 			HasOnlyUnusedQuestion = false,
 			IsRecordActive = false,
-			Questions = new List<Question>(),
 			RecordID = -1,
-			Subjects = new List<Subject>(),
-			Type = 'D'
+			Type = 'M'
 		};
 
 		/// <summary><see cref="Question"/>'s utilizadas na geração da avaliação.</summary>
-		public ICollection<Question> Questions { get; set; }
+		public ICollection<Question> Questions
+		{
+			get => _questions;
+			set
+			{
+				Checker.NullObject(value, nameof(Questions));
+				Checker.Value(value.Count, nameof(Questions), 1);
+
+				_questions = value;
+			}
+		}
 
 		/// <inheritdoc />
 		public int RecordID { get; set; }
 
 		/// <summary><see cref="Subject"/>'s a qual a avaliação pertence.</summary>
-		public ICollection<Subject> Subjects { get; set; }
+		public ICollection<Subject> Subjects
+		{
+			get => _subjects;
+			set
+			{
+				Checker.NullObject(value, nameof(Subjects));
+				Checker.Value(value.Count, nameof(Subjects), 1);
+
+				_subjects = value;
+			}
+		}
 
 		/// <summary>
 		/// Tipo da avaliação.
@@ -74,7 +104,97 @@ namespace HelpTeacher.Domain.Entities
 			Questions = questions;
 			Subjects = subjects;
 		}
+		#endregion
 
+
+		#region Methods
+		/// <summary>Determina se as duas avaliações especificadas possuem valores iguais.</summary>
+		/// <param name="exam1">A primeira avaliação para comparar, ou <see langword="null"/>.</param>
+		/// <param name="exam2">A segunda avaliação para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="exam1"/> forem iguais que
+		/// em <paramref name="exam2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator ==(Exam exam1, Exam exam2)
+			=> EqualityComparer<Exam>.Default.Equals(exam1, exam2);
+
+		/// <summary>Determina se as duas avaliações especificadas possuem valores diferentes.</summary>
+		/// <param name="exam1">A primeira avaliação para comparar, ou <see langword="null"/>.</param>
+		/// <param name="exam2">A segunda avaliação para comparar, ou <see langword="null"/>.</param>
+		/// <returns>
+		/// <see langword="true"/> se os valores em <paramref name="exam1"/> forem diferentes que
+		/// em <paramref name="exam2"/>; <see langword="false"/> caso contrário.
+		/// </returns>
+		public static bool operator !=(Exam exam1, Exam exam2)
+			=> !(exam1 == exam2);
+
+		/// <inheritdoc />
+		public bool Equals(Exam other)
+		{
+			if (other == null)
+			{
+				return false;
+			}
+
+			if (RecordID != other.RecordID)
+			{
+				return false;
+			}
+
+			if (GeneratedDate != other.GeneratedDate)
+			{
+				return false;
+			}
+
+			if (HasOnlyUnusedQuestion != other.HasOnlyUnusedQuestion)
+			{
+				return false;
+			}
+
+			if (IsRecordActive != other.IsRecordActive)
+			{
+				return false;
+			}
+
+			if (Type != other.Type)
+			{
+				return false;
+			}
+
+			if (!EqualityComparer<ICollection<Question>>.Default.Equals(Questions, other.Questions))
+			{
+				return false;
+			}
+
+			if (!EqualityComparer<ICollection<Subject>>.Default.Equals(Subjects, other.Subjects))
+			{
+				return false;
+			}
+
+
+			return true;
+		}
+		#endregion
+
+
+		#region Overrides
+		/// <inheritdoc />
+		public override bool Equals(object obj)
+			=> Equals(obj as Exam);
+
+		/// <inheritdoc />
+		public override int GetHashCode()
+		{
+			int hashCode = -1147934649;
+			hashCode = (hashCode * -1521134295) + GeneratedDate.GetHashCode();
+			hashCode = (hashCode * -1521134295) + HasOnlyUnusedQuestion.GetHashCode();
+			hashCode = (hashCode * -1521134295) + IsRecordActive.GetHashCode();
+			hashCode = (hashCode * -1521134295) + EqualityComparer<ICollection<Question>>.Default.GetHashCode(Questions);
+			hashCode = (hashCode * -1521134295) + RecordID.GetHashCode();
+			hashCode = (hashCode * -1521134295) + EqualityComparer<ICollection<Subject>>.Default.GetHashCode(Subjects);
+			hashCode = (hashCode * -1521134295) + Type.GetHashCode();
+			return hashCode;
+		}
 		#endregion
 	}
 }

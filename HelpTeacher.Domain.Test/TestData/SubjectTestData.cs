@@ -11,7 +11,7 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 
-namespace HelpTeacher.Repository.Test.TestData
+namespace HelpTeacher.Domain.Test.TestData
 {
 	/// <summary>Repositório de dados de teste.</summary>
 	public static class SubjectTestData
@@ -47,7 +47,7 @@ namespace HelpTeacher.Repository.Test.TestData
 		/// </remarks>
 		/// </summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
-		public static IEnumerable<Subject> GetList()
+		public static List<Subject> GetList()
 			=> new List<Subject>()
 			{
 				new Subject(Disciplines.ElementAt(0), "Subject 1") { RecordID = 1, IsRecordActive = true },

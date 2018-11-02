@@ -3,7 +3,7 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 
-namespace HelpTeacher.Repository.Test.TestData
+namespace HelpTeacher.Domain.Test.TestData
 {
 	/// <summary>Repositório de dados de teste.</summary>
 	public class QuestionTestData
@@ -39,7 +39,7 @@ namespace HelpTeacher.Repository.Test.TestData
 		/// </remarks>
 		/// </summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
-		public static IEnumerable<Question> GetList()
+		public static List<Question> GetList()
 			=> new List<Question>()
 			{
 				new Question(Subjects.ElementAt(0), "Question statement 1")

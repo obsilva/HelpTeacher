@@ -11,10 +11,10 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 
-namespace HelpTeacher.Repository.Test.TestData
+namespace HelpTeacher.Domain.Test.TestData
 {
 	/// <summary>Repositório de dados de teste.</summary>
-	internal static class DisciplineTestData
+	public static class DisciplineTestData
 	{
 		#region Properties
 		/// <summary>Lista com <see cref="Course"/>s usados na geração das disciplinas de teste.</summary>
@@ -47,7 +47,7 @@ namespace HelpTeacher.Repository.Test.TestData
 		/// </remarks>
 		/// </summary>
 		/// <returns>Enumeração com objetos para teste.</returns>
-		public static IEnumerable<Discipline> GetList()
+		public static List<Discipline> GetList()
 			=> new List<Discipline>()
 			{
 				new Discipline(Courses.ElementAt(0), "Discipline 1") { RecordID = 1, IsRecordActive = true },

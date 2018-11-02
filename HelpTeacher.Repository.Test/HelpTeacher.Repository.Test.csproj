@@ -53,12 +53,12 @@
     <Compile Include="Repositories\DisciplineRepositoryTest.cs" />
     <Compile Include="Repositories\QuestionRepositoryTest.cs" />
     <Compile Include="Repositories\SubjectRepositoryTest.cs" />
-    <Compile Include="TestData\CourseTestData.cs" />
-    <Compile Include="TestData\DisciplineTestData.cs" />
-    <Compile Include="TestData\QuestionTestData.cs" />
-    <Compile Include="TestData\SubjectTestData.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HelpTeacher.Domain.Test\HelpTeacher.Domain.Test.csproj">
+      <Project>{f9fa4fd4-22d4-4190-a1ed-1377761980b2}</Project>
+      <Name>HelpTeacher.Domain.Test</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">
       <Project>{4771FA15-88E3-4C55-B4CC-0CA9B0002CF9}</Project>
       <Name>HelpTeacher.Domain</Name>

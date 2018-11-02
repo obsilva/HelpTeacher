@@ -52,7 +52,6 @@ namespace HelpTeacher.Util.Test
 
 
 		#region Tests
-
 		[Test]
 		public void NullObject_ArgumentNullException_When_ObjectNull()
 			=> Assert.Throws(Is.TypeOf<ArgumentNullException>().And.Property("ParamName").EqualTo(ParamName),
@@ -88,6 +87,31 @@ namespace HelpTeacher.Util.Test
 		public void StringLength_Void_When_ValidArguments()
 			=> Assert.DoesNotThrow(() => Checker.StringLength(StringNotEmpty, ParamName,
 				StringNotEmpty.Length, StringNotEmpty.Length, ErrorMessage));
+
+		[Test]
+		public void Value_ArgumentOutOfRangeException_When_ValueGreaterThanAllowed([Values(11, 1000, 10000)] int value)
+		{
+			int maxValue = 10;
+			int minValue = 10;
+
+			Assert.Throws(Is.TypeOf<ArgumentOutOfRangeException>().And.Property("ParamName").EqualTo(ParamName),
+				() => Checker.Value(value, ParamName, minValue, maxValue, ErrorMessage));
+		}
+
+		[Test]
+		public void Value_ArgumentOutOfRangeException_When_ValueLowerThanAllowed([Values(9, 0, -1000)] int value)
+		{
+			int maxValue = 10;
+			int minValue = 10;
+
+			Assert.Throws(Is.TypeOf<ArgumentOutOfRangeException>().And.Property("ParamName").EqualTo(ParamName),
+				() => Checker.Value(value, ParamName, minValue, maxValue, ErrorMessage));
+		}
+
+		[Test]
+		public void Value_Void_When_ValidArguments()
+			=> Assert.DoesNotThrow(() => Checker.Value(5, ParamName,
+				0, 10, ErrorMessage));
 		#endregion
 	}
 }

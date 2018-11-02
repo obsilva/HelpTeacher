@@ -161,7 +161,8 @@ namespace HelpTeacher.Domain.Entities
 		/// <see langword="true"/> se os valores em <paramref name="question1"/> forem iguais que
 		/// em <paramref name="question2"/>; <see langword="false"/> caso contrário.
 		/// </returns>
-		public static bool operator ==(Question question1, Question question2) => EqualityComparer<Question>.Default.Equals(question1, question2);
+		public static bool operator ==(Question question1, Question question2)
+			=> EqualityComparer<Question>.Default.Equals(question1, question2);
 
 		/// <summary>Determina se as duas questões especificadas possuem valores diferentes.</summary>
 		/// <param name="question1">A primeiro questão para comparar, ou <see langword="null"/>.</param>
@@ -170,7 +171,8 @@ namespace HelpTeacher.Domain.Entities
 		/// <see langword="true"/> se os valores em <paramref name="question1"/> forem diferentes que
 		/// em <paramref name="question2"/>; <see langword="false"/> caso contrário.
 		/// </returns>
-		public static bool operator !=(Question question1, Question question2) => !(question1 == question2);
+		public static bool operator !=(Question question1, Question question2)
+			=> !(question1 == question2);
 
 		/// <inheritdoc />
 		public bool Equals(Question other)
