@@ -37,7 +37,8 @@ namespace HelpTeacher.Repository
 
 
 		#region Constructors
-		static ConnectionManager() => DbTypeMap = DbTypeDictionary();
+		static ConnectionManager()
+			=> DbTypeMap = DbTypeDictionary();
 
 		/// <summary>
 		/// Inicializa uma nova instância de <see cref="ConnectionManager"/> usando a string de
@@ -102,7 +103,7 @@ namespace HelpTeacher.Repository
 		/// Determina se uma conexão pode ser aberta usando <see cref="ConnectionString"/>.</summary>
 		/// <param name="connection">A conexão a ser testada.</param>
 		/// <returns>
-		/// <see langword="true" /> se a conexão estiver aberta, <see langword="false" /> em qualquer outro caso.
+		/// <see langword="true"/> se a conexão estiver aberta, <see langword="false"/> em qualquer outro caso.
 		/// </returns>
 		private bool CanOpenConnection()
 		{
@@ -126,13 +127,43 @@ namespace HelpTeacher.Repository
 			}
 			finally
 			{
-				connection?.Dispose();
+				CloseConnection(connection);
 			}
 		}
 
 		/// <summary>Encerra a conexão.</summary>
 		/// <param name="connection">Conexão que deve ser fechada.</param>
-		private void CloseConnection(DbConnection connection) => connection?.Close();
+		private void CloseConnection(DbConnection connection)
+			=> connection?.Close();
+
+		/// <summary>Cria um novo <see cref="DbCommand"/> utilizando uma nova conexão.
+		/// Caso o comando possua parâmetros, eles devem ser ser definidos usando '@' e seus
+		/// respectivos valores informados individualmente.
+		/// </summary>
+		/// <example>
+		/// Siga o exemplo:
+		/// <code>
+		/// string myQuery = "INSERT INTO htc1 VALUES (@C1_COD, @C1_NOME, @D_E_L_E_T)"
+		/// ConnectionManager.CreateCommand(myQuery, 15, "Name", "NULL");
+		/// </code>
+		/// </example>
+		/// <param name="query">Comando a ser executado.</param>
+		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
+		/// <returns>Novo <see cref="DbCommand"/> com o comando e parâmetros definidos.</returns>
+		private DbCommand CreateCommand(string query, params object[] parameterValue)
+		{
+			Checker.NullOrEmptyString(query, nameof(query));
+
+			DbConnection connection = GetOpenConnection();
+
+			DbCommand command = connection.CreateCommand();
+			string[] parameterName = GetParameterName(query);
+
+			command.CommandText = query;
+			AddCommandParameters(command, parameterName, parameterValue);
+
+			return command;
+		}
 
 		/// <summary>Mapeia os tipos do C# para os tipos em <see cref="DbType"/>.</summary>
 		private static Dictionary<Type, DbType> DbTypeDictionary()
@@ -178,55 +209,43 @@ namespace HelpTeacher.Repository
 			return dictionary;
 		}
 
-		/// <summary>
-		/// Cria um <see cref="DbDataAdapter"/> com a query a conexão padrão, pronto para
-		/// ser executado.
-		/// </summary>
-		/// <param name="query">Comando a ser executado.</param>
-		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
-		/// <returns>Dados retornados pela consulta em um <see cref="DbDataAdapter"/>.</returns>
-		public DbDataAdapter ExecuteAdapter(string query, params object[] parameterValue)
-		{
-			Checker.NullOrEmptyString(query, nameof(query));
-
-			DbConnection connection = GetOpenConnection();
-
-			DbCommand command = connection.CreateCommand();
-			string[] parameterName = GetParameterName(query);
-
-			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
-
-			return new MySqlDataAdapter(command as MySqlCommand);
-		}
-
-		/// <summary>
-		/// Executa uma query em, uma nova conexão, que não exige retorno de dados. Caso a query
-		/// possua parâmetros, eles devem ser ser definidos usando '@' e seus respectivos valores
-		/// informados individualmente.
+		/// <summary>Cria um <see cref="DbDataAdapter"/>. Caso a query possua parâmetros,
+		/// eles devem ser ser definidos usando '@' e seus respectivos valores informados individualmente.
 		/// </summary>
 		/// <example>
 		/// Siga o exemplo:
 		/// <code>
 		/// string myQuery = "INSERT INTO htc1 VALUES (@C1_COD, @C1_NOME, @D_E_L_E_T)"
-		/// ConnectionManager.ExecuteQuery(myQuery, "15", "Name", "NULL");
+		/// ConnectionManager.ExecuteAdapter(myQuery, 15, "Name", "NULL");
+		/// </code>
+		/// </example>
+		/// <param name="query">Comando a ser executado.</param>
+		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
+		/// <returns>Dados retornados pela consulta em um <see cref="DbDataAdapter"/>.</returns>
+		public DbDataAdapter ExecuteAdapter(string query, params object[] parameterValue)
+		{
+			DbCommand command = CreateCommand(query, parameterValue);
+			return new MySqlDataAdapter(command as MySqlCommand);
+		}
+
+		/// <summary>
+		/// Executa um comando que não exige retorno de dados. Caso a query possua parâmetros,
+		/// eles devem ser ser definidos usando '@' e seus respectivos valores informados individualmente.
+		/// </summary>
+		/// <example>
+		/// Siga o exemplo:
+		/// <code>
+		/// string myQuery = "INSERT INTO htc1 VALUES (@C1_COD, @C1_NOME, @D_E_L_E_T)"
+		/// ConnectionManager.ExecuteQuery(myQuery, 15, "Name", "NULL");
 		/// </code>
 		/// </example>
 		/// <param name="query">Comando a ser executado.</param>
 		/// <param name="parameterValue">Valor do(s) parâmetro(s) da query, se houver.</param>
 		public void ExecuteQuery(string query, params object[] parameterValue)
 		{
-			Checker.NullOrEmptyString(query, nameof(query));
-
-			DbConnection connection = GetOpenConnection();
-
-			DbCommand command = connection.CreateCommand();
-			string[] parameterName = GetParameterName(query);
-
-			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
-
+			DbCommand command = CreateCommand(query, parameterValue);
 			int attempts = 0;
+
 			do
 			{
 				try
@@ -248,11 +267,11 @@ namespace HelpTeacher.Repository
 				}
 			} while (attempts < MaxAttempts);
 
-			CloseConnection(connection);
+			CloseConnection(command.Connection);
 		}
 
 		/// <summary>
-		/// Executa uma query, em uma nova conexão, e retorna seu <see cref="DbDataReader"/>. Caso
+		/// Executa um comando e retorna os dados em um <see cref="DbDataReader"/>. Caso
 		/// a query possua parâmetros, eles devem ser ser definidos usando '@' e seus respectivos
 		/// valores informados individualmente.
 		/// </summary>
@@ -268,17 +287,9 @@ namespace HelpTeacher.Repository
 		/// <returns>Dados retornados pela consulta em um <see cref="DbDataReader"/>.</returns>
 		public DbDataReader ExecuteReader(string query, params object[] parameterValue)
 		{
-			Checker.NullOrEmptyString(query, nameof(query));
-
-			DbConnection connection = GetOpenConnection();
-
-			DbCommand command = connection.CreateCommand();
-			string[] parameterName = GetParameterName(query);
-
-			command.CommandText = query;
-			AddCommandParameters(command, parameterName, parameterValue);
-
+			DbCommand command = CreateCommand(query, parameterValue);
 			int attempts = 0;
+
 			do
 			{
 				try
@@ -355,7 +366,7 @@ namespace HelpTeacher.Repository
 			}
 
 			string[] queryWords = query
-				.Split(new char[] { ' ', ',', '.', '(', ')', '=', ';', '#' }, StringSplitOptions.RemoveEmptyEntries);
+				.Split(new[] { ' ', ',', '.', '(', ')', '=', ';', '#' }, StringSplitOptions.RemoveEmptyEntries);
 
 			var parameters = new List<string>();
 			foreach (string word in queryWords)
