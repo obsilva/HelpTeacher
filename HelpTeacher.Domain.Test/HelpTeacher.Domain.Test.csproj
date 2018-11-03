@@ -54,6 +54,7 @@
     <Compile Include="TestData\ExamTestData.cs" />
     <Compile Include="TestData\QuestionTestData.cs" />
     <Compile Include="TestData\SubjectTestData.cs" />
+    <Compile Include="TestData\UserTestData.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HelpTeacher.Domain\HelpTeacher.Domain.csproj">

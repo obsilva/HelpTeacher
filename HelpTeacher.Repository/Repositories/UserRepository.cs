@@ -12,12 +12,24 @@ using System.Linq;
 
 using HelpTeacher.Domain.Entities;
 using HelpTeacher.Repository.IRepositories;
+using HelpTeacher.Util;
 
 namespace HelpTeacher.Repository.Repositories
 {
 	/// <inheritdoc />
 	public class UserRepository : IUserRepository
 	{
+		#region Constants
+		private const string QueryInsert = "INSERT INTO hta1 (A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD, A1_STOPBD) VALUES (NULL, @A1_LOGIN, @A1_PWD, @A1_ALTPWD, 0);";
+
+		private const string QuerySelect = "SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 LIMIT @LIMIT OFFSET @OFFSET;";
+
+		private const string QuerySelectID = "SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 WHERE (A1_COD = @A1_COD);";
+
+		private const string QueryUpdate = "UPDATE hta1 SET A1_LOGIN = @A1_LOGIN, A1_PWD = @A1_PWD, A1_ALTPWD = @A1_ALTPWD WHERE A1_COD = @A1_COD;";
+		#endregion
+
+
 		#region Properties
 		/// <summary>Gerenciador de conexão.</summary>
 		public ConnectionManager Connection { get; set; }
@@ -31,7 +43,7 @@ namespace HelpTeacher.Repository.Repositories
 		/// </summary>
 		/// <param name="connection">Gerenciador de conexão a ser usado.</param>
 		/// <param name="pageSize">Número máximo de registros para retornar por vez.</param>
-		public UserRepository(ConnectionManager connection = null)
+		public UserRepository(ConnectionManager connection = null, int pageSize = 50)
 		{
 			if (connection == null)
 			{
@@ -39,23 +51,32 @@ namespace HelpTeacher.Repository.Repositories
 			}
 
 			Connection = connection;
+			Offset = 0;
+			PageSize = pageSize;
 		}
+
+		/// <summary>Valor de offset na recuperação de registros.</summary>
+		public int Offset { get; set; }
+
+		/// <summary>Tamanho da página de registros.</summary>
+		public int PageSize { get; set; }
 		#endregion
 
 
 		#region Methods
-
 		/// <inheritdoc />
 		public void Add(User obj)
 		{
-			string query = $"INSERT INTO hta1 (A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD, A1_STOPBD) VALUES " +
-						   $"(NULL, '{obj.Username}', '{obj.Password}', {(obj.MustChangePassword ? "'*'" : "NULL")}, NULL)";
-			Connection.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			Connection.ExecuteQuery(QueryInsert, obj.Username, obj.Password, obj.MustChangePassword);
 		}
 
 		/// <inheritdoc />
 		public void Add(IEnumerable<User> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (User obj in collection)
 			{
 				Add(obj);
@@ -65,114 +86,77 @@ namespace HelpTeacher.Repository.Repositories
 		/// <inheritdoc />
 		public User First()
 		{
-			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 LIMIT 1";
-
-			using (DbDataReader dataReader = Connection.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, 1, 0))
 			{
-				var output = new User();
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<User> records = ReadDataReader(dataReader);
 
-					output.IsRecordActive = true;
-					output.MustChangePassword = !dataReader.IsDBNull(3);
-					output.Password = dataReader.GetString(2);
-					output.RecordID = dataReader.GetInt32(0);
-					output.Username = dataReader.GetString(1);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? User.Null;
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<User> Get()
 		{
-			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1";
-
-			using (DbDataReader dataReader = Connection.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelect, PageSize, Offset))
 			{
-				var output = new List<User>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new User()
-						{
-							IsRecordActive = true,
-							MustChangePassword = !dataReader.IsDBNull(3),
-							Password = dataReader.GetString(2),
-							RecordID = dataReader.GetInt32(0),
-							Username = dataReader.GetString(1)
-						});
-					}
-				}
-
-				return output.AsQueryable();
+				return ReadDataReader(dataReader);
 			}
 		}
 
 		/// <inheritdoc />
 		public IQueryable<User> Get(bool isRecordActive)
-		{
-			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1";
-
-			using (DbDataReader dataReader = Connection.ExecuteReader(query))
-			{
-				var output = new List<User>();
-				if (dataReader.HasRows)
-				{
-					while (dataReader.Read())
-					{
-						output.Add(new User()
-						{
-							IsRecordActive = true,
-							MustChangePassword = !dataReader.IsDBNull(3),
-							Password = dataReader.GetString(2),
-							RecordID = dataReader.GetInt32(0),
-							Username = dataReader.GetString(1)
-						});
-					}
-				}
-
-				return output.AsQueryable();
-			}
-		}
+			=> Get();
 
 		/// <inheritdoc />
 		public User Get(int id)
 		{
-			string query = $"SELECT A1_COD, A1_LOGIN, A1_PWD, A1_ALTPWD FROM hta1 WHERE A1_COD = {id}";
-
-			using (DbDataReader dataReader = Connection.ExecuteReader(query))
+			using (DbDataReader dataReader = Connection.ExecuteReader(QuerySelectID, id))
 			{
-				var output = new User();
-				if (dataReader.HasRows)
-				{
-					dataReader.Read();
+				IQueryable<User> records = ReadDataReader(dataReader);
 
-					output.IsRecordActive = true;
-					output.MustChangePassword = !dataReader.IsDBNull(3);
-					output.Password = dataReader.GetString(2);
-					output.RecordID = dataReader.GetInt32(0);
-					output.Username = dataReader.GetString(1);
-				}
-
-				return output;
+				return records.FirstOrDefault() ?? User.Null;
 			}
+		}
+
+		/// <summary>Faz a leitura do <see cref="DbDataReader"/>.</summary>
+		/// <param name="dataReader">Objeto para ler.</param>
+		/// <returns>Todos os objetos no <see cref="DbDataReader"/>.</returns>
+		private IQueryable<User> ReadDataReader(DbDataReader dataReader)
+		{
+			var output = new List<User>();
+
+			if (dataReader.HasRows)
+			{
+				while (dataReader.Read())
+				{
+					output.Add(new User()
+					{
+						IsRecordActive = true,
+						RecordID = dataReader.GetInt32(0),
+						Username = dataReader.GetString(1),
+						Password = dataReader.GetString(2),
+						MustChangePassword = (dataReader.GetInt32(3) == 1)
+					});
+				}
+			}
+
+			dataReader.Close();
+			return output.AsQueryable();
 		}
 
 		/// <inheritdoc />
 		public void Update(User obj)
 		{
-			string query = $"UPDATE hta1 SET A1_LOGIN = '{obj.Username}', A1_PWD = '{obj.Password}', " +
-						   $"A1_ALTPWD = {(obj.MustChangePassword ? "'*'" : "NULL")} WHERE A1_COD = {obj.RecordID}";
-			Connection.ExecuteQuery(query);
+			Checker.NullObject(obj, nameof(obj));
+
+			Connection.ExecuteQuery(QueryUpdate, obj.Username, obj.Password, obj.MustChangePassword, obj.RecordID);
 		}
 
 		/// <inheritdoc />
 		public void Update(IEnumerable<User> collection)
 		{
+			Checker.NullObject(collection, nameof(collection));
+
 			foreach (User obj in collection)
 			{
 				Update(obj);

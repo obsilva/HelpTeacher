@@ -54,6 +54,7 @@
     <Compile Include="Repositories\ExamRepositoryTest.cs" />
     <Compile Include="Repositories\QuestionRepositoryTest.cs" />
     <Compile Include="Repositories\SubjectRepositoryTest.cs" />
+    <Compile Include="Repositories\UserRepositoryTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HelpTeacher.Domain.Test\HelpTeacher.Domain.Test.csproj">
